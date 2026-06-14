@@ -26,28 +26,28 @@ export const Route = createFileRoute("/learn/")({
 
 const pillars = [
   {
-    to: "/connect" as const,
+    to: "/learn/connect" as const,
     label: "Connect",
     icon: MessageCircleHeart,
     description: "In-the-moment guides for the hardest behaviors.",
     tone: "bg-sky-soft",
   },
   {
-    to: "/understand" as const,
+    to: "/learn/understand" as const,
     label: "Understand",
     icon: BookOpen,
     description: "Why dementia changes memory, mood, and behavior.",
     tone: "bg-sage/40",
   },
   {
-    to: "/journey" as const,
+    to: "/learn/journey" as const,
     label: "Journey",
     icon: Compass,
     description: "A gentle road map of what to expect over time.",
     tone: "bg-warm/70",
   },
   {
-    to: "/support" as const,
+    to: "/learn/support" as const,
     label: "Support",
     icon: LifeBuoy,
     description: "Resources, tips, and reminders for caregivers.",

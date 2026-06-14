@@ -10,7 +10,13 @@ import {
 } from "lucide-react";
 
 type Tab = {
-  to: "/" | "/connect" | "/understand" | "/journey" | "/support" | "/coach";
+  to:
+    | "/learn"
+    | "/learn/connect"
+    | "/learn/understand"
+    | "/learn/journey"
+    | "/learn/support"
+    | "/learn/coach";
   label: string;
   shortLabel?: string;
   icon: typeof Heart;
@@ -18,12 +24,12 @@ type Tab = {
 };
 
 const tabs: Tab[] = [
-  { to: "/", label: "Home", icon: Heart, exact: true },
-  { to: "/connect", label: "Connect", icon: MessageCircleHeart },
-  { to: "/understand", label: "Understand", icon: BookOpen },
-  { to: "/journey", label: "Journey", icon: Compass },
-  { to: "/support", label: "Support", icon: LifeBuoy },
-  { to: "/coach", label: "AI Coach", shortLabel: "Coach", icon: Sparkles },
+  { to: "/learn", label: "Home", icon: Heart, exact: true },
+  { to: "/learn/connect", label: "Connect", icon: MessageCircleHeart },
+  { to: "/learn/understand", label: "Understand", icon: BookOpen },
+  { to: "/learn/journey", label: "Journey", icon: Compass },
+  { to: "/learn/support", label: "Support", icon: LifeBuoy },
+  { to: "/learn/coach", label: "AI Coach", shortLabel: "Coach", icon: Sparkles },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -32,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
-          <Link to="/" className="flex shrink-0 items-center gap-2.5">
+          <Link to="/learn" className="flex shrink-0 items-center gap-2.5">
             <img
               src={logo}
               alt=""
@@ -65,7 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
           <Link
-            to="/coach"
+            to="/learn/coach"
             className="hidden shrink-0 items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground sm:inline-flex md:hidden"
           >
             <Sparkles className="h-3.5 w-3.5" />
