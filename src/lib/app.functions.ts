@@ -1,6 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+
+function getOrigin(): string | undefined {
+  try {
+    const req = getRequest();
+    const origin = req?.headers.get("origin") ?? req?.headers.get("referer");
+    if (origin) return new URL(origin).origin;
+  } catch {}
+  return undefined;
+}
 
 // ---------- Public ----------
 
