@@ -531,6 +531,13 @@ export const inviteAdmin = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
+    // Non-super admins can only invite into their own facility
+    if (!(await isSuperAdmin(context.supabase, context.userId))) {
+      const ownFid = await getAdminFacilityId(context.supabase, context.userId);
+      if (!ownFid || ownFid !== data.facility_id) {
+        throw new Error("Admins can only invite within their facility.");
+      }
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const origin = getOrigin();
     const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
