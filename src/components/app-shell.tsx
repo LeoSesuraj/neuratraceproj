@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import logo from "@/assets/neurotrace-logo.png";
 import {
+  ArrowLeft,
   BookOpen,
   Heart,
   LifeBuoy,
