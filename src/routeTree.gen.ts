@@ -9,15 +9,37 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UnderstandRouteImport } from './routes/understand'
+import { Route as SupportRouteImport } from './routes/support'
+import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as CoachRouteImport } from './routes/coach'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UnderstandIndexRouteImport } from './routes/understand.index'
+import { Route as SupportIndexRouteImport } from './routes/support.index'
 import { Route as ConnectIndexRouteImport } from './routes/connect.index'
 import { Route as CoachIndexRouteImport } from './routes/coach.index'
+import { Route as UnderstandTopicRouteImport } from './routes/understand.$topic'
+import { Route as SupportResourceRouteImport } from './routes/support.$resource'
 import { Route as ConnectSituationRouteImport } from './routes/connect.$situation'
 import { Route as CoachThreadIdRouteImport } from './routes/coach.$threadId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const UnderstandRoute = UnderstandRouteImport.update({
+  id: '/understand',
+  path: '/understand',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JourneyRoute = JourneyRouteImport.update({
+  id: '/journey',
+  path: '/journey',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConnectRoute = ConnectRouteImport.update({
   id: '/connect',
   path: '/connect',
@@ -33,6 +55,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UnderstandIndexRoute = UnderstandIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => UnderstandRoute,
+} as any)
+const SupportIndexRoute = SupportIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SupportRoute,
+} as any)
 const ConnectIndexRoute = ConnectIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -42,6 +74,16 @@ const CoachIndexRoute = CoachIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CoachRoute,
+} as any)
+const UnderstandTopicRoute = UnderstandTopicRouteImport.update({
+  id: '/$topic',
+  path: '/$topic',
+  getParentRoute: () => UnderstandRoute,
+} as any)
+const SupportResourceRoute = SupportResourceRouteImport.update({
+  id: '/$resource',
+  path: '/$resource',
+  getParentRoute: () => SupportRoute,
 } as any)
 const ConnectSituationRoute = ConnectSituationRouteImport.update({
   id: '/$situation',
@@ -63,30 +105,49 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/coach': typeof CoachRouteWithChildren
   '/connect': typeof ConnectRouteWithChildren
+  '/journey': typeof JourneyRoute
+  '/support': typeof SupportRouteWithChildren
+  '/understand': typeof UnderstandRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/coach/$threadId': typeof CoachThreadIdRoute
   '/connect/$situation': typeof ConnectSituationRoute
+  '/support/$resource': typeof SupportResourceRoute
+  '/understand/$topic': typeof UnderstandTopicRoute
   '/coach/': typeof CoachIndexRoute
   '/connect/': typeof ConnectIndexRoute
+  '/support/': typeof SupportIndexRoute
+  '/understand/': typeof UnderstandIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/journey': typeof JourneyRoute
   '/api/chat': typeof ApiChatRoute
   '/coach/$threadId': typeof CoachThreadIdRoute
   '/connect/$situation': typeof ConnectSituationRoute
+  '/support/$resource': typeof SupportResourceRoute
+  '/understand/$topic': typeof UnderstandTopicRoute
   '/coach': typeof CoachIndexRoute
   '/connect': typeof ConnectIndexRoute
+  '/support': typeof SupportIndexRoute
+  '/understand': typeof UnderstandIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/coach': typeof CoachRouteWithChildren
   '/connect': typeof ConnectRouteWithChildren
+  '/journey': typeof JourneyRoute
+  '/support': typeof SupportRouteWithChildren
+  '/understand': typeof UnderstandRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/coach/$threadId': typeof CoachThreadIdRoute
   '/connect/$situation': typeof ConnectSituationRoute
+  '/support/$resource': typeof SupportResourceRoute
+  '/understand/$topic': typeof UnderstandTopicRoute
   '/coach/': typeof CoachIndexRoute
   '/connect/': typeof ConnectIndexRoute
+  '/support/': typeof SupportIndexRoute
+  '/understand/': typeof UnderstandIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -94,40 +155,83 @@ export interface FileRouteTypes {
     | '/'
     | '/coach'
     | '/connect'
+    | '/journey'
+    | '/support'
+    | '/understand'
     | '/api/chat'
     | '/coach/$threadId'
     | '/connect/$situation'
+    | '/support/$resource'
+    | '/understand/$topic'
     | '/coach/'
     | '/connect/'
+    | '/support/'
+    | '/understand/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/journey'
     | '/api/chat'
     | '/coach/$threadId'
     | '/connect/$situation'
+    | '/support/$resource'
+    | '/understand/$topic'
     | '/coach'
     | '/connect'
+    | '/support'
+    | '/understand'
   id:
     | '__root__'
     | '/'
     | '/coach'
     | '/connect'
+    | '/journey'
+    | '/support'
+    | '/understand'
     | '/api/chat'
     | '/coach/$threadId'
     | '/connect/$situation'
+    | '/support/$resource'
+    | '/understand/$topic'
     | '/coach/'
     | '/connect/'
+    | '/support/'
+    | '/understand/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CoachRoute: typeof CoachRouteWithChildren
   ConnectRoute: typeof ConnectRouteWithChildren
+  JourneyRoute: typeof JourneyRoute
+  SupportRoute: typeof SupportRouteWithChildren
+  UnderstandRoute: typeof UnderstandRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/understand': {
+      id: '/understand'
+      path: '/understand'
+      fullPath: '/understand'
+      preLoaderRoute: typeof UnderstandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journey': {
+      id: '/journey'
+      path: '/journey'
+      fullPath: '/journey'
+      preLoaderRoute: typeof JourneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/connect': {
       id: '/connect'
       path: '/connect'
@@ -149,6 +253,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/understand/': {
+      id: '/understand/'
+      path: '/'
+      fullPath: '/understand/'
+      preLoaderRoute: typeof UnderstandIndexRouteImport
+      parentRoute: typeof UnderstandRoute
+    }
+    '/support/': {
+      id: '/support/'
+      path: '/'
+      fullPath: '/support/'
+      preLoaderRoute: typeof SupportIndexRouteImport
+      parentRoute: typeof SupportRoute
+    }
     '/connect/': {
       id: '/connect/'
       path: '/'
@@ -162,6 +280,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/coach/'
       preLoaderRoute: typeof CoachIndexRouteImport
       parentRoute: typeof CoachRoute
+    }
+    '/understand/$topic': {
+      id: '/understand/$topic'
+      path: '/$topic'
+      fullPath: '/understand/$topic'
+      preLoaderRoute: typeof UnderstandTopicRouteImport
+      parentRoute: typeof UnderstandRoute
+    }
+    '/support/$resource': {
+      id: '/support/$resource'
+      path: '/$resource'
+      fullPath: '/support/$resource'
+      preLoaderRoute: typeof SupportResourceRouteImport
+      parentRoute: typeof SupportRoute
     }
     '/connect/$situation': {
       id: '/connect/$situation'
@@ -212,12 +344,52 @@ const ConnectRouteChildren: ConnectRouteChildren = {
 const ConnectRouteWithChildren =
   ConnectRoute._addFileChildren(ConnectRouteChildren)
 
+interface SupportRouteChildren {
+  SupportResourceRoute: typeof SupportResourceRoute
+  SupportIndexRoute: typeof SupportIndexRoute
+}
+
+const SupportRouteChildren: SupportRouteChildren = {
+  SupportResourceRoute: SupportResourceRoute,
+  SupportIndexRoute: SupportIndexRoute,
+}
+
+const SupportRouteWithChildren =
+  SupportRoute._addFileChildren(SupportRouteChildren)
+
+interface UnderstandRouteChildren {
+  UnderstandTopicRoute: typeof UnderstandTopicRoute
+  UnderstandIndexRoute: typeof UnderstandIndexRoute
+}
+
+const UnderstandRouteChildren: UnderstandRouteChildren = {
+  UnderstandTopicRoute: UnderstandTopicRoute,
+  UnderstandIndexRoute: UnderstandIndexRoute,
+}
+
+const UnderstandRouteWithChildren = UnderstandRoute._addFileChildren(
+  UnderstandRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CoachRoute: CoachRouteWithChildren,
   ConnectRoute: ConnectRouteWithChildren,
+  JourneyRoute: JourneyRoute,
+  SupportRoute: SupportRouteWithChildren,
+  UnderstandRoute: UnderstandRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
