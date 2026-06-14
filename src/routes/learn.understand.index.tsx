@@ -24,7 +24,7 @@ function UnderstandIndex() {
         {understandTopics.map((t) => (
           <li key={t.slug}>
             <Link
-              to="/understand/$topic"
+              to="/learn/understand/$topic"
               params={{ topic: t.slug }}
               className="group flex h-full items-start gap-3 rounded-3xl border border-border/70 bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
             >

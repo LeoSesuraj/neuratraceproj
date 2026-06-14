@@ -22,7 +22,7 @@ export const Route = createFileRoute("/learn/support/$resource")({
     <AppShell>
       <p className="py-16 text-center text-muted-foreground">
         Resource not found.{" "}
-        <Link to="/support" className="text-primary underline">
+        <Link to="/learn/support" className="text-primary underline">
           Go back
         </Link>
       </p>
@@ -45,7 +45,7 @@ function ResourcePage() {
   return (
     <AppShell>
       <Link
-        to="/support"
+        to="/learn/support"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -94,7 +94,7 @@ function ResourcePage() {
           {others.map((o) => (
             <li key={o.slug}>
               <Link
-                to="/support/$resource"
+                to="/learn/support/$resource"
                 params={{ resource: o.slug }}
                 className="flex items-center justify-between rounded-2xl border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:bg-surface"
               >

@@ -10,19 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as JourneyRouteImport } from './routes/journey'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as SupportIndexRouteImport } from './routes/support.index'
-import { Route as SupportResourceRouteImport } from './routes/support.$resource'
+import { Route as LearnIndexRouteImport } from './routes/learn.index'
 import { Route as LearnUnderstandRouteImport } from './routes/learn.understand'
 import { Route as LearnSupportRouteImport } from './routes/learn.support'
+import { Route as LearnJourneyRouteImport } from './routes/learn.journey'
 import { Route as LearnConnectRouteImport } from './routes/learn.connect'
 import { Route as LearnCoachRouteImport } from './routes/learn.coach'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as LearnUnderstandIndexRouteImport } from './routes/learn.understand.index'
+import { Route as LearnSupportIndexRouteImport } from './routes/learn.support.index'
 import { Route as LearnConnectIndexRouteImport } from './routes/learn.connect.index'
 import { Route as LearnCoachIndexRouteImport } from './routes/learn.coach.index'
 import { Route as LearnUnderstandTopicRouteImport } from './routes/learn.understand.$topic'
+import { Route as LearnSupportResourceRouteImport } from './routes/learn.support.$resource'
 import { Route as LearnConnectSituationRouteImport } from './routes/learn.connect.$situation'
 import { Route as LearnCoachThreadIdRouteImport } from './routes/learn.coach.$threadId'
 
@@ -31,25 +31,10 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const JourneyRoute = JourneyRouteImport.update({
-  id: '/journey',
-  path: '/journey',
+const LearnIndexRoute = LearnIndexRouteImport.update({
+  id: '/learn/',
+  path: '/learn/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SupportIndexRoute = SupportIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SupportRoute,
-} as any)
-const SupportResourceRoute = SupportResourceRouteImport.update({
-  id: '/$resource',
-  path: '/$resource',
-  getParentRoute: () => SupportRoute,
 } as any)
 const LearnUnderstandRoute = LearnUnderstandRouteImport.update({
   id: '/learn/understand',
@@ -59,6 +44,11 @@ const LearnUnderstandRoute = LearnUnderstandRouteImport.update({
 const LearnSupportRoute = LearnSupportRouteImport.update({
   id: '/learn/support',
   path: '/learn/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnJourneyRoute = LearnJourneyRouteImport.update({
+  id: '/learn/journey',
+  path: '/learn/journey',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LearnConnectRoute = LearnConnectRouteImport.update({
@@ -81,6 +71,11 @@ const LearnUnderstandIndexRoute = LearnUnderstandIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LearnUnderstandRoute,
 } as any)
+const LearnSupportIndexRoute = LearnSupportIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LearnSupportRoute,
+} as any)
 const LearnConnectIndexRoute = LearnConnectIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -96,6 +91,11 @@ const LearnUnderstandTopicRoute = LearnUnderstandTopicRouteImport.update({
   path: '/$topic',
   getParentRoute: () => LearnUnderstandRoute,
 } as any)
+const LearnSupportResourceRoute = LearnSupportResourceRouteImport.update({
+  id: '/$resource',
+  path: '/$resource',
+  getParentRoute: () => LearnSupportRoute,
+} as any)
 const LearnConnectSituationRoute = LearnConnectSituationRouteImport.update({
   id: '/$situation',
   path: '/$situation',
@@ -108,120 +108,118 @@ const LearnCoachThreadIdRoute = LearnCoachThreadIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/journey': typeof JourneyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/chat': typeof ApiChatRoute
   '/learn/coach': typeof LearnCoachRouteWithChildren
   '/learn/connect': typeof LearnConnectRouteWithChildren
-  '/learn/support': typeof LearnSupportRoute
+  '/learn/journey': typeof LearnJourneyRoute
+  '/learn/support': typeof LearnSupportRouteWithChildren
   '/learn/understand': typeof LearnUnderstandRouteWithChildren
-  '/support/$resource': typeof SupportResourceRoute
-  '/support/': typeof SupportIndexRoute
+  '/learn/': typeof LearnIndexRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
+  '/learn/support/$resource': typeof LearnSupportResourceRoute
   '/learn/understand/$topic': typeof LearnUnderstandTopicRoute
   '/learn/coach/': typeof LearnCoachIndexRoute
   '/learn/connect/': typeof LearnConnectIndexRoute
+  '/learn/support/': typeof LearnSupportIndexRoute
   '/learn/understand/': typeof LearnUnderstandIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/journey': typeof JourneyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/chat': typeof ApiChatRoute
-  '/learn/support': typeof LearnSupportRoute
-  '/support/$resource': typeof SupportResourceRoute
-  '/support': typeof SupportIndexRoute
+  '/learn/journey': typeof LearnJourneyRoute
+  '/learn': typeof LearnIndexRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
+  '/learn/support/$resource': typeof LearnSupportResourceRoute
   '/learn/understand/$topic': typeof LearnUnderstandTopicRoute
   '/learn/coach': typeof LearnCoachIndexRoute
   '/learn/connect': typeof LearnConnectIndexRoute
+  '/learn/support': typeof LearnSupportIndexRoute
   '/learn/understand': typeof LearnUnderstandIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/journey': typeof JourneyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/chat': typeof ApiChatRoute
   '/learn/coach': typeof LearnCoachRouteWithChildren
   '/learn/connect': typeof LearnConnectRouteWithChildren
-  '/learn/support': typeof LearnSupportRoute
+  '/learn/journey': typeof LearnJourneyRoute
+  '/learn/support': typeof LearnSupportRouteWithChildren
   '/learn/understand': typeof LearnUnderstandRouteWithChildren
-  '/support/$resource': typeof SupportResourceRoute
-  '/support/': typeof SupportIndexRoute
+  '/learn/': typeof LearnIndexRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
+  '/learn/support/$resource': typeof LearnSupportResourceRoute
   '/learn/understand/$topic': typeof LearnUnderstandTopicRoute
   '/learn/coach/': typeof LearnCoachIndexRoute
   '/learn/connect/': typeof LearnConnectIndexRoute
+  '/learn/support/': typeof LearnSupportIndexRoute
   '/learn/understand/': typeof LearnUnderstandIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/journey'
     | '/sitemap.xml'
     | '/api/chat'
     | '/learn/coach'
     | '/learn/connect'
+    | '/learn/journey'
     | '/learn/support'
     | '/learn/understand'
-    | '/support/$resource'
-    | '/support/'
+    | '/learn/'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
+    | '/learn/support/$resource'
     | '/learn/understand/$topic'
     | '/learn/coach/'
     | '/learn/connect/'
+    | '/learn/support/'
     | '/learn/understand/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
-    | '/journey'
     | '/sitemap.xml'
     | '/api/chat'
-    | '/learn/support'
-    | '/support/$resource'
-    | '/support'
+    | '/learn/journey'
+    | '/learn'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
+    | '/learn/support/$resource'
     | '/learn/understand/$topic'
     | '/learn/coach'
     | '/learn/connect'
+    | '/learn/support'
     | '/learn/understand'
   id:
     | '__root__'
-    | '/'
-    | '/journey'
     | '/sitemap.xml'
     | '/api/chat'
     | '/learn/coach'
     | '/learn/connect'
+    | '/learn/journey'
     | '/learn/support'
     | '/learn/understand'
-    | '/support/$resource'
-    | '/support/'
+    | '/learn/'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
+    | '/learn/support/$resource'
     | '/learn/understand/$topic'
     | '/learn/coach/'
     | '/learn/connect/'
+    | '/learn/support/'
     | '/learn/understand/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  JourneyRoute: typeof JourneyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiChatRoute: typeof ApiChatRoute
   LearnCoachRoute: typeof LearnCoachRouteWithChildren
   LearnConnectRoute: typeof LearnConnectRouteWithChildren
-  LearnSupportRoute: typeof LearnSupportRoute
+  LearnJourneyRoute: typeof LearnJourneyRoute
+  LearnSupportRoute: typeof LearnSupportRouteWithChildren
   LearnUnderstandRoute: typeof LearnUnderstandRouteWithChildren
+  LearnIndexRoute: typeof LearnIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -233,33 +231,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/journey': {
-      id: '/journey'
-      path: '/journey'
-      fullPath: '/journey'
-      preLoaderRoute: typeof JourneyRouteImport
+    '/learn/': {
+      id: '/learn/'
+      path: '/learn'
+      fullPath: '/learn/'
+      preLoaderRoute: typeof LearnIndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/support/': {
-      id: '/support/'
-      path: '/'
-      fullPath: '/support/'
-      preLoaderRoute: typeof SupportIndexRouteImport
-      parentRoute: typeof SupportRoute
-    }
-    '/support/$resource': {
-      id: '/support/$resource'
-      path: '/$resource'
-      fullPath: '/support/$resource'
-      preLoaderRoute: typeof SupportResourceRouteImport
-      parentRoute: typeof SupportRoute
     }
     '/learn/understand': {
       id: '/learn/understand'
@@ -273,6 +250,13 @@ declare module '@tanstack/react-router' {
       path: '/learn/support'
       fullPath: '/learn/support'
       preLoaderRoute: typeof LearnSupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/journey': {
+      id: '/learn/journey'
+      path: '/learn/journey'
+      fullPath: '/learn/journey'
+      preLoaderRoute: typeof LearnJourneyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/learn/connect': {
@@ -303,6 +287,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LearnUnderstandIndexRouteImport
       parentRoute: typeof LearnUnderstandRoute
     }
+    '/learn/support/': {
+      id: '/learn/support/'
+      path: '/'
+      fullPath: '/learn/support/'
+      preLoaderRoute: typeof LearnSupportIndexRouteImport
+      parentRoute: typeof LearnSupportRoute
+    }
     '/learn/connect/': {
       id: '/learn/connect/'
       path: '/'
@@ -323,6 +314,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/learn/understand/$topic'
       preLoaderRoute: typeof LearnUnderstandTopicRouteImport
       parentRoute: typeof LearnUnderstandRoute
+    }
+    '/learn/support/$resource': {
+      id: '/learn/support/$resource'
+      path: '/$resource'
+      fullPath: '/learn/support/$resource'
+      preLoaderRoute: typeof LearnSupportResourceRouteImport
+      parentRoute: typeof LearnSupportRoute
     }
     '/learn/connect/$situation': {
       id: '/learn/connect/$situation'
@@ -369,6 +367,20 @@ const LearnConnectRouteWithChildren = LearnConnectRoute._addFileChildren(
   LearnConnectRouteChildren,
 )
 
+interface LearnSupportRouteChildren {
+  LearnSupportResourceRoute: typeof LearnSupportResourceRoute
+  LearnSupportIndexRoute: typeof LearnSupportIndexRoute
+}
+
+const LearnSupportRouteChildren: LearnSupportRouteChildren = {
+  LearnSupportResourceRoute: LearnSupportResourceRoute,
+  LearnSupportIndexRoute: LearnSupportIndexRoute,
+}
+
+const LearnSupportRouteWithChildren = LearnSupportRoute._addFileChildren(
+  LearnSupportRouteChildren,
+)
+
 interface LearnUnderstandRouteChildren {
   LearnUnderstandTopicRoute: typeof LearnUnderstandTopicRoute
   LearnUnderstandIndexRoute: typeof LearnUnderstandIndexRoute
@@ -384,14 +396,14 @@ const LearnUnderstandRouteWithChildren = LearnUnderstandRoute._addFileChildren(
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  JourneyRoute: JourneyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiChatRoute: ApiChatRoute,
   LearnCoachRoute: LearnCoachRouteWithChildren,
   LearnConnectRoute: LearnConnectRouteWithChildren,
-  LearnSupportRoute: LearnSupportRoute,
+  LearnJourneyRoute: LearnJourneyRoute,
+  LearnSupportRoute: LearnSupportRouteWithChildren,
   LearnUnderstandRoute: LearnUnderstandRouteWithChildren,
+  LearnIndexRoute: LearnIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
