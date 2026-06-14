@@ -1,0 +1,15 @@
+import { Outlet, createFileRoute } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/coach")({
+  head: () => ({
+    meta: [
+      { title: "AI Coach — NeuroTrace" },
+      {
+        name: "description",
+        content:
+          "A warm, practical AI coach for the hardest dementia caregiving moments.",
+      },
+    ],
+  }),
+  component: () => <Outlet />,
+});
