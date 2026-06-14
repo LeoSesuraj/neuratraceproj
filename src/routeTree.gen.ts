@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as LearnIndexRouteImport } from './routes/learn.index'
 import { Route as LearnUnderstandRouteImport } from './routes/learn.understand'
 import { Route as LearnSupportRouteImport } from './routes/learn.support'
@@ -29,6 +30,11 @@ import { Route as LearnCoachThreadIdRouteImport } from './routes/learn.coach.$th
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LearnIndexRoute = LearnIndexRouteImport.update({
@@ -108,6 +114,7 @@ const LearnCoachThreadIdRoute = LearnCoachThreadIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/chat': typeof ApiChatRoute
   '/learn/coach': typeof LearnCoachRouteWithChildren
@@ -126,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/learn/understand/': typeof LearnUnderstandIndexRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/chat': typeof ApiChatRoute
   '/learn/journey': typeof LearnJourneyRoute
@@ -141,6 +149,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/chat': typeof ApiChatRoute
   '/learn/coach': typeof LearnCoachRouteWithChildren
@@ -161,6 +170,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/sitemap.xml'
     | '/api/chat'
     | '/learn/coach'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/learn/understand/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/sitemap.xml'
     | '/api/chat'
     | '/learn/journey'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/learn/understand'
   id:
     | '__root__'
+    | '/'
     | '/sitemap.xml'
     | '/api/chat'
     | '/learn/coach'
@@ -212,6 +224,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiChatRoute: typeof ApiChatRoute
   LearnCoachRoute: typeof LearnCoachRouteWithChildren
@@ -229,6 +242,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/learn/': {
@@ -396,6 +416,7 @@ const LearnUnderstandRouteWithChildren = LearnUnderstandRoute._addFileChildren(
 )
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiChatRoute: ApiChatRoute,
   LearnCoachRoute: LearnCoachRouteWithChildren,
