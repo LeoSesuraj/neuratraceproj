@@ -18,8 +18,8 @@ export default defineConfig({
   },
   vite: {
     define: {
-      "process.env.SUPABASE_URL": JSON.stringify(SUPABASE_URL),
-      "process.env.SUPABASE_PUBLISHABLE_KEY": JSON.stringify(SUPABASE_PUBLISHABLE_KEY),
+      ...(SUPABASE_URL ? { "process.env.SUPABASE_URL": JSON.stringify(SUPABASE_URL) } : {}),
+      ...(SUPABASE_PUBLISHABLE_KEY ? { "process.env.SUPABASE_PUBLISHABLE_KEY": JSON.stringify(SUPABASE_PUBLISHABLE_KEY) } : {}),
     },
   },
 });
