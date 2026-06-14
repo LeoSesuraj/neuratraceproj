@@ -1,6 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import logo from "@/assets/neurotrace-logo.png";
-import { ArrowRight, BookOpen, LogIn, UserPlus, Users } from "lucide-react";
+import { BookOpen, UserPlus, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { getMyRole } from "@/lib/app.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,64 +19,73 @@ export const Route = createFileRoute("/")({
   component: LandingPage,
 });
 
-type Card = {
-  to:
-    | "/auth/login"
-    | "/auth/join-staff"
-    | "/auth/join-family"
-    | "/learn";
-  icon: typeof LogIn;
+type SecondaryCard = {
+  to: "/auth/join-staff" | "/auth/join-family" | "/learn";
+  icon: typeof UserPlus;
   label: string;
   description: string;
   tone: string;
-  primary?: boolean;
+  iconColor: string;
 };
 
-const loginCard = {
-
-  to: "/auth/login" as const,
-  icon: LogIn,
-  label: "Log in",
-  description:
-    "For admins, staff, and family members who already have an account.",
-  tone: "bg-sky-soft",
-};
-
-const secondaryCards: Card[] = [
+const secondaryCards: SecondaryCard[] = [
   {
     to: "/auth/join-staff",
     icon: UserPlus,
     label: "Join as Staff",
-    description:
-      "Request access to your facility. An admin will approve your request.",
+    description: "Request access to your facility.",
     tone: "bg-sage/40",
+    iconColor: "text-foreground",
   },
   {
     to: "/auth/join-family",
     icon: Users,
     label: "Join as Family",
-    description:
-      "Have an invite link from staff? Create your family account here.",
+    description: "Have an invite link? Get started here.",
     tone: "bg-warm/70",
+    iconColor: "text-foreground",
   },
   {
     to: "/learn",
     icon: BookOpen,
     label: "Learn about dementia",
-    description:
-      "Free guides, articles, and an AI coach — no account required.",
-    tone: "bg-surface-soft",
+    description: "Free guides & AI coach. No account needed.",
+    tone: "bg-sky-soft",
+    iconColor: "text-foreground",
   },
 ];
 
 function LandingPage() {
-  const PrimaryIcon = loginCard.icon;
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      const { role } = await getMyRole();
+      if (role === "admin") navigate({ to: "/admin" });
+      else if (role === "staff") navigate({ to: "/staff" });
+      else navigate({ to: "/resident" });
+    } catch (e: any) {
+      setError(e.message ?? "Sign in failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      <main className="mx-auto max-w-3xl px-5 py-10 sm:py-16">
+      <main className="mx-auto max-w-2xl px-5 py-10 sm:py-16">
         <header className="flex flex-col items-center text-center">
           <img src={logo} alt="" width={88} height={88} className="h-22 w-22" style={{ height: 88, width: 88 }} />
-          <h1 className="mt-5 text-4xl leading-[1.05] sm:text-5xl">
+          <h1 className="mt-5 text-4xl leading-[1.05] sm:text-6xl">
             Welcome to <span className="text-primary">NeuroTrace</span>
           </h1>
           <p className="mt-4 max-w-lg text-base text-muted-foreground sm:text-lg">
@@ -82,24 +94,48 @@ function LandingPage() {
           </p>
         </header>
 
-        <Link
-          to={loginCard.to}
-          className="group mt-10 flex items-start gap-5 rounded-3xl border border-primary/30 bg-card p-7 shadow-lift ring-1 ring-primary/20 transition-all hover:-translate-y-0.5 sm:p-9"
-        >
-          <div className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl ${loginCard.tone} sm:h-20 sm:w-20`}>
-            <PrimaryIcon className="h-8 w-8 text-foreground sm:h-9 sm:w-9" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-2xl leading-snug sm:text-3xl">{loginCard.label}</h2>
-            <p className="mt-2 text-base text-muted-foreground">
-              {loginCard.description}
+        <form onSubmit={onSubmit} className="mt-10 space-y-5">
+          <label className="block">
+            <span className="text-sm font-medium">Email</span>
+            <input
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-2 w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium">Password</span>
+            <input
+              type="password"
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-2 w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </label>
+          {error && (
+            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {error}
             </p>
-            <div className="mt-4 flex items-center gap-1 text-sm font-medium text-primary">
-              Continue
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </div>
-          </div>
-        </Link>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-full bg-primary px-4 py-3.5 text-base font-semibold text-primary-foreground shadow-soft transition-opacity hover:opacity-95 disabled:opacity-50"
+          >
+            {loading ? "Signing in…" : "Sign in"}
+          </button>
+        </form>
+
+        <div className="mt-10 flex items-center gap-4">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-sm text-muted-foreground">Or get started another way</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
 
         <ul className="mt-6 grid gap-3 sm:grid-cols-3">
           {secondaryCards.map((c) => {
@@ -108,29 +144,18 @@ function LandingPage() {
               <li key={c.to}>
                 <Link
                   to={c.to}
-                  className="group flex h-full items-start gap-3 rounded-3xl border border-border/70 bg-card p-4 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+                  className="group flex h-full flex-col items-center gap-3 rounded-3xl border border-border/70 bg-card p-5 text-center shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
                 >
-                  <div
-                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-2xl ${c.tone}`}
-                  >
-                    <Icon className="h-4 w-4 text-foreground" />
+                  <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${c.tone}`}>
+                    <Icon className={`h-5 w-5 ${c.iconColor}`} />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-sm font-semibold leading-snug">{c.label}</h2>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {c.description}
-                    </p>
-                    <div className="mt-2 flex items-center gap-1 text-xs font-medium text-primary">
-                      Continue
-                      <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                    </div>
-                  </div>
+                  <h2 className="text-base font-semibold leading-snug">{c.label}</h2>
+                  <p className="text-sm text-muted-foreground">{c.description}</p>
                 </Link>
               </li>
             );
           })}
         </ul>
-
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
           NeuroTrace is for education and emotional support only. It is not a
