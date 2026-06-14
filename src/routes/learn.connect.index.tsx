@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { situations } from "@/lib/situations";
 import { ArrowRight, MessageCircleHeart } from "lucide-react";
 
-export const Route = createFileRoute("/connect/")({
+export const Route = createFileRoute("/learn/connect/")({
   head: () => ({
     meta: [
       { title: "Connect — NeuroTrace" },

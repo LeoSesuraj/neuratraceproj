@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { understandTopics } from "@/lib/understand";
 import { ArrowRight, BookOpen } from "lucide-react";
 
-export const Route = createFileRoute("/understand/")({
+export const Route = createFileRoute("/learn/understand/")({
   component: UnderstandIndex,
 });
 

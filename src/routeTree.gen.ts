@@ -9,33 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UnderstandRouteImport } from './routes/understand'
-import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as JourneyRouteImport } from './routes/journey'
-import { Route as ConnectRouteImport } from './routes/connect'
-import { Route as CoachRouteImport } from './routes/coach'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as UnderstandIndexRouteImport } from './routes/understand.index'
 import { Route as SupportIndexRouteImport } from './routes/support.index'
-import { Route as ConnectIndexRouteImport } from './routes/connect.index'
-import { Route as CoachIndexRouteImport } from './routes/coach.index'
-import { Route as UnderstandTopicRouteImport } from './routes/understand.$topic'
 import { Route as SupportResourceRouteImport } from './routes/support.$resource'
-import { Route as ConnectSituationRouteImport } from './routes/connect.$situation'
-import { Route as CoachThreadIdRouteImport } from './routes/coach.$threadId'
+import { Route as LearnUnderstandRouteImport } from './routes/learn.understand'
+import { Route as LearnSupportRouteImport } from './routes/learn.support'
+import { Route as LearnConnectRouteImport } from './routes/learn.connect'
+import { Route as LearnCoachRouteImport } from './routes/learn.coach'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as LearnUnderstandIndexRouteImport } from './routes/learn.understand.index'
+import { Route as LearnConnectIndexRouteImport } from './routes/learn.connect.index'
+import { Route as LearnCoachIndexRouteImport } from './routes/learn.coach.index'
+import { Route as LearnUnderstandTopicRouteImport } from './routes/learn.understand.$topic'
+import { Route as LearnConnectSituationRouteImport } from './routes/learn.connect.$situation'
+import { Route as LearnCoachThreadIdRouteImport } from './routes/learn.coach.$threadId'
 
-const UnderstandRoute = UnderstandRouteImport.update({
-  id: '/understand',
-  path: '/understand',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SupportRoute = SupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -46,198 +36,196 @@ const JourneyRoute = JourneyRouteImport.update({
   path: '/journey',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConnectRoute = ConnectRouteImport.update({
-  id: '/connect',
-  path: '/connect',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CoachRoute = CoachRouteImport.update({
-  id: '/coach',
-  path: '/coach',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const UnderstandIndexRoute = UnderstandIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => UnderstandRoute,
 } as any)
 const SupportIndexRoute = SupportIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => SupportRoute,
 } as any)
-const ConnectIndexRoute = ConnectIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ConnectRoute,
-} as any)
-const CoachIndexRoute = CoachIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => CoachRoute,
-} as any)
-const UnderstandTopicRoute = UnderstandTopicRouteImport.update({
-  id: '/$topic',
-  path: '/$topic',
-  getParentRoute: () => UnderstandRoute,
-} as any)
 const SupportResourceRoute = SupportResourceRouteImport.update({
   id: '/$resource',
   path: '/$resource',
   getParentRoute: () => SupportRoute,
 } as any)
-const ConnectSituationRoute = ConnectSituationRouteImport.update({
-  id: '/$situation',
-  path: '/$situation',
-  getParentRoute: () => ConnectRoute,
+const LearnUnderstandRoute = LearnUnderstandRouteImport.update({
+  id: '/learn/understand',
+  path: '/learn/understand',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const CoachThreadIdRoute = CoachThreadIdRouteImport.update({
-  id: '/$threadId',
-  path: '/$threadId',
-  getParentRoute: () => CoachRoute,
+const LearnSupportRoute = LearnSupportRouteImport.update({
+  id: '/learn/support',
+  path: '/learn/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnConnectRoute = LearnConnectRouteImport.update({
+  id: '/learn/connect',
+  path: '/learn/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnCoachRoute = LearnCoachRouteImport.update({
+  id: '/learn/coach',
+  path: '/learn/coach',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LearnUnderstandIndexRoute = LearnUnderstandIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LearnUnderstandRoute,
+} as any)
+const LearnConnectIndexRoute = LearnConnectIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LearnConnectRoute,
+} as any)
+const LearnCoachIndexRoute = LearnCoachIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LearnCoachRoute,
+} as any)
+const LearnUnderstandTopicRoute = LearnUnderstandTopicRouteImport.update({
+  id: '/$topic',
+  path: '/$topic',
+  getParentRoute: () => LearnUnderstandRoute,
+} as any)
+const LearnConnectSituationRoute = LearnConnectSituationRouteImport.update({
+  id: '/$situation',
+  path: '/$situation',
+  getParentRoute: () => LearnConnectRoute,
+} as any)
+const LearnCoachThreadIdRoute = LearnCoachThreadIdRouteImport.update({
+  id: '/$threadId',
+  path: '/$threadId',
+  getParentRoute: () => LearnCoachRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/coach': typeof CoachRouteWithChildren
-  '/connect': typeof ConnectRouteWithChildren
   '/journey': typeof JourneyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/support': typeof SupportRouteWithChildren
-  '/understand': typeof UnderstandRouteWithChildren
   '/api/chat': typeof ApiChatRoute
-  '/coach/$threadId': typeof CoachThreadIdRoute
-  '/connect/$situation': typeof ConnectSituationRoute
+  '/learn/coach': typeof LearnCoachRouteWithChildren
+  '/learn/connect': typeof LearnConnectRouteWithChildren
+  '/learn/support': typeof LearnSupportRoute
+  '/learn/understand': typeof LearnUnderstandRouteWithChildren
   '/support/$resource': typeof SupportResourceRoute
-  '/understand/$topic': typeof UnderstandTopicRoute
-  '/coach/': typeof CoachIndexRoute
-  '/connect/': typeof ConnectIndexRoute
   '/support/': typeof SupportIndexRoute
-  '/understand/': typeof UnderstandIndexRoute
+  '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
+  '/learn/connect/$situation': typeof LearnConnectSituationRoute
+  '/learn/understand/$topic': typeof LearnUnderstandTopicRoute
+  '/learn/coach/': typeof LearnCoachIndexRoute
+  '/learn/connect/': typeof LearnConnectIndexRoute
+  '/learn/understand/': typeof LearnUnderstandIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/journey': typeof JourneyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/chat': typeof ApiChatRoute
-  '/coach/$threadId': typeof CoachThreadIdRoute
-  '/connect/$situation': typeof ConnectSituationRoute
+  '/learn/support': typeof LearnSupportRoute
   '/support/$resource': typeof SupportResourceRoute
-  '/understand/$topic': typeof UnderstandTopicRoute
-  '/coach': typeof CoachIndexRoute
-  '/connect': typeof ConnectIndexRoute
   '/support': typeof SupportIndexRoute
-  '/understand': typeof UnderstandIndexRoute
+  '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
+  '/learn/connect/$situation': typeof LearnConnectSituationRoute
+  '/learn/understand/$topic': typeof LearnUnderstandTopicRoute
+  '/learn/coach': typeof LearnCoachIndexRoute
+  '/learn/connect': typeof LearnConnectIndexRoute
+  '/learn/understand': typeof LearnUnderstandIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/coach': typeof CoachRouteWithChildren
-  '/connect': typeof ConnectRouteWithChildren
   '/journey': typeof JourneyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/support': typeof SupportRouteWithChildren
-  '/understand': typeof UnderstandRouteWithChildren
   '/api/chat': typeof ApiChatRoute
-  '/coach/$threadId': typeof CoachThreadIdRoute
-  '/connect/$situation': typeof ConnectSituationRoute
+  '/learn/coach': typeof LearnCoachRouteWithChildren
+  '/learn/connect': typeof LearnConnectRouteWithChildren
+  '/learn/support': typeof LearnSupportRoute
+  '/learn/understand': typeof LearnUnderstandRouteWithChildren
   '/support/$resource': typeof SupportResourceRoute
-  '/understand/$topic': typeof UnderstandTopicRoute
-  '/coach/': typeof CoachIndexRoute
-  '/connect/': typeof ConnectIndexRoute
   '/support/': typeof SupportIndexRoute
-  '/understand/': typeof UnderstandIndexRoute
+  '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
+  '/learn/connect/$situation': typeof LearnConnectSituationRoute
+  '/learn/understand/$topic': typeof LearnUnderstandTopicRoute
+  '/learn/coach/': typeof LearnCoachIndexRoute
+  '/learn/connect/': typeof LearnConnectIndexRoute
+  '/learn/understand/': typeof LearnUnderstandIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/coach'
-    | '/connect'
     | '/journey'
     | '/sitemap.xml'
-    | '/support'
-    | '/understand'
     | '/api/chat'
-    | '/coach/$threadId'
-    | '/connect/$situation'
+    | '/learn/coach'
+    | '/learn/connect'
+    | '/learn/support'
+    | '/learn/understand'
     | '/support/$resource'
-    | '/understand/$topic'
-    | '/coach/'
-    | '/connect/'
     | '/support/'
-    | '/understand/'
+    | '/learn/coach/$threadId'
+    | '/learn/connect/$situation'
+    | '/learn/understand/$topic'
+    | '/learn/coach/'
+    | '/learn/connect/'
+    | '/learn/understand/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/journey'
     | '/sitemap.xml'
     | '/api/chat'
-    | '/coach/$threadId'
-    | '/connect/$situation'
+    | '/learn/support'
     | '/support/$resource'
-    | '/understand/$topic'
-    | '/coach'
-    | '/connect'
     | '/support'
-    | '/understand'
+    | '/learn/coach/$threadId'
+    | '/learn/connect/$situation'
+    | '/learn/understand/$topic'
+    | '/learn/coach'
+    | '/learn/connect'
+    | '/learn/understand'
   id:
     | '__root__'
     | '/'
-    | '/coach'
-    | '/connect'
     | '/journey'
     | '/sitemap.xml'
-    | '/support'
-    | '/understand'
     | '/api/chat'
-    | '/coach/$threadId'
-    | '/connect/$situation'
+    | '/learn/coach'
+    | '/learn/connect'
+    | '/learn/support'
+    | '/learn/understand'
     | '/support/$resource'
-    | '/understand/$topic'
-    | '/coach/'
-    | '/connect/'
     | '/support/'
-    | '/understand/'
+    | '/learn/coach/$threadId'
+    | '/learn/connect/$situation'
+    | '/learn/understand/$topic'
+    | '/learn/coach/'
+    | '/learn/connect/'
+    | '/learn/understand/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CoachRoute: typeof CoachRouteWithChildren
-  ConnectRoute: typeof ConnectRouteWithChildren
   JourneyRoute: typeof JourneyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  SupportRoute: typeof SupportRouteWithChildren
-  UnderstandRoute: typeof UnderstandRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
+  LearnCoachRoute: typeof LearnCoachRouteWithChildren
+  LearnConnectRoute: typeof LearnConnectRouteWithChildren
+  LearnSupportRoute: typeof LearnSupportRoute
+  LearnUnderstandRoute: typeof LearnUnderstandRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/understand': {
-      id: '/understand'
-      path: '/understand'
-      fullPath: '/understand'
-      preLoaderRoute: typeof UnderstandRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/support': {
-      id: '/support'
-      path: '/support'
-      fullPath: '/support'
-      preLoaderRoute: typeof SupportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -252,33 +240,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JourneyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/connect': {
-      id: '/connect'
-      path: '/connect'
-      fullPath: '/connect'
-      preLoaderRoute: typeof ConnectRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/coach': {
-      id: '/coach'
-      path: '/coach'
-      fullPath: '/coach'
-      preLoaderRoute: typeof CoachRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/understand/': {
-      id: '/understand/'
-      path: '/'
-      fullPath: '/understand/'
-      preLoaderRoute: typeof UnderstandIndexRouteImport
-      parentRoute: typeof UnderstandRoute
     }
     '/support/': {
       id: '/support/'
@@ -287,27 +254,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SupportIndexRouteImport
       parentRoute: typeof SupportRoute
     }
-    '/connect/': {
-      id: '/connect/'
-      path: '/'
-      fullPath: '/connect/'
-      preLoaderRoute: typeof ConnectIndexRouteImport
-      parentRoute: typeof ConnectRoute
-    }
-    '/coach/': {
-      id: '/coach/'
-      path: '/'
-      fullPath: '/coach/'
-      preLoaderRoute: typeof CoachIndexRouteImport
-      parentRoute: typeof CoachRoute
-    }
-    '/understand/$topic': {
-      id: '/understand/$topic'
-      path: '/$topic'
-      fullPath: '/understand/$topic'
-      preLoaderRoute: typeof UnderstandTopicRouteImport
-      parentRoute: typeof UnderstandRoute
-    }
     '/support/$resource': {
       id: '/support/$resource'
       path: '/$resource'
@@ -315,19 +261,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SupportResourceRouteImport
       parentRoute: typeof SupportRoute
     }
-    '/connect/$situation': {
-      id: '/connect/$situation'
-      path: '/$situation'
-      fullPath: '/connect/$situation'
-      preLoaderRoute: typeof ConnectSituationRouteImport
-      parentRoute: typeof ConnectRoute
+    '/learn/understand': {
+      id: '/learn/understand'
+      path: '/learn/understand'
+      fullPath: '/learn/understand'
+      preLoaderRoute: typeof LearnUnderstandRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/coach/$threadId': {
-      id: '/coach/$threadId'
-      path: '/$threadId'
-      fullPath: '/coach/$threadId'
-      preLoaderRoute: typeof CoachThreadIdRouteImport
-      parentRoute: typeof CoachRoute
+    '/learn/support': {
+      id: '/learn/support'
+      path: '/learn/support'
+      fullPath: '/learn/support'
+      preLoaderRoute: typeof LearnSupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/connect': {
+      id: '/learn/connect'
+      path: '/learn/connect'
+      fullPath: '/learn/connect'
+      preLoaderRoute: typeof LearnConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/coach': {
+      id: '/learn/coach'
+      path: '/learn/coach'
+      fullPath: '/learn/coach'
+      preLoaderRoute: typeof LearnCoachRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
       id: '/api/chat'
@@ -336,71 +296,113 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/learn/understand/': {
+      id: '/learn/understand/'
+      path: '/'
+      fullPath: '/learn/understand/'
+      preLoaderRoute: typeof LearnUnderstandIndexRouteImport
+      parentRoute: typeof LearnUnderstandRoute
+    }
+    '/learn/connect/': {
+      id: '/learn/connect/'
+      path: '/'
+      fullPath: '/learn/connect/'
+      preLoaderRoute: typeof LearnConnectIndexRouteImport
+      parentRoute: typeof LearnConnectRoute
+    }
+    '/learn/coach/': {
+      id: '/learn/coach/'
+      path: '/'
+      fullPath: '/learn/coach/'
+      preLoaderRoute: typeof LearnCoachIndexRouteImport
+      parentRoute: typeof LearnCoachRoute
+    }
+    '/learn/understand/$topic': {
+      id: '/learn/understand/$topic'
+      path: '/$topic'
+      fullPath: '/learn/understand/$topic'
+      preLoaderRoute: typeof LearnUnderstandTopicRouteImport
+      parentRoute: typeof LearnUnderstandRoute
+    }
+    '/learn/connect/$situation': {
+      id: '/learn/connect/$situation'
+      path: '/$situation'
+      fullPath: '/learn/connect/$situation'
+      preLoaderRoute: typeof LearnConnectSituationRouteImport
+      parentRoute: typeof LearnConnectRoute
+    }
+    '/learn/coach/$threadId': {
+      id: '/learn/coach/$threadId'
+      path: '/$threadId'
+      fullPath: '/learn/coach/$threadId'
+      preLoaderRoute: typeof LearnCoachThreadIdRouteImport
+      parentRoute: typeof LearnCoachRoute
+    }
   }
 }
 
-interface CoachRouteChildren {
-  CoachThreadIdRoute: typeof CoachThreadIdRoute
-  CoachIndexRoute: typeof CoachIndexRoute
+interface LearnCoachRouteChildren {
+  LearnCoachThreadIdRoute: typeof LearnCoachThreadIdRoute
+  LearnCoachIndexRoute: typeof LearnCoachIndexRoute
 }
 
-const CoachRouteChildren: CoachRouteChildren = {
-  CoachThreadIdRoute: CoachThreadIdRoute,
-  CoachIndexRoute: CoachIndexRoute,
+const LearnCoachRouteChildren: LearnCoachRouteChildren = {
+  LearnCoachThreadIdRoute: LearnCoachThreadIdRoute,
+  LearnCoachIndexRoute: LearnCoachIndexRoute,
 }
 
-const CoachRouteWithChildren = CoachRoute._addFileChildren(CoachRouteChildren)
+const LearnCoachRouteWithChildren = LearnCoachRoute._addFileChildren(
+  LearnCoachRouteChildren,
+)
 
-interface ConnectRouteChildren {
-  ConnectSituationRoute: typeof ConnectSituationRoute
-  ConnectIndexRoute: typeof ConnectIndexRoute
+interface LearnConnectRouteChildren {
+  LearnConnectSituationRoute: typeof LearnConnectSituationRoute
+  LearnConnectIndexRoute: typeof LearnConnectIndexRoute
 }
 
-const ConnectRouteChildren: ConnectRouteChildren = {
-  ConnectSituationRoute: ConnectSituationRoute,
-  ConnectIndexRoute: ConnectIndexRoute,
+const LearnConnectRouteChildren: LearnConnectRouteChildren = {
+  LearnConnectSituationRoute: LearnConnectSituationRoute,
+  LearnConnectIndexRoute: LearnConnectIndexRoute,
 }
 
-const ConnectRouteWithChildren =
-  ConnectRoute._addFileChildren(ConnectRouteChildren)
+const LearnConnectRouteWithChildren = LearnConnectRoute._addFileChildren(
+  LearnConnectRouteChildren,
+)
 
-interface SupportRouteChildren {
-  SupportResourceRoute: typeof SupportResourceRoute
-  SupportIndexRoute: typeof SupportIndexRoute
+interface LearnUnderstandRouteChildren {
+  LearnUnderstandTopicRoute: typeof LearnUnderstandTopicRoute
+  LearnUnderstandIndexRoute: typeof LearnUnderstandIndexRoute
 }
 
-const SupportRouteChildren: SupportRouteChildren = {
-  SupportResourceRoute: SupportResourceRoute,
-  SupportIndexRoute: SupportIndexRoute,
+const LearnUnderstandRouteChildren: LearnUnderstandRouteChildren = {
+  LearnUnderstandTopicRoute: LearnUnderstandTopicRoute,
+  LearnUnderstandIndexRoute: LearnUnderstandIndexRoute,
 }
 
-const SupportRouteWithChildren =
-  SupportRoute._addFileChildren(SupportRouteChildren)
-
-interface UnderstandRouteChildren {
-  UnderstandTopicRoute: typeof UnderstandTopicRoute
-  UnderstandIndexRoute: typeof UnderstandIndexRoute
-}
-
-const UnderstandRouteChildren: UnderstandRouteChildren = {
-  UnderstandTopicRoute: UnderstandTopicRoute,
-  UnderstandIndexRoute: UnderstandIndexRoute,
-}
-
-const UnderstandRouteWithChildren = UnderstandRoute._addFileChildren(
-  UnderstandRouteChildren,
+const LearnUnderstandRouteWithChildren = LearnUnderstandRoute._addFileChildren(
+  LearnUnderstandRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CoachRoute: CoachRouteWithChildren,
-  ConnectRoute: ConnectRouteWithChildren,
   JourneyRoute: JourneyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  SupportRoute: SupportRouteWithChildren,
-  UnderstandRoute: UnderstandRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
+  LearnCoachRoute: LearnCoachRouteWithChildren,
+  LearnConnectRoute: LearnConnectRouteWithChildren,
+  LearnSupportRoute: LearnSupportRoute,
+  LearnUnderstandRoute: LearnUnderstandRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

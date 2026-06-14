@@ -26,7 +26,7 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import logo from "@/assets/neurotrace-logo.png";
 
-export const Route = createFileRoute("/coach/$threadId")({
+export const Route = createFileRoute("/learn/coach/$threadId")({
   component: ThreadPage,
 });
 

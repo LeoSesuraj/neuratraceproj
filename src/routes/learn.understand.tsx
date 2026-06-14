@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/understand")({
+export const Route = createFileRoute("/learn/understand")({
   head: () => ({
     meta: [
       { title: "Understand — NeuroTrace" },

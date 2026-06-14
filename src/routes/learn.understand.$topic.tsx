@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { getUnderstandTopic, understandTopics } from "@/lib/understand";
 import { ArrowLeft, BookOpen, Compass, Eye } from "lucide-react";
 
-export const Route = createFileRoute("/understand/$topic")({
+export const Route = createFileRoute("/learn/understand/$topic")({
   loader: ({ params }) => {
     const t = getUnderstandTopic(params.topic);
     if (!t) throw notFound();

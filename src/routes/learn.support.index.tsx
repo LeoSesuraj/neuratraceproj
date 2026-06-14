@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { supportResources } from "@/lib/support";
 import { ArrowRight, LifeBuoy, Sparkles } from "lucide-react";
 
-export const Route = createFileRoute("/support/")({
+export const Route = createFileRoute("/learn/support/")({
   component: SupportIndex,
 });
 

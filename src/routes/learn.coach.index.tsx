@@ -4,7 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { useThreads, newThreadId } from "@/lib/chat-threads";
 import { MessageCircle, Plus, Sparkles, Trash2 } from "lucide-react";
 
-export const Route = createFileRoute("/coach/")({
+export const Route = createFileRoute("/learn/coach/")({
   component: CoachIndex,
 });
 

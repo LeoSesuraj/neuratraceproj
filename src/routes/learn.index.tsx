@@ -10,7 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/learn/")({
   head: () => ({
     meta: [
       { title: "NeuroTrace — A gentle companion for dementia caregivers" },

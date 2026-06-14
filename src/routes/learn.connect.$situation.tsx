@@ -10,7 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export const Route = createFileRoute("/connect/$situation")({
+export const Route = createFileRoute("/learn/connect/$situation")({
   loader: ({ params }) => {
     const s = getSituation(params.situation);
     if (!s) throw notFound();

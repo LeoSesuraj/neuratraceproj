@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { getSupportResource, supportResources } from "@/lib/support";
 import { ArrowLeft, LifeBuoy, Lightbulb } from "lucide-react";
 
-export const Route = createFileRoute("/support/$resource")({
+export const Route = createFileRoute("/learn/support/$resource")({
   loader: ({ params }) => {
     const r = getSupportResource(params.resource);
     if (!r) throw notFound();
