@@ -1,17 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { listFacilities, submitStaffRequest } from "@/lib/app.functions";
+import { useEffect, useState } from "react";
+import { submitStaffRequest } from "@/lib/app.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth/join-staff")({
   component: JoinStaff,
 });
 
 function JoinStaff() {
-  const { data: facilities = [] } = useQuery({
-    queryKey: ["facilities"],
-    queryFn: () => listFacilities(),
-  });
+  const [facilities, setFacilities] = useState<Array<{ id: string; name: string }>>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("facilities")
+        .select("id, name")
+        .order("name");
+      if (cancelled) return;
+      if (error) {
+        setLoadError(error.message);
+        return;
+      }
+      setFacilities(data ?? []);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [email, setEmail] = useState("");
   const [facilityId, setFacilityId] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -67,7 +84,13 @@ function JoinStaff() {
             onChange={(e) => setFacilityId(e.target.value)}
             className="mt-1 w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm shadow-soft"
           >
-            <option value="">Select a facility…</option>
+            <option value="">
+              {loadError
+                ? "Could not load facilities"
+                : facilities.length === 0
+                  ? "Loading facilities…"
+                  : "Select a facility…"}
+            </option>
             {facilities.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.name}
