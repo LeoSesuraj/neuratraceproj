@@ -1,14 +1,11 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { getMyRole } from "@/lib/app.functions";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import logo from "@/assets/neurotrace-logo.png";
-import { UserPlus, Users, BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen, LogIn, UserPlus, Users } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NeuroTrace — Welcome" },
+      { title: "NeuroTrace — Sign in" },
       {
         name: "description",
         content:
@@ -19,148 +16,121 @@ export const Route = createFileRoute("/")({
   component: LandingPage,
 });
 
+type Card = {
+  to:
+    | "/auth/login"
+    | "/auth/join-staff"
+    | "/auth/join-family"
+    | "/learn";
+  icon: typeof LogIn;
+  label: string;
+  description: string;
+  tone: string;
+  primary?: boolean;
+};
+
+const loginCard = {
+
+  to: "/auth/login" as const,
+  icon: LogIn,
+  label: "Log in",
+  description:
+    "For admins, staff, and family members who already have an account.",
+  tone: "bg-sky-soft",
+};
+
+const secondaryCards: Card[] = [
+  {
+    to: "/auth/join-staff",
+    icon: UserPlus,
+    label: "Join as Staff",
+    description:
+      "Request access to your facility. An admin will approve your request.",
+    tone: "bg-sage/40",
+  },
+  {
+    to: "/auth/join-family",
+    icon: Users,
+    label: "Join as Family",
+    description:
+      "Have an invite link from staff? Create your family account here.",
+    tone: "bg-warm/70",
+  },
+  {
+    to: "/learn",
+    icon: BookOpen,
+    label: "Learn about dementia",
+    description:
+      "Free guides, articles, and an AI coach — no account required.",
+    tone: "bg-surface-soft",
+  },
+];
+
 function LandingPage() {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      const { role } = await getMyRole();
-      if (role === "super_admin" || role === "admin") navigate({ to: "/admin" });
-      else if (role === "staff") navigate({ to: "/staff" });
-      else if (role === "family") navigate({ to: "/resident" });
-      else navigate({ to: "/resident" });
-    } catch (e: any) {
-      setError(e.message ?? "Sign in failed");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function openInvite() {
-    const token = window.prompt("Paste your invite token or link:");
-    if (!token) return;
-    const match = token.match(/token=([0-9a-f-]{36})/i);
-    const t = match ? match[1] : token.trim();
-    navigate({ to: "/auth/join-family", search: { token: t } as any });
-  }
-
+  const PrimaryIcon = loginCard.icon;
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      <main className="mx-auto max-w-md px-5 py-10 sm:py-16">
-        {/* Header */}
+      <main className="mx-auto max-w-3xl px-5 py-10 sm:py-16">
         <header className="flex flex-col items-center text-center">
-          <img
-            src={logo}
-            alt="NeuroTrace"
-            width={72}
-            height={72}
-            className="h-18 w-18"
-          />
-          <h1 className="mt-5 text-3xl leading-tight sm:text-4xl">
+          <img src={logo} alt="" width={88} height={88} className="h-22 w-22" style={{ height: 88, width: 88 }} />
+          <h1 className="mt-5 text-4xl leading-[1.05] sm:text-5xl">
             Welcome to <span className="text-primary">NeuroTrace</span>
           </h1>
-          <p className="mt-3 max-w-sm text-sm text-muted-foreground">
+          <p className="mt-4 max-w-lg text-base text-muted-foreground sm:text-lg">
             A gentle companion for families and care teams supporting someone
             with dementia.
           </p>
         </header>
 
-        {/* Login form */}
-        <form onSubmit={onSubmit} className="mt-10 space-y-4">
-          <label className="block">
-            <span className="text-sm font-medium">Email</span>
-            <input
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/40"
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium">Password</span>
-            <input
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/40"
-            />
-          </label>
-          {error && (
-            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {error}
+        <Link
+          to={loginCard.to}
+          className="group mt-10 flex items-start gap-5 rounded-3xl border border-primary/30 bg-card p-7 shadow-lift ring-1 ring-primary/20 transition-all hover:-translate-y-0.5 sm:p-9"
+        >
+          <div className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl ${loginCard.tone} sm:h-20 sm:w-20`}>
+            <PrimaryIcon className="h-8 w-8 text-foreground sm:h-9 sm:w-9" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-2xl leading-snug sm:text-3xl">{loginCard.label}</h2>
+            <p className="mt-2 text-base text-muted-foreground">
+              {loginCard.description}
             </p>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-primary/90 disabled:opacity-50"
-          >
-            {loading ? "Signing in…" : "Sign in"}
-          </button>
-        </form>
-
-        {/* Divider */}
-        <div className="mt-8 flex items-center gap-3">
-          <div className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground">Or get started another way</span>
-          <div className="h-px flex-1 bg-border" />
-        </div>
-
-        {/* Three entry cards */}
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <Link
-            to="/auth/join-staff"
-            className="flex flex-col items-center rounded-2xl border border-border bg-card p-4 text-center shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
-          >
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-sage/40">
-              <UserPlus className="h-5 w-5 text-foreground" />
+            <div className="mt-4 flex items-center gap-1 text-sm font-medium text-primary">
+              Continue
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </div>
-            <h2 className="mt-3 text-sm font-semibold">Join as Staff</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Request access to your facility.
-            </p>
-          </Link>
+          </div>
+        </Link>
 
-          <button
-            type="button"
-            onClick={openInvite}
-            className="flex flex-col items-center rounded-2xl border border-border bg-card p-4 text-center shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
-          >
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-warm/70">
-              <Users className="h-5 w-5 text-foreground" />
-            </div>
-            <h2 className="mt-3 text-sm font-semibold">Join as Family</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Have an invite link? Get started here.
-            </p>
-          </button>
+        <ul className="mt-6 grid gap-3 sm:grid-cols-3">
+          {secondaryCards.map((c) => {
+            const Icon = c.icon;
+            return (
+              <li key={c.to}>
+                <Link
+                  to={c.to}
+                  className="group flex h-full items-start gap-3 rounded-3xl border border-border/70 bg-card p-4 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+                >
+                  <div
+                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-2xl ${c.tone}`}
+                  >
+                    <Icon className="h-4 w-4 text-foreground" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-sm font-semibold leading-snug">{c.label}</h2>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {c.description}
+                    </p>
+                    <div className="mt-2 flex items-center gap-1 text-xs font-medium text-primary">
+                      Continue
+                      <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
 
-          <Link
-            to="/learn"
-            className="flex flex-col items-center rounded-2xl border border-border bg-card p-4 text-center shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
-          >
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-surface-soft">
-              <BookOpen className="h-5 w-5 text-foreground" />
-            </div>
-            <h2 className="mt-3 text-sm font-semibold">Learn about dementia</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Free guides & AI coach. No account needed.
-            </p>
-          </Link>
-        </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
           NeuroTrace is for education and emotional support only. It is not a

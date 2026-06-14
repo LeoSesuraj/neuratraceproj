@@ -1,16 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-
-function getOrigin(): string | undefined {
-  try {
-    const req = getRequest();
-    const origin = req?.headers.get("origin") ?? req?.headers.get("referer");
-    if (origin) return new URL(origin).origin;
-  } catch {}
-  return undefined;
-}
 
 // ---------- Public ----------
 
@@ -65,23 +55,12 @@ export const getMyRole = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("user_roles")
-      .select("role, facility_id");
+      .select("role, facility_id")
+      .order("role")
+      .limit(1)
+      .maybeSingle();
     if (error) throw new Error(error.message);
-    const rows = data ?? [];
-    const isSuperAdmin = rows.some((r) => r.role === "super_admin");
-    // priority: super_admin > admin > staff > family
-    const priority = ["super_admin", "admin", "staff", "family"] as const;
-    let role: string | null = null;
-    let facilityId: string | null = null;
-    for (const p of priority) {
-      const hit = rows.find((r) => r.role === p);
-      if (hit) {
-        role = hit.role;
-        facilityId = hit.facility_id;
-        break;
-      }
-    }
-    return { role, facilityId, isSuperAdmin };
+    return { role: data?.role ?? null, facilityId: data?.facility_id ?? null };
   });
 
 export const redeemFamilyInvite = createServerFn({ method: "POST" })
@@ -118,106 +97,15 @@ async function assertAdmin(supabase: import("@supabase/supabase-js").SupabaseCli
   if (!data) throw new Error("Forbidden");
 }
 
-async function assertSuperAdmin(supabase: import("@supabase/supabase-js").SupabaseClient, userId: string) {
-  const { data } = await supabase.rpc("is_super_admin", { _user_id: userId });
-  if (!data) throw new Error("Forbidden");
-}
-
-async function isSuperAdmin(supabase: import("@supabase/supabase-js").SupabaseClient, userId: string) {
-  const { data } = await supabase.rpc("is_super_admin", { _user_id: userId });
-  return !!data;
-}
-
-async function getAdminFacilityId(
-  supabase: import("@supabase/supabase-js").SupabaseClient,
-  userId: string,
-): Promise<string | null> {
-  const { data } = await supabase
-    .from("user_roles")
-    .select("facility_id")
-    .eq("user_id", userId)
-    .eq("role", "admin")
-    .not("facility_id", "is", null)
-    .limit(1)
-    .maybeSingle();
-  return data?.facility_id ?? null;
-}
-
 export const listPendingStaffRequests = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    let q = supabaseAdmin
+    const { data, error } = await context.supabase
       .from("staff_requests")
       .select("id, email, facility_id, status, created_at")
       .eq("status", "pending")
       .order("created_at", { ascending: false });
-    if (!(await isSuperAdmin(context.supabase, context.userId))) {
-      const fid = await getAdminFacilityId(context.supabase, context.userId);
-      if (!fid) return [];
-      q = q.eq("facility_id", fid);
-    }
-    const { data, error } = await q;
-    if (error) throw new Error(error.message);
-    return data ?? [];
-  });
-
-export const listAllFacilities = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("facilities")
-      .select("id, name, created_at")
-      .order("name");
-    if (error) throw new Error(error.message);
-    return data ?? [];
-  });
-
-export const createFacility = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ name: z.string().min(1).max(120) }).parse(d))
-  .handler(async ({ data, context }) => {
-    await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row, error } = await supabaseAdmin
-      .from("facilities")
-      .insert({ name: data.name })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    return row;
-  });
-
-export const deleteFacility = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { count } = await supabaseAdmin
-      .from("residents")
-      .select("*", { count: "exact", head: true })
-      .eq("facility_id", data.id);
-    if ((count ?? 0) > 0) {
-      throw new Error("Facility has residents — remove them first.");
-    }
-    const { error } = await supabaseAdmin.from("facilities").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
-
-export const listAllResidents = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("residents")
-      .select("id, name, dementia_type, facility_id, facilities(name)")
-      .order("name");
     if (error) throw new Error(error.message);
     return data ?? [];
   });
@@ -246,13 +134,9 @@ export const decideStaffRequest = createServerFn({ method: "POST" })
     }
 
     // Approve: invite the user by email, assign staff role
-    const origin = getOrigin();
     const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       req.email,
-      {
-        data: { facility_id: req.facility_id, role: "staff" },
-        ...(origin ? { redirectTo: `${origin}/auth/login` } : {}),
-      },
+      { data: { facility_id: req.facility_id, role: "staff" } },
     );
     if (iErr && !iErr.message.toLowerCase().includes("already")) {
       throw new Error(iErr.message);
@@ -282,15 +166,6 @@ export const decideStaffRequest = createServerFn({ method: "POST" })
 export const listResidentsForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    if (await isSuperAdmin(context.supabase, context.userId)) {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data, error } = await supabaseAdmin
-        .from("residents")
-        .select("id, name, photo_url, facility_id, dementia_type")
-        .order("name");
-      if (error) throw new Error(error.message);
-      return data ?? [];
-    }
     const { data, error } = await context.supabase
       .from("residents")
       .select("id, name, photo_url, facility_id, dementia_type")
@@ -526,50 +401,4 @@ export const uploadResidentPhoto = createServerFn({ method: "POST" })
       .upload(path, bytes, { contentType: data.contentType, upsert: false });
     if (error) throw new Error(error.message);
     return { path };
-  });
-
-export const inviteAdmin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z
-      .object({
-        email: z.string().email(),
-        facility_id: z.string().uuid(),
-      })
-      .parse(d),
-  )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
-    // Non-super admins can only invite into their own facility
-    if (!(await isSuperAdmin(context.supabase, context.userId))) {
-      const ownFid = await getAdminFacilityId(context.supabase, context.userId);
-      if (!ownFid || ownFid !== data.facility_id) {
-        throw new Error("Admins can only invite within their facility.");
-      }
-    }
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const origin = getOrigin();
-    const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      data.email,
-      {
-        data: { facility_id: data.facility_id, role: "admin" },
-        ...(origin ? { redirectTo: `${origin}/auth/login` } : {}),
-      },
-    );
-    if (iErr && !iErr.message.toLowerCase().includes("already")) {
-      throw new Error(iErr.message);
-    }
-    let userId = invited?.user?.id;
-    if (!userId) {
-      const { data: list } = await supabaseAdmin.auth.admin.listUsers();
-      userId = list?.users.find((u) => u.email === data.email)?.id;
-    }
-    if (!userId) throw new Error("Could not resolve invited user");
-    const { error: rErr } = await supabaseAdmin.from("user_roles").upsert({
-      user_id: userId,
-      role: "admin",
-      facility_id: data.facility_id,
-    });
-    if (rErr) throw new Error(rErr.message);
-    return { ok: true };
   });
