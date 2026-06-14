@@ -31,14 +31,16 @@ type Card = {
 
 const cards: Card[] = [
   {
-    to: "/auth/login",
-    icon: LogIn,
-    label: "Log in",
-    description:
-      "For admins, staff, and family members who already have an account.",
-    tone: "bg-sky-soft",
-    primary: true,
-  },
+const loginCard = {
+  to: "/auth/login" as const,
+  icon: LogIn,
+  label: "Log in",
+  description:
+    "For admins, staff, and family members who already have an account.",
+  tone: "bg-sky-soft",
+};
+
+const secondaryCards: Card[] = [
   {
     to: "/auth/join-staff",
     icon: UserPlus,
@@ -66,6 +68,7 @@ const cards: Card[] = [
 ];
 
 function LandingPage() {
+  const PrimaryIcon = loginCard.icon;
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <main className="mx-auto max-w-3xl px-5 py-10 sm:py-16">
@@ -80,32 +83,47 @@ function LandingPage() {
           </p>
         </header>
 
-        <ul className="mt-10 grid gap-3 sm:grid-cols-2">
-          {cards.map((c) => {
+        <Link
+          to={loginCard.to}
+          className="group mt-10 flex items-start gap-5 rounded-3xl border border-primary/30 bg-card p-7 shadow-lift ring-1 ring-primary/20 transition-all hover:-translate-y-0.5 sm:p-9"
+        >
+          <div className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl ${loginCard.tone} sm:h-20 sm:w-20`}>
+            <PrimaryIcon className="h-8 w-8 text-foreground sm:h-9 sm:w-9" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-2xl leading-snug sm:text-3xl">{loginCard.label}</h2>
+            <p className="mt-2 text-base text-muted-foreground">
+              {loginCard.description}
+            </p>
+            <div className="mt-4 flex items-center gap-1 text-sm font-medium text-primary">
+              Continue
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </div>
+          </div>
+        </Link>
+
+        <ul className="mt-6 grid gap-3 sm:grid-cols-3">
+          {secondaryCards.map((c) => {
             const Icon = c.icon;
             return (
               <li key={c.to}>
                 <Link
                   to={c.to}
-                  className={`group flex h-full items-start gap-3 rounded-3xl border bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift ${
-                    c.primary
-                      ? "border-primary/30 ring-1 ring-primary/20"
-                      : "border-border/70"
-                  }`}
+                  className="group flex h-full items-start gap-3 rounded-3xl border border-border/70 bg-card p-4 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
                 >
                   <div
-                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${c.tone}`}
+                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-2xl ${c.tone}`}
                   >
-                    <Icon className="h-5 w-5 text-foreground" />
+                    <Icon className="h-4 w-4 text-foreground" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h2 className="text-lg leading-snug">{c.label}</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <h2 className="text-sm font-semibold leading-snug">{c.label}</h2>
+                    <p className="mt-1 text-xs text-muted-foreground">
                       {c.description}
                     </p>
-                    <div className="mt-3 flex items-center gap-1 text-sm font-medium text-primary">
+                    <div className="mt-2 flex items-center gap-1 text-xs font-medium text-primary">
                       Continue
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                      <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                     </div>
                   </div>
                 </Link>
@@ -113,6 +131,7 @@ function LandingPage() {
             );
           })}
         </ul>
+
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
           NeuroTrace is for education and emotional support only. It is not a
