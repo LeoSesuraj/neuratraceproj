@@ -29,9 +29,8 @@ type Card = {
   primary?: boolean;
 };
 
-const cards: Card[] = [
-  {
 const loginCard = {
+
   to: "/auth/login" as const,
   icon: LogIn,
   label: "Log in",
