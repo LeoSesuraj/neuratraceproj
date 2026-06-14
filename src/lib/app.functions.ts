@@ -65,12 +65,23 @@ export const getMyRole = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("user_roles")
-      .select("role, facility_id")
-      .order("role")
-      .limit(1)
-      .maybeSingle();
+      .select("role, facility_id");
     if (error) throw new Error(error.message);
-    return { role: data?.role ?? null, facilityId: data?.facility_id ?? null };
+    const rows = data ?? [];
+    const isSuperAdmin = rows.some((r) => r.role === "super_admin");
+    // priority: super_admin > admin > staff > family
+    const priority = ["super_admin", "admin", "staff", "family"] as const;
+    let role: string | null = null;
+    let facilityId: string | null = null;
+    for (const p of priority) {
+      const hit = rows.find((r) => r.role === p);
+      if (hit) {
+        role = hit.role;
+        facilityId = hit.facility_id;
+        break;
+      }
+    }
+    return { role, facilityId, isSuperAdmin };
   });
 
 export const redeemFamilyInvite = createServerFn({ method: "POST" })
