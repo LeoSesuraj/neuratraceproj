@@ -416,3 +416,42 @@ export const uploadResidentPhoto = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { path };
   });
+
+export const inviteAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        email: z.string().email(),
+        facility_id: z.string().uuid(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const origin = getOrigin();
+    const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+      data.email,
+      {
+        data: { facility_id: data.facility_id, role: "admin" },
+        ...(origin ? { redirectTo: `${origin}/auth/login` } : {}),
+      },
+    );
+    if (iErr && !iErr.message.toLowerCase().includes("already")) {
+      throw new Error(iErr.message);
+    }
+    let userId = invited?.user?.id;
+    if (!userId) {
+      const { data: list } = await supabaseAdmin.auth.admin.listUsers();
+      userId = list?.users.find((u) => u.email === data.email)?.id;
+    }
+    if (!userId) throw new Error("Could not resolve invited user");
+    const { error: rErr } = await supabaseAdmin.from("user_roles").upsert({
+      user_id: userId,
+      role: "admin",
+      facility_id: data.facility_id,
+    });
+    if (rErr) throw new Error(rErr.message);
+    return { ok: true };
+  });
