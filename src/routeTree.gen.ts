@@ -9,38 +9,139 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ConnectRouteImport } from './routes/connect'
+import { Route as CoachRouteImport } from './routes/coach'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConnectIndexRouteImport } from './routes/connect.index'
+import { Route as CoachIndexRouteImport } from './routes/coach.index'
+import { Route as ConnectSituationRouteImport } from './routes/connect.$situation'
+import { Route as CoachThreadIdRouteImport } from './routes/coach.$threadId'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const ConnectRoute = ConnectRouteImport.update({
+  id: '/connect',
+  path: '/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoachRoute = CoachRouteImport.update({
+  id: '/coach',
+  path: '/coach',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConnectIndexRoute = ConnectIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ConnectRoute,
+} as any)
+const CoachIndexRoute = CoachIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CoachRoute,
+} as any)
+const ConnectSituationRoute = ConnectSituationRouteImport.update({
+  id: '/$situation',
+  path: '/$situation',
+  getParentRoute: () => ConnectRoute,
+} as any)
+const CoachThreadIdRoute = CoachThreadIdRouteImport.update({
+  id: '/$threadId',
+  path: '/$threadId',
+  getParentRoute: () => CoachRoute,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/coach': typeof CoachRouteWithChildren
+  '/connect': typeof ConnectRouteWithChildren
+  '/api/chat': typeof ApiChatRoute
+  '/coach/$threadId': typeof CoachThreadIdRoute
+  '/connect/$situation': typeof ConnectSituationRoute
+  '/coach/': typeof CoachIndexRoute
+  '/connect/': typeof ConnectIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/chat': typeof ApiChatRoute
+  '/coach/$threadId': typeof CoachThreadIdRoute
+  '/connect/$situation': typeof ConnectSituationRoute
+  '/coach': typeof CoachIndexRoute
+  '/connect': typeof ConnectIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/coach': typeof CoachRouteWithChildren
+  '/connect': typeof ConnectRouteWithChildren
+  '/api/chat': typeof ApiChatRoute
+  '/coach/$threadId': typeof CoachThreadIdRoute
+  '/connect/$situation': typeof ConnectSituationRoute
+  '/coach/': typeof CoachIndexRoute
+  '/connect/': typeof ConnectIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/coach'
+    | '/connect'
+    | '/api/chat'
+    | '/coach/$threadId'
+    | '/connect/$situation'
+    | '/coach/'
+    | '/connect/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/api/chat'
+    | '/coach/$threadId'
+    | '/connect/$situation'
+    | '/coach'
+    | '/connect'
+  id:
+    | '__root__'
+    | '/'
+    | '/coach'
+    | '/connect'
+    | '/api/chat'
+    | '/coach/$threadId'
+    | '/connect/$situation'
+    | '/coach/'
+    | '/connect/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CoachRoute: typeof CoachRouteWithChildren
+  ConnectRoute: typeof ConnectRouteWithChildren
+  ApiChatRoute: typeof ApiChatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/connect': {
+      id: '/connect'
+      path: '/connect'
+      fullPath: '/connect'
+      preLoaderRoute: typeof ConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coach': {
+      id: '/coach'
+      path: '/coach'
+      fullPath: '/coach'
+      preLoaderRoute: typeof CoachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +149,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/connect/': {
+      id: '/connect/'
+      path: '/'
+      fullPath: '/connect/'
+      preLoaderRoute: typeof ConnectIndexRouteImport
+      parentRoute: typeof ConnectRoute
+    }
+    '/coach/': {
+      id: '/coach/'
+      path: '/'
+      fullPath: '/coach/'
+      preLoaderRoute: typeof CoachIndexRouteImport
+      parentRoute: typeof CoachRoute
+    }
+    '/connect/$situation': {
+      id: '/connect/$situation'
+      path: '/$situation'
+      fullPath: '/connect/$situation'
+      preLoaderRoute: typeof ConnectSituationRouteImport
+      parentRoute: typeof ConnectRoute
+    }
+    '/coach/$threadId': {
+      id: '/coach/$threadId'
+      path: '/$threadId'
+      fullPath: '/coach/$threadId'
+      preLoaderRoute: typeof CoachThreadIdRouteImport
+      parentRoute: typeof CoachRoute
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface CoachRouteChildren {
+  CoachThreadIdRoute: typeof CoachThreadIdRoute
+  CoachIndexRoute: typeof CoachIndexRoute
+}
+
+const CoachRouteChildren: CoachRouteChildren = {
+  CoachThreadIdRoute: CoachThreadIdRoute,
+  CoachIndexRoute: CoachIndexRoute,
+}
+
+const CoachRouteWithChildren = CoachRoute._addFileChildren(CoachRouteChildren)
+
+interface ConnectRouteChildren {
+  ConnectSituationRoute: typeof ConnectSituationRoute
+  ConnectIndexRoute: typeof ConnectIndexRoute
+}
+
+const ConnectRouteChildren: ConnectRouteChildren = {
+  ConnectSituationRoute: ConnectSituationRoute,
+  ConnectIndexRoute: ConnectIndexRoute,
+}
+
+const ConnectRouteWithChildren =
+  ConnectRoute._addFileChildren(ConnectRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CoachRoute: CoachRouteWithChildren,
+  ConnectRoute: ConnectRouteWithChildren,
+  ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
