@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LearnIndexRouteImport } from './routes/learn.index'
 import { Route as LearnUnderstandRouteImport } from './routes/learn.understand'
@@ -23,18 +23,18 @@ import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthJoinStaffRouteImport } from './routes/auth.join-staff'
 import { Route as AuthJoinFamilyRouteImport } from './routes/auth.join-family'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated.staff'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as LearnUnderstandIndexRouteImport } from './routes/learn.understand.index'
 import { Route as LearnSupportIndexRouteImport } from './routes/learn.support.index'
 import { Route as LearnConnectIndexRouteImport } from './routes/learn.connect.index'
 import { Route as LearnCoachIndexRouteImport } from './routes/learn.coach.index'
-import { Route as AuthenticatedResidentIndexRouteImport } from './routes/_authenticated/resident.index'
+import { Route as AuthenticatedResidentIndexRouteImport } from './routes/_authenticated.resident.index'
 import { Route as LearnUnderstandTopicRouteImport } from './routes/learn.understand.$topic'
 import { Route as LearnSupportResourceRouteImport } from './routes/learn.support.$resource'
 import { Route as LearnConnectSituationRouteImport } from './routes/learn.connect.$situation'
 import { Route as LearnCoachThreadIdRouteImport } from './routes/learn.coach.$threadId'
-import { Route as AuthenticatedResidentResidentIdRouteImport } from './routes/_authenticated/resident.$residentId'
+import { Route as AuthenticatedResidentResidentIdRouteImport } from './routes/_authenticated.resident.$residentId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -46,7 +46,7 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
@@ -108,12 +108,12 @@ const ApiChatRoute = ApiChatRouteImport.update({
 const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   id: '/staff',
   path: '/staff',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const LearnUnderstandIndexRoute = LearnUnderstandIndexRouteImport.update({
   id: '/',
@@ -139,7 +139,7 @@ const AuthenticatedResidentIndexRoute =
   AuthenticatedResidentIndexRouteImport.update({
     id: '/resident/',
     path: '/resident/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 const LearnUnderstandTopicRoute = LearnUnderstandTopicRouteImport.update({
   id: '/$topic',
@@ -165,7 +165,7 @@ const AuthenticatedResidentResidentIdRoute =
   AuthenticatedResidentResidentIdRouteImport.update({
     id: '/resident/$residentId',
     path: '/resident/$residentId',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -221,7 +221,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -330,7 +330,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -362,7 +362,7 @@ declare module '@tanstack/react-router' {
       id: '/_authenticated'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -447,14 +447,14 @@ declare module '@tanstack/react-router' {
       path: '/staff'
       fullPath: '/staff'
       preLoaderRoute: typeof AuthenticatedStaffRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRoute
     }
     '/learn/understand/': {
       id: '/learn/understand/'
@@ -489,7 +489,7 @@ declare module '@tanstack/react-router' {
       path: '/resident'
       fullPath: '/resident/'
       preLoaderRoute: typeof AuthenticatedResidentIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRoute
     }
     '/learn/understand/$topic': {
       id: '/learn/understand/$topic'
@@ -524,27 +524,28 @@ declare module '@tanstack/react-router' {
       path: '/resident/$residentId'
       fullPath: '/resident/$residentId'
       preLoaderRoute: typeof AuthenticatedResidentResidentIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
+interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
   AuthenticatedResidentResidentIdRoute: typeof AuthenticatedResidentResidentIdRoute
   AuthenticatedResidentIndexRoute: typeof AuthenticatedResidentIndexRoute
 }
 
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
   AuthenticatedResidentResidentIdRoute: AuthenticatedResidentResidentIdRoute,
   AuthenticatedResidentIndexRoute: AuthenticatedResidentIndexRoute,
 }
 
-const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
 
 interface AuthRouteChildren {
   AuthJoinFamilyRoute: typeof AuthJoinFamilyRoute
@@ -618,7 +619,7 @@ const LearnUnderstandRouteWithChildren = LearnUnderstandRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiChatRoute: ApiChatRoute,
