@@ -282,6 +282,15 @@ export const decideStaffRequest = createServerFn({ method: "POST" })
 export const listResidentsForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    if (await isSuperAdmin(context.supabase, context.userId)) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data, error } = await supabaseAdmin
+        .from("residents")
+        .select("id, name, photo_url, facility_id, dementia_type")
+        .order("name");
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    }
     const { data, error } = await context.supabase
       .from("residents")
       .select("id, name, photo_url, facility_id, dementia_type")
