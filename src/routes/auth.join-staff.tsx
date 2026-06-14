@@ -84,7 +84,13 @@ function JoinStaff() {
             onChange={(e) => setFacilityId(e.target.value)}
             className="mt-1 w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm shadow-soft"
           >
-            <option value="">Select a facility…</option>
+            <option value="">
+              {loadError
+                ? "Could not load facilities"
+                : facilities.length === 0
+                  ? "Loading facilities…"
+                  : "Select a facility…"}
+            </option>
             {facilities.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.name}
