@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnderstandRouteImport } from './routes/understand'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as CoachRouteImport } from './routes/coach'
@@ -33,6 +34,11 @@ const UnderstandRoute = UnderstandRouteImport.update({
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JourneyRoute = JourneyRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/coach': typeof CoachRouteWithChildren
   '/connect': typeof ConnectRouteWithChildren
   '/journey': typeof JourneyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRouteWithChildren
   '/understand': typeof UnderstandRouteWithChildren
   '/api/chat': typeof ApiChatRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/journey': typeof JourneyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/chat': typeof ApiChatRoute
   '/coach/$threadId': typeof CoachThreadIdRoute
   '/connect/$situation': typeof ConnectSituationRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/coach': typeof CoachRouteWithChildren
   '/connect': typeof ConnectRouteWithChildren
   '/journey': typeof JourneyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRouteWithChildren
   '/understand': typeof UnderstandRouteWithChildren
   '/api/chat': typeof ApiChatRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/connect'
     | '/journey'
+    | '/sitemap.xml'
     | '/support'
     | '/understand'
     | '/api/chat'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/journey'
+    | '/sitemap.xml'
     | '/api/chat'
     | '/coach/$threadId'
     | '/connect/$situation'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/connect'
     | '/journey'
+    | '/sitemap.xml'
     | '/support'
     | '/understand'
     | '/api/chat'
@@ -204,6 +216,7 @@ export interface RootRouteChildren {
   CoachRoute: typeof CoachRouteWithChildren
   ConnectRoute: typeof ConnectRouteWithChildren
   JourneyRoute: typeof JourneyRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRouteWithChildren
   UnderstandRoute: typeof UnderstandRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
@@ -223,6 +236,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/journey': {
@@ -376,6 +396,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoachRoute: CoachRouteWithChildren,
   ConnectRoute: ConnectRouteWithChildren,
   JourneyRoute: JourneyRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRouteWithChildren,
   UnderstandRoute: UnderstandRouteWithChildren,
   ApiChatRoute: ApiChatRoute,

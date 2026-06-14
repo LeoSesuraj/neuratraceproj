@@ -1,7 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { situations } from "@/lib/situations";
-import { ArrowRight, MessageCircleHeart, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  Compass,
+  LifeBuoy,
+  MessageCircleHeart,
+  Sparkles,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,6 +23,37 @@ export const Route = createFileRoute("/")({
   }),
   component: HomePage,
 });
+
+const pillars = [
+  {
+    to: "/connect" as const,
+    label: "Connect",
+    icon: MessageCircleHeart,
+    description: "In-the-moment guides for the hardest behaviors.",
+    tone: "bg-sky-soft",
+  },
+  {
+    to: "/understand" as const,
+    label: "Understand",
+    icon: BookOpen,
+    description: "Why dementia changes memory, mood, and behavior.",
+    tone: "bg-sage/40",
+  },
+  {
+    to: "/journey" as const,
+    label: "Journey",
+    icon: Compass,
+    description: "A gentle road map of what to expect over time.",
+    tone: "bg-warm/70",
+  },
+  {
+    to: "/support" as const,
+    label: "Support",
+    icon: LifeBuoy,
+    description: "Resources, tips, and reminders for caregivers.",
+    tone: "bg-surface-soft",
+  },
+];
 
 function HomePage() {
   const featured = situations.slice(0, 3);
@@ -51,6 +89,32 @@ function HomePage() {
             Talk to the AI Coach
           </Link>
         </div>
+      </section>
+
+      <section className="mt-12 grid gap-3 sm:grid-cols-2">
+        {pillars.map((p) => {
+          const Icon = p.icon;
+          return (
+            <Link
+              key={p.to}
+              to={p.to}
+              className="group flex items-start gap-3 rounded-3xl border border-border/70 bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+            >
+              <div
+                className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${p.tone}`}
+              >
+                <Icon className="h-5 w-5 text-foreground" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg leading-snug">{p.label}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {p.description}
+                </p>
+              </div>
+              <ArrowRight className="mt-2 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+            </Link>
+          );
+        })}
       </section>
 
       <section className="mt-14">
