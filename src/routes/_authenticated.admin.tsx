@@ -1,6 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listPendingStaffRequests, decideStaffRequest, listResidentsForMe } from "@/lib/app.functions";
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+  listPendingStaffRequests,
+  decideStaffRequest,
+  listResidentsForMe,
+  listFacilities,
+  inviteAdmin,
+} from "@/lib/app.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -18,10 +26,34 @@ function AdminPage() {
     queryKey: ["residents"],
     queryFn: () => listResidentsForMe(),
   });
+  const { data: facilities = [] } = useQuery({
+    queryKey: ["facilities"],
+    queryFn: () => listFacilities(),
+  });
   const decide = useMutation({
     mutationFn: (vars: { id: string; approve: boolean }) =>
       decideStaffRequest({ data: vars }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["staff-requests"] }),
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["staff-requests"] });
+      toast.success(vars.approve ? "Approved — invite email sent." : "Request denied.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const [showAdminForm, setShowAdminForm] = useState(false);
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminFacility, setAdminFacility] = useState("");
+
+  const invite = useMutation({
+    mutationFn: (vars: { email: string; facility_id: string }) =>
+      inviteAdmin({ data: vars }),
+    onSuccess: () => {
+      toast.success("Admin invite email sent.");
+      setAdminEmail("");
+      setAdminFacility("");
+      setShowAdminForm(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   return (
@@ -41,6 +73,65 @@ function AdminPage() {
           Sign out
         </button>
       </header>
+
+      <section className="mt-8">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl">Admins</h2>
+          <button
+            onClick={() => setShowAdminForm((v) => !v)}
+            className="rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+          >
+            {showAdminForm ? "Cancel" : "Add admin"}
+          </button>
+        </div>
+        {showAdminForm && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!adminEmail || !adminFacility) return;
+              invite.mutate({ email: adminEmail, facility_id: adminFacility });
+            }}
+            className="mt-3 grid gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft"
+          >
+            <label className="grid gap-1 text-sm">
+              <span className="text-muted-foreground">Email</span>
+              <input
+                type="email"
+                required
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                className="rounded-lg border border-border bg-background px-3 py-2"
+                placeholder="admin@example.com"
+              />
+            </label>
+            <label className="grid gap-1 text-sm">
+              <span className="text-muted-foreground">Facility</span>
+              <select
+                required
+                value={adminFacility}
+                onChange={(e) => setAdminFacility(e.target.value)}
+                className="rounded-lg border border-border bg-background px-3 py-2"
+              >
+                <option value="" disabled>
+                  Select a facility
+                </option>
+                {facilities.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="submit"
+              disabled={invite.isPending}
+              className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+            >
+              {invite.isPending ? "Sending…" : "Send admin invite"}
+            </button>
+          </form>
+        )}
+      </section>
 
       <section className="mt-8">
         <h2 className="text-xl">Staff requests</h2>
