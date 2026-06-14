@@ -38,13 +38,13 @@ export const lookupInvite = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!invite) return { found: false as const };
+    const residents = invite.residents as unknown as { name: string } | null;
     return {
       found: true as const,
       role: invite.role,
       used: invite.used,
       residentId: invite.resident_id,
-      // @ts-expect-error nested name
-      residentName: invite.residents?.name ?? null,
+      residentName: residents?.name ?? null,
     };
   });
 
