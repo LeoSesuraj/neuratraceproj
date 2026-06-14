@@ -78,7 +78,7 @@ function Section({
 }
 
 function SituationPage() {
-  const s = Route.useLoaderData();
+  const s = Route.useLoaderData() as ReturnType<typeof getSituation> & {};
   const others = situations.filter((o) => o.slug !== s.slug).slice(0, 3);
 
   return (

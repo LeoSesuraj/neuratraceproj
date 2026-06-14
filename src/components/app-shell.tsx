@@ -2,11 +2,13 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import logo from "@/assets/neurotrace-logo.png";
 import { Heart, MessageCircleHeart, Sparkles } from "lucide-react";
 
-const tabs = [
+type Tab = { to: "/" | "/connect" | "/coach"; label: string; icon: typeof Heart; exact?: boolean };
+
+const tabs: Tab[] = [
   { to: "/", label: "Home", icon: Heart, exact: true },
   { to: "/connect", label: "Connect", icon: MessageCircleHeart },
   { to: "/coach", label: "AI Coach", icon: Sparkles },
-] as const;
+];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
