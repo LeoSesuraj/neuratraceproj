@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import logo from "@/assets/neurotrace-logo.png";
 import {
+  ArrowLeft,
   BookOpen,
   Heart,
   LifeBuoy,
@@ -42,11 +43,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <img
               src={logo}
               alt=""
-              width={36}
-              height={36}
-              className="h-9 w-9"
+              width={44}
+              height={44}
+              className="h-11 w-11"
             />
-            <span className="font-display text-lg tracking-tight">
+            <span className="font-display text-xl tracking-tight">
               NeuroTrace
             </span>
           </Link>
@@ -70,13 +71,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
-          <Link
-            to="/learn/coach"
-            className="hidden shrink-0 items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground sm:inline-flex md:hidden"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            Coach
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Welcome</span>
+            </Link>
+            <Link
+              to="/learn/coach"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground sm:hidden"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Coach
+            </Link>
+          </div>
         </div>
       </header>
 
