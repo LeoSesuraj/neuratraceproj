@@ -1,0 +1,9 @@
+
+CREATE POLICY "Anyone can view resident photos" ON storage.objects FOR SELECT
+  USING (bucket_id = 'resident-photos');
+CREATE POLICY "Authenticated can upload resident photos" ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'resident-photos');
+CREATE POLICY "Authenticated can update resident photos" ON storage.objects FOR UPDATE TO authenticated
+  USING (bucket_id = 'resident-photos');
+CREATE POLICY "Authenticated can delete resident photos" ON storage.objects FOR DELETE TO authenticated
+  USING (bucket_id = 'resident-photos');

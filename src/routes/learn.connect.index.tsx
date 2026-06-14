@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { situations } from "@/lib/situations";
 import { ArrowRight, MessageCircleHeart } from "lucide-react";
 
-export const Route = createFileRoute("/connect/")({
+export const Route = createFileRoute("/learn/connect/")({
   head: () => ({
     meta: [
       { title: "Connect — NeuroTrace" },
@@ -33,7 +33,7 @@ function ConnectIndex() {
         {situations.map((s) => (
           <li key={s.slug}>
             <Link
-              to="/connect/$situation"
+              to="/learn/connect/$situation"
               params={{ situation: s.slug }}
               className="group flex h-full items-start gap-3 rounded-3xl border border-border/70 bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
             >

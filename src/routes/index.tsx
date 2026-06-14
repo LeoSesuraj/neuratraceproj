@@ -1,192 +1,124 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppShell } from "@/components/app-shell";
-import { situations } from "@/lib/situations";
-import {
-  ArrowRight,
-  BookOpen,
-  Compass,
-  LifeBuoy,
-  MessageCircleHeart,
-  Sparkles,
-} from "lucide-react";
+import logo from "@/assets/neurotrace-logo.png";
+import { ArrowRight, BookOpen, LogIn, UserPlus, Users } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NeuroTrace — A gentle companion for dementia caregivers" },
+      { title: "NeuroTrace — Sign in" },
       {
         name: "description",
         content:
-          "Understand dementia behaviors, communicate with your loved one, and feel less alone.",
+          "Sign in to NeuroTrace, join your facility, or explore our free Learn module about dementia caregiving.",
       },
     ],
   }),
-  component: HomePage,
+  component: LandingPage,
 });
 
-const pillars = [
+type Card = {
+  to:
+    | "/auth/login"
+    | "/auth/join-staff"
+    | "/auth/join-family"
+    | "/learn";
+  icon: typeof LogIn;
+  label: string;
+  description: string;
+  tone: string;
+  primary?: boolean;
+};
+
+const cards: Card[] = [
   {
-    to: "/connect" as const,
-    label: "Connect",
-    icon: MessageCircleHeart,
-    description: "In-the-moment guides for the hardest behaviors.",
+    to: "/auth/login",
+    icon: LogIn,
+    label: "Log in",
+    description:
+      "For admins, staff, and family members who already have an account.",
     tone: "bg-sky-soft",
+    primary: true,
   },
   {
-    to: "/understand" as const,
-    label: "Understand",
-    icon: BookOpen,
-    description: "Why dementia changes memory, mood, and behavior.",
+    to: "/auth/join-staff",
+    icon: UserPlus,
+    label: "Join as Staff",
+    description:
+      "Request access to your facility. An admin will approve your request.",
     tone: "bg-sage/40",
   },
   {
-    to: "/journey" as const,
-    label: "Journey",
-    icon: Compass,
-    description: "A gentle road map of what to expect over time.",
+    to: "/auth/join-family",
+    icon: Users,
+    label: "Join as Family",
+    description:
+      "Have an invite link from staff? Create your family account here.",
     tone: "bg-warm/70",
   },
   {
-    to: "/support" as const,
-    label: "Support",
-    icon: LifeBuoy,
-    description: "Resources, tips, and reminders for caregivers.",
+    to: "/learn",
+    icon: BookOpen,
+    label: "Learn about dementia",
+    description:
+      "Free guides, articles, and an AI coach — no account required.",
     tone: "bg-surface-soft",
   },
 ];
 
-function HomePage() {
-  const featured = situations.slice(0, 3);
-
+function LandingPage() {
   return (
-    <AppShell>
-      <section className="pt-2 sm:pt-8">
-        <p className="text-sm font-medium text-primary">A companion for the journey</p>
-        <h1 className="mt-3 text-4xl leading-[1.05] sm:text-5xl">
-          The disease is hard.
-          <br />
-          <span className="text-primary">Connection still happens.</span>
-        </h1>
-        <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-          NeuroTrace helps families of people living with Alzheimer's and dementia
-          understand the behaviors, find the right words, and feel less alone — one
-          gentle moment at a time.
-        </p>
+    <div className="min-h-dvh bg-background text-foreground">
+      <main className="mx-auto max-w-3xl px-5 py-10 sm:py-16">
+        <header className="flex flex-col items-center text-center">
+          <img src={logo} alt="" width={64} height={64} className="h-16 w-16" />
+          <h1 className="mt-5 text-4xl leading-[1.05] sm:text-5xl">
+            Welcome to <span className="text-primary">NeuroTrace</span>
+          </h1>
+          <p className="mt-4 max-w-lg text-base text-muted-foreground sm:text-lg">
+            A gentle companion for families and care teams supporting someone
+            with dementia.
+          </p>
+        </header>
 
-        <div className="mt-7 flex flex-wrap items-center gap-3">
-          <Link
-            to="/connect"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5"
-          >
-            Browse situations
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            to="/coach"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-surface"
-          >
-            <Sparkles className="h-4 w-4 text-primary" />
-            Talk to the AI Coach
-          </Link>
-        </div>
-      </section>
-
-      <section className="mt-12 grid gap-3 sm:grid-cols-2">
-        {pillars.map((p) => {
-          const Icon = p.icon;
-          return (
-            <Link
-              key={p.to}
-              to={p.to}
-              className="group flex items-start gap-3 rounded-3xl border border-border/70 bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
-            >
-              <div
-                className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${p.tone}`}
-              >
-                <Icon className="h-5 w-5 text-foreground" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-lg leading-snug">{p.label}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {p.description}
-                </p>
-              </div>
-              <ArrowRight className="mt-2 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
-            </Link>
-          );
-        })}
-      </section>
-
-      <section className="mt-14">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl">When this happens, try this.</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Short, practical guides for the most common moments.
-            </p>
-          </div>
-          <Link
-            to="/connect"
-            className="hidden text-sm font-medium text-primary hover:underline sm:inline"
-          >
-            See all
-          </Link>
-        </div>
-
-        <ul className="mt-5 grid gap-3 sm:grid-cols-2">
-          {featured.map((s) => (
-            <li key={s.slug}>
-              <Link
-                to="/connect/$situation"
-                params={{ situation: s.slug }}
-                className="group block h-full rounded-3xl border border-border/70 bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-sky-soft">
-                    <MessageCircleHeart className="h-5 w-5 text-primary" />
+        <ul className="mt-10 grid gap-3 sm:grid-cols-2">
+          {cards.map((c) => {
+            const Icon = c.icon;
+            return (
+              <li key={c.to}>
+                <Link
+                  to={c.to}
+                  className={`group flex h-full items-start gap-3 rounded-3xl border bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift ${
+                    c.primary
+                      ? "border-primary/30 ring-1 ring-primary/20"
+                      : "border-border/70"
+                  }`}
+                >
+                  <div
+                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${c.tone}`}
+                  >
+                    <Icon className="h-5 w-5 text-foreground" />
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="text-lg leading-snug">{s.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{s.blurb}</p>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-lg leading-snug">{c.label}</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {c.description}
+                    </p>
+                    <div className="mt-3 flex items-center gap-1 text-sm font-medium text-primary">
+                      Continue
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4 flex items-center gap-1 text-sm font-medium text-primary">
-                  Read guide
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </Link>
-            </li>
-          ))}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
-      </section>
 
-      <section className="mt-14 overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-sky-soft via-surface to-warm/60 p-6 sm:p-8">
-        <div className="flex items-start gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-card shadow-soft">
-            <Sparkles className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-2xl">Ask anything, anytime.</h2>
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              The NeuroTrace Coach is trained to help you navigate hard caregiving
-              moments — "My mom keeps asking for her mother," "My dad doesn't
-              recognize me anymore" — with calm, practical guidance.
-            </p>
-            <Link
-              to="/coach"
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90"
-            >
-              Start a conversation
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <p className="mt-10 text-center text-xs text-muted-foreground">
-        NeuroTrace is for education and emotional support only. It is not a
-        diagnostic tool or a substitute for medical care.
-      </p>
-    </AppShell>
+        <p className="mt-10 text-center text-xs text-muted-foreground">
+          NeuroTrace is for education and emotional support only. It is not a
+          diagnostic tool or a substitute for medical care.
+        </p>
+      </main>
+    </div>
   );
 }

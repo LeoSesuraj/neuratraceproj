@@ -10,7 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export const Route = createFileRoute("/connect/$situation")({
+export const Route = createFileRoute("/learn/connect/$situation")({
   loader: ({ params }) => {
     const s = getSituation(params.situation);
     if (!s) throw notFound();
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/connect/$situation")({
     <AppShell>
       <p className="py-16 text-center text-muted-foreground">
         Situation not found.{" "}
-        <Link to="/connect" className="text-primary underline">
+        <Link to="/learn/connect" className="text-primary underline">
           Go back
         </Link>
       </p>
@@ -84,7 +84,7 @@ function SituationPage() {
   return (
     <AppShell>
       <Link
-        to="/connect"
+        to="/learn/connect"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -144,7 +144,7 @@ function SituationPage() {
               The NeuroTrace Coach can help you think through your specific situation.
             </p>
             <Link
-              to="/coach"
+              to="/learn/coach"
               className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
             >
               Open AI Coach
@@ -161,7 +161,7 @@ function SituationPage() {
           {others.map((o) => (
             <li key={o.slug}>
               <Link
-                to="/connect/$situation"
+                to="/learn/connect/$situation"
                 params={{ situation: o.slug }}
                 className="flex items-center justify-between rounded-2xl border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:bg-surface"
               >

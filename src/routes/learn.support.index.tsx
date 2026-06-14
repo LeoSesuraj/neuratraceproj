@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { supportResources } from "@/lib/support";
 import { ArrowRight, LifeBuoy, Sparkles } from "lucide-react";
 
-export const Route = createFileRoute("/support/")({
+export const Route = createFileRoute("/learn/support/")({
   component: SupportIndex,
 });
 
@@ -24,7 +24,7 @@ function SupportIndex() {
         {supportResources.map((r) => (
           <li key={r.slug}>
             <Link
-              to="/support/$resource"
+              to="/learn/support/$resource"
               params={{ resource: r.slug }}
               className="group flex h-full items-start gap-3 rounded-3xl border border-border/70 bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
             >
@@ -54,7 +54,7 @@ function SupportIndex() {
               right now.
             </p>
             <Link
-              to="/coach"
+              to="/learn/coach"
               className="mt-3 inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background"
             >
               Open AI Coach

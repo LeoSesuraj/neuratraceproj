@@ -26,7 +26,7 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import logo from "@/assets/neurotrace-logo.png";
 
-export const Route = createFileRoute("/coach/$threadId")({
+export const Route = createFileRoute("/learn/coach/$threadId")({
   component: ThreadPage,
 });
 
@@ -95,7 +95,7 @@ function ThreadChat({ threadId }: { threadId: string }) {
     <AppShell>
       <div className="flex items-center justify-between gap-3">
         <Link
-          to="/coach"
+          to="/learn/coach"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />

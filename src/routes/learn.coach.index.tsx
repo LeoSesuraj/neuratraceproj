@@ -4,7 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { useThreads, newThreadId } from "@/lib/chat-threads";
 import { MessageCircle, Plus, Sparkles, Trash2 } from "lucide-react";
 
-export const Route = createFileRoute("/coach/")({
+export const Route = createFileRoute("/learn/coach/")({
   component: CoachIndex,
 });
 
@@ -51,7 +51,7 @@ function CoachIndex() {
             className="group flex items-center gap-3 rounded-2xl border border-border/70 bg-card px-4 py-3 shadow-soft transition-colors hover:bg-surface"
           >
             <Link
-              to="/coach/$threadId"
+              to="/learn/coach/$threadId"
               params={{ threadId: t.id }}
               className="flex min-w-0 flex-1 items-center gap-3"
             >

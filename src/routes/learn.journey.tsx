@@ -4,7 +4,7 @@ import { stages } from "@/lib/journey";
 import { useState } from "react";
 import { Compass, HeartHandshake, Info } from "lucide-react";
 
-export const Route = createFileRoute("/journey")({
+export const Route = createFileRoute("/learn/journey")({
   head: () => ({
     meta: [
       { title: "Journey — NeuroTrace" },

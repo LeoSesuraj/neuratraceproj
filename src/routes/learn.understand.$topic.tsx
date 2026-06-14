@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { getUnderstandTopic, understandTopics } from "@/lib/understand";
 import { ArrowLeft, BookOpen, Compass, Eye } from "lucide-react";
 
-export const Route = createFileRoute("/understand/$topic")({
+export const Route = createFileRoute("/learn/understand/$topic")({
   loader: ({ params }) => {
     const t = getUnderstandTopic(params.topic);
     if (!t) throw notFound();
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/understand/$topic")({
     <AppShell>
       <p className="py-16 text-center text-muted-foreground">
         Topic not found.{" "}
-        <Link to="/understand" className="text-primary underline">
+        <Link to="/learn/understand" className="text-primary underline">
           Go back
         </Link>
       </p>
@@ -45,7 +45,7 @@ function UnderstandTopicPage() {
   return (
     <AppShell>
       <Link
-        to="/understand"
+        to="/learn/understand"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -108,7 +108,7 @@ function UnderstandTopicPage() {
           {others.map((o) => (
             <li key={o.slug}>
               <Link
-                to="/understand/$topic"
+                to="/learn/understand/$topic"
                 params={{ topic: o.slug }}
                 className="flex items-center justify-between rounded-2xl border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:bg-surface"
               >

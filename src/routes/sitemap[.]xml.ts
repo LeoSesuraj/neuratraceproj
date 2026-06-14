@@ -12,23 +12,23 @@ export const Route = createFileRoute("/sitemap.xml")({
       GET: async () => {
         const entries: { path: string; changefreq?: string; priority?: string }[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
-          { path: "/connect", changefreq: "weekly", priority: "0.9" },
-          { path: "/understand", changefreq: "monthly", priority: "0.8" },
-          { path: "/journey", changefreq: "monthly", priority: "0.8" },
-          { path: "/support", changefreq: "monthly", priority: "0.8" },
-          { path: "/coach", changefreq: "weekly", priority: "0.7" },
+          { path: "/learn/connect", changefreq: "weekly", priority: "0.9" },
+          { path: "/learn/understand", changefreq: "monthly", priority: "0.8" },
+          { path: "/learn/journey", changefreq: "monthly", priority: "0.8" },
+          { path: "/learn/support", changefreq: "monthly", priority: "0.8" },
+          { path: "/learn/coach", changefreq: "weekly", priority: "0.7" },
           ...situations.map((s) => ({
-            path: `/connect/${s.slug}`,
+            path: `/learn/connect/${s.slug}`,
             changefreq: "monthly",
             priority: "0.7",
           })),
           ...understandTopics.map((t) => ({
-            path: `/understand/${t.slug}`,
+            path: `/learn/understand/${t.slug}`,
             changefreq: "monthly",
             priority: "0.6",
           })),
           ...supportResources.map((r) => ({
-            path: `/support/${r.slug}`,
+            path: `/learn/support/${r.slug}`,
             changefreq: "monthly",
             priority: "0.6",
           })),
