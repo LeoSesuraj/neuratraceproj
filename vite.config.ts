@@ -1,12 +1,12 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { loadEnv } from "vite";
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+const env = { ...loadEnv("development", process.cwd(), ""), ...loadEnv("production", process.cwd(), ""), ...process.env };
+const SUPABASE_URL = env.VITE_SUPABASE_URL || env.SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error(
-    "Missing Supabase environment variables. Ensure .env contains VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY."
-  );
+  console.warn("[vite.config] Missing Supabase env vars at build time; client will rely on runtime env.");
 }
 
 export default defineConfig({
@@ -18,8 +18,8 @@ export default defineConfig({
   },
   vite: {
     define: {
-      "process.env.SUPABASE_URL": JSON.stringify(SUPABASE_URL),
-      "process.env.SUPABASE_PUBLISHABLE_KEY": JSON.stringify(SUPABASE_PUBLISHABLE_KEY),
+      ...(SUPABASE_URL ? { "process.env.SUPABASE_URL": JSON.stringify(SUPABASE_URL) } : {}),
+      ...(SUPABASE_PUBLISHABLE_KEY ? { "process.env.SUPABASE_PUBLISHABLE_KEY": JSON.stringify(SUPABASE_PUBLISHABLE_KEY) } : {}),
     },
   },
 });
