@@ -65,12 +65,23 @@ export const getMyRole = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("user_roles")
-      .select("role, facility_id")
-      .order("role")
-      .limit(1)
-      .maybeSingle();
+      .select("role, facility_id");
     if (error) throw new Error(error.message);
-    return { role: data?.role ?? null, facilityId: data?.facility_id ?? null };
+    const rows = data ?? [];
+    const isSuperAdmin = rows.some((r) => r.role === "super_admin");
+    // priority: super_admin > admin > staff > family
+    const priority = ["super_admin", "admin", "staff", "family"] as const;
+    let role: string | null = null;
+    let facilityId: string | null = null;
+    for (const p of priority) {
+      const hit = rows.find((r) => r.role === p);
+      if (hit) {
+        role = hit.role;
+        facilityId = hit.facility_id;
+        break;
+      }
+    }
+    return { role, facilityId, isSuperAdmin };
   });
 
 export const redeemFamilyInvite = createServerFn({ method: "POST" })
@@ -107,15 +118,106 @@ async function assertAdmin(supabase: import("@supabase/supabase-js").SupabaseCli
   if (!data) throw new Error("Forbidden");
 }
 
+async function assertSuperAdmin(supabase: import("@supabase/supabase-js").SupabaseClient, userId: string) {
+  const { data } = await supabase.rpc("is_super_admin", { _user_id: userId });
+  if (!data) throw new Error("Forbidden");
+}
+
+async function isSuperAdmin(supabase: import("@supabase/supabase-js").SupabaseClient, userId: string) {
+  const { data } = await supabase.rpc("is_super_admin", { _user_id: userId });
+  return !!data;
+}
+
+async function getAdminFacilityId(
+  supabase: import("@supabase/supabase-js").SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("user_roles")
+    .select("facility_id")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .not("facility_id", "is", null)
+    .limit(1)
+    .maybeSingle();
+  return data?.facility_id ?? null;
+}
+
 export const listPendingStaffRequests = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { data, error } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let q = supabaseAdmin
       .from("staff_requests")
       .select("id, email, facility_id, status, created_at")
       .eq("status", "pending")
       .order("created_at", { ascending: false });
+    if (!(await isSuperAdmin(context.supabase, context.userId))) {
+      const fid = await getAdminFacilityId(context.supabase, context.userId);
+      if (!fid) return [];
+      q = q.eq("facility_id", fid);
+    }
+    const { data, error } = await q;
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const listAllFacilities = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("facilities")
+      .select("id, name, created_at")
+      .order("name");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const createFacility = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ name: z.string().min(1).max(120) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
+      .from("facilities")
+      .insert({ name: data.name })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const deleteFacility = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { count } = await supabaseAdmin
+      .from("residents")
+      .select("*", { count: "exact", head: true })
+      .eq("facility_id", data.id);
+    if ((count ?? 0) > 0) {
+      throw new Error("Facility has residents — remove them first.");
+    }
+    const { error } = await supabaseAdmin.from("facilities").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const listAllResidents = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("residents")
+      .select("id, name, dementia_type, facility_id, facilities(name)")
+      .order("name");
     if (error) throw new Error(error.message);
     return data ?? [];
   });
@@ -180,6 +282,15 @@ export const decideStaffRequest = createServerFn({ method: "POST" })
 export const listResidentsForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    if (await isSuperAdmin(context.supabase, context.userId)) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data, error } = await supabaseAdmin
+        .from("residents")
+        .select("id, name, photo_url, facility_id, dementia_type")
+        .order("name");
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    }
     const { data, error } = await context.supabase
       .from("residents")
       .select("id, name, photo_url, facility_id, dementia_type")
@@ -429,6 +540,13 @@ export const inviteAdmin = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
+    // Non-super admins can only invite into their own facility
+    if (!(await isSuperAdmin(context.supabase, context.userId))) {
+      const ownFid = await getAdminFacilityId(context.supabase, context.userId);
+      if (!ownFid || ownFid !== data.facility_id) {
+        throw new Error("Admins can only invite within their facility.");
+      }
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const origin = getOrigin();
     const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(

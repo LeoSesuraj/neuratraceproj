@@ -22,14 +22,23 @@ function LoginPage() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       const { role } = await getMyRole();
-      if (role === "admin") navigate({ to: "/admin" });
+      if (role === "super_admin" || role === "admin") navigate({ to: "/admin" });
       else if (role === "staff") navigate({ to: "/staff" });
+      else if (role === "family") navigate({ to: "/resident" });
       else navigate({ to: "/resident" });
     } catch (e: any) {
       setError(e.message ?? "Sign in failed");
     } finally {
       setLoading(false);
     }
+  }
+
+  function openInvite() {
+    const token = window.prompt("Paste your invite token or link:");
+    if (!token) return;
+    const match = token.match(/token=([0-9a-f-]{36})/i);
+    const t = match ? match[1] : token.trim();
+    navigate({ to: "/auth/join-family", search: { token: t } as any });
   }
 
   return (
@@ -74,12 +83,26 @@ function LoginPage() {
           {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
-      <p className="mt-6 text-center text-sm text-muted-foreground">
-        No account yet?{" "}
-        <Link to="/" className="text-primary hover:underline">
-          Choose how to join
+
+      <div className="mt-6 flex items-center justify-center gap-4 text-sm">
+        <Link to="/auth/join-staff" className="text-muted-foreground hover:text-foreground">
+          Join as Staff
         </Link>
-      </p>
+        <span className="text-border">·</span>
+        <button
+          type="button"
+          onClick={openInvite}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          Join with invite link
+        </button>
+      </div>
+
+      <div className="mt-10 text-center">
+        <Link to="/learn" className="text-xs text-muted-foreground hover:text-foreground">
+          Explore without an account →
+        </Link>
+      </div>
     </div>
   );
 }
