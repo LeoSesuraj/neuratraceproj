@@ -217,6 +217,7 @@ export const decideStaffRequestSuper = createServerFn({ method: "POST" })
     const { data: invited, error: iErr } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(req.email, {
         data: { facility_id: req.facility_id, role: "staff" },
+        redirectTo: inviteRedirectTo(),
       });
     if (iErr && !iErr.message.toLowerCase().includes("already")) {
       throw new Error(iErr.message);
