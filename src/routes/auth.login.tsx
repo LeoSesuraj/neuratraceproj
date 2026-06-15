@@ -22,7 +22,8 @@ function LoginPage() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       const { role } = await getMyRole();
-      if (role === "admin") navigate({ to: "/admin" });
+      if (role === "super_admin") navigate({ to: "/admin/super" });
+      else if (role === "admin") navigate({ to: "/admin" });
       else if (role === "staff") navigate({ to: "/staff" });
       else navigate({ to: "/resident" });
     } catch (e: any) {
