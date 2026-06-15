@@ -1,90 +1,70 @@
-# Plan: Two-Module App with Auth, Roles, and Resident Tracking
+# Role-Based App: Super Admin + Facility Admin + Staff + Family
 
-This is a large change. I'll break it into phases so we can ship and verify incrementally. Each phase ends in a working app.
+## 1. Database changes (migration)
 
----
+- Add `super_admin` value to existing `app_role` enum.
+- Keep existing `admin` role, treated as **Facility Admin** (scoped by `facility_id` in `user_roles`).
+- Add helper SQL function `is_super_admin(uid)` for RLS shortcuts.
+- Update RLS policies on `facilities`, `residents`, `user_roles`, `staff_requests`, `invites`, `posts`, `mood_logs`, `weekly_surveys`, `decline_alerts`:
+  - Super admin: full read/write everywhere.
+  - Facility admin: read/write scoped to their `facility_id`.
+  - Staff: scoped to residents in `resident_staff`.
+  - Family: read-only scoped to residents in `resident_family`.
 
-## Phase 0 — Enable Lovable Cloud
-Required for auth, database, storage, and 2FA. Provisions Supabase under the hood.
+## 2. Server functions (`src/lib/app.functions.ts`)
 
-## Phase 1 — Restructure into Learn module
-Move all current content (Connect, Understand, Journey, Support, AI Coach) under `/learn/*` with no behavior changes. Update `AppShell` nav to scope to Learn tabs. Root `/` becomes the new login/landing screen.
+Add/modify:
+- `getMyRole` returns `{ role, facilityId, isSuperAdmin }`.
+- Super-admin-only:
+  - `listAllFacilities`, `createFacility`, `deleteFacility`
+  - `listAllStaffRequests` (across facilities)
+  - `createFacilityAdmin({ email, facility_id })` → invites email + assigns admin role
+  - `listAllResidents`
+- Facility-admin-only: existing `listPendingStaffRequests` / `decideStaffRequest` already facility-scoped via RLS; tighten to current admin's facility.
+- Staff scope check on `logTodayMood`, `submitWeeklySurvey`, `createPhotoPost` — only assigned residents.
+- Family read-only enforced in `getResidentOverview`.
 
-- Move routes: `connect.*` → `learn.connect.*`, `understand.*` → `learn.understand.*`, `journey.tsx` → `learn.journey.tsx`, `support.*` → `learn.support.*`, `coach.*` → `learn.coach.*`
-- Update all internal `<Link to=...>` and AppShell tabs
-- New route `/learn` = current home content (entry to Learn module)
+## 3. Routing
 
-## Phase 2 — Database schema
-One migration creating all tables with RLS + grants:
-- `facilities`, `app_role` enum, `user_roles` (separate table, security-definer `has_role()`)
-- `profiles` (name, facility_id, auto-created on signup)
-- `residents`, `resident_family`, `resident_staff`
-- `invites`, `staff_requests`
-- `posts`, `mood_logs`, `weekly_surveys`, `decline_alerts`
-- Storage bucket `resident-photos` (public read, staff write)
-- RLS: family read-only on linked residents, staff read/write on facility residents, admin full access on facility
-- Trigger on `weekly_surveys` insert → check last 2 weeks per category → upsert `decline_alerts`
+After login (`auth.login.tsx` + `index.tsx` inline form), navigate based on role:
+- `super_admin` → `/admin/super`
+- `admin` → `/admin`
+- `staff` → `/staff`
+- `family` → `/resident`
 
-## Phase 3 — Landing/Login screen at `/`
-Four cards:
-1. **Log in** → `/auth/login` (email+password, role-routed redirect)
-2. **Join as Staff** → `/auth/join-staff` (email + facility dropdown → inserts `staff_requests`)
-3. **Join as Family** → `/auth/join-family?token=...` (validates invite token, signup + 2FA enrollment)
-4. **Learn about dementia** → `/learn` (no auth)
+New routes:
+- `src/routes/_authenticated.admin.super.tsx` — Super Admin dashboard with tabs: Facilities, Staff Requests, Facility Admins, Residents.
+- Update `_authenticated.admin.tsx` — Facility Admin: staff requests (own facility), residents list/create, invite copy link, invite other admins.
+- `_authenticated.staff.tsx` — Staff: only assigned residents, post photo, daily mood, weekly survey.
+- `_authenticated.resident.*` — Family: resident cards → feed (photos, today mood pill, 8-week graph, decline banners), Visit Mode, AI Coach link.
 
-Post-login routing via `user_roles`:
-- admin → `/admin`
-- staff → `/staff`
-- family → `/resident`
+## 4. Seed test accounts (migration with `auth.users` inserts)
 
-## Phase 4 — Admin dashboard (`/admin`)
-- Staff approval queue (list pending `staff_requests`, approve/deny)
-- On approve: server fn creates invite + sends Supabase invite email (set-password link), assigns staff role
-- Resident list for facility
-- Facility settings (basic)
+Created via SQL using `auth.admin` via a one-time seeding migration, with `user_roles` and link rows:
 
-## Phase 5 — Staff dashboard (`/staff`)
-- Resident list (facility-scoped) + "Create resident" form
-- On resident create: auto-generate family invite link (copyable)
-- Per resident: post photo (upload to storage + caption), log today's mood, weekly survey form
+| Role | Email | Password |
+|---|---|---|
+| Super Admin | leonelbaskin@gmail.com | SuperAdmin123! |
+| Facility Admin | admin@demo.test | Admin123! |
+| Staff | staff@demo.test | Staff123! |
+| Family | family@demo.test | Family123! |
 
-## Phase 6 — Family/Resident module (`/resident`)
-- Resident selector (cards of linked residents)
-- `/resident/$id` feed:
-  - Profile header (name, photo, today's mood badge)
-  - "I'm visiting today" button → Visit Mode overlay with 2-3 activity suggestions based on today's mood, linking into Learn articles; auto-dismisses after 3h (timestamp in localStorage)
-  - 8-week line graph (Recharts) — Eating/Mood/Social/Mobility/Behaviors, tap legend to isolate
-  - Decline alert banner (one per active alert, dismiss writes `dismissed_at`)
-  - Photo feed (vertical scroll, read-only)
-- AI Coach scoped to resident (passes resident context into existing coach prompt)
+Plus seed:
+- 2 facilities: "Sunrise Care" (admin/staff/family assigned), "Maple Grove"
+- 2 residents in Sunrise: "Eleanor Hayes", "Walter Chen" — both assigned to staff@demo.test; family@demo.test linked to Eleanor.
+- Sample posts, mood logs, weekly surveys so the feed/graph render.
 
-## Phase 7 — 2FA for family
-Enroll TOTP (authenticator app) during family signup via `supabase.auth.mfa.enroll()`. SMS requires Twilio config — defer unless requested. Enforce on family login via AAL2 challenge.
+## 5. UI touches
 
----
+- Role-aware nav in `app-shell.tsx` showing only allowed sections.
+- Facility switcher dropdown for super admin (persists in URL search param `?facility=`).
+- Visit Mode + today-mood pill (green/yellow/red) + 8-week line chart (recharts already in deps) on resident feed.
 
-## Technical Details
+## Technical notes
 
-**Stack:** TanStack Start + Lovable Cloud (Supabase). Server functions for all DB writes/privileged reads. `requireSupabaseAuth` on protected fns + role checks via `has_role()`.
+- Super admin RLS uses `is_super_admin(auth.uid())` to bypass facility scoping in policies.
+- Seeded user passwords use Supabase auth admin `createUser` inside a SQL migration via `supabase_auth_admin` extension calls — wrapped in `DO $$ ... $$` block that's idempotent (`ON CONFLICT DO NOTHING`).
+- All new tables/columns get matching `GRANT`s for `authenticated` + `service_role`.
+- Routes under `_authenticated/admin/super` gated by `getMyRole` returning `super_admin`; redirect otherwise.
 
-**Routing:**
-- Public: `/`, `/learn/*`, `/auth/*`
-- Protected under `_authenticated/`: `/admin`, `/staff`, `/resident/*`
-
-**Invite tokens:** UUID `token` column on `invites`. Family signup validates token → creates `resident_family` link → marks invite used.
-
-**Decline alert logic:** DB trigger after `weekly_surveys` insert; for each category in new row marked Declined (or Significant for behaviors), check the immediately prior week's survey for same resident — if also Declined, insert `decline_alerts` row (unique on resident_id+category where dismissed_at is null).
-
-**Visit Mode suggestions:** Static content per mood tier, hardcoded in `src/lib/visit-mode.ts`, each item linking to existing Connect/Understand slugs.
-
-**Graph:** Recharts LineChart, 5 lines, tap legend to toggle visibility.
-
----
-
-## What I'd like to confirm before starting
-
-1. **2FA method for family:** TOTP/authenticator app only (works out of the box), or do you want SMS too (requires Twilio account + secret — extra setup)?
-2. **Facility seeding:** Should I seed 2-3 example facilities so the staff dropdown isn't empty for testing, or will you create facilities yourself in the admin UI?
-3. **Phasing:** OK to ship in phases above (each phase is a working app), or do you want one giant change?
-
-Once you confirm, I'll enable Lovable Cloud and start with Phase 1.
+Ready to implement on approval.

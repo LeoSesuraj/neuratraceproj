@@ -35,6 +35,7 @@ import { Route as LearnSupportResourceRouteImport } from './routes/learn.support
 import { Route as LearnConnectSituationRouteImport } from './routes/learn.connect.$situation'
 import { Route as LearnCoachThreadIdRouteImport } from './routes/learn.coach.$threadId'
 import { Route as AuthenticatedResidentResidentIdRouteImport } from './routes/_authenticated.resident.$residentId'
+import { Route as AuthenticatedAdminSuperRouteImport } from './routes/_authenticated.admin.super'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -167,12 +168,17 @@ const AuthenticatedResidentResidentIdRoute =
     path: '/resident/$residentId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminSuperRoute = AuthenticatedAdminSuperRouteImport.update({
+  id: '/super',
+  path: '/super',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/auth/join-family': typeof AuthJoinFamilyRoute
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/learn/support': typeof LearnSupportRouteWithChildren
   '/learn/understand': typeof LearnUnderstandRouteWithChildren
   '/learn/': typeof LearnIndexRoute
+  '/admin/super': typeof AuthenticatedAdminSuperRoute
   '/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
@@ -199,7 +206,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/auth/join-family': typeof AuthJoinFamilyRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/learn/journey': typeof LearnJourneyRoute
   '/learn': typeof LearnIndexRoute
+  '/admin/super': typeof AuthenticatedAdminSuperRoute
   '/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
@@ -224,7 +232,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/auth/join-family': typeof AuthJoinFamilyRoute
@@ -236,6 +244,7 @@ export interface FileRoutesById {
   '/learn/support': typeof LearnSupportRouteWithChildren
   '/learn/understand': typeof LearnUnderstandRouteWithChildren
   '/learn/': typeof LearnIndexRoute
+  '/_authenticated/admin/super': typeof AuthenticatedAdminSuperRoute
   '/_authenticated/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
@@ -265,6 +274,7 @@ export interface FileRouteTypes {
     | '/learn/support'
     | '/learn/understand'
     | '/learn/'
+    | '/admin/super'
     | '/resident/$residentId'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
@@ -288,6 +298,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/learn/journey'
     | '/learn'
+    | '/admin/super'
     | '/resident/$residentId'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
@@ -316,6 +327,7 @@ export interface FileRouteTypes {
     | '/learn/support'
     | '/learn/understand'
     | '/learn/'
+    | '/_authenticated/admin/super'
     | '/_authenticated/resident/$residentId'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
@@ -526,18 +538,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedResidentResidentIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/super': {
+      id: '/_authenticated/admin/super'
+      path: '/super'
+      fullPath: '/admin/super'
+      preLoaderRoute: typeof AuthenticatedAdminSuperRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminSuperRoute: typeof AuthenticatedAdminSuperRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminSuperRoute: AuthenticatedAdminSuperRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
   AuthenticatedResidentResidentIdRoute: typeof AuthenticatedResidentResidentIdRoute
   AuthenticatedResidentIndexRoute: typeof AuthenticatedResidentIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
   AuthenticatedResidentResidentIdRoute: AuthenticatedResidentResidentIdRoute,
   AuthenticatedResidentIndexRoute: AuthenticatedResidentIndexRoute,

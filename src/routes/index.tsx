@@ -3,7 +3,7 @@ import { useState } from "react";
 import logo from "@/assets/neurotrace-logo.png";
 import { BookOpen, UserPlus, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getMyRole } from "@/lib/app.functions";
+import { getMyRole, seedDemoAccounts } from "@/lib/app.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -70,7 +70,8 @@ function LandingPage() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       const { role } = await getMyRole();
-      if (role === "admin") navigate({ to: "/admin" });
+      if (role === "super_admin") navigate({ to: "/admin/super" });
+      else if (role === "admin") navigate({ to: "/admin" });
       else if (role === "staff") navigate({ to: "/staff" });
       else navigate({ to: "/resident" });
     } catch (e: any) {
@@ -157,11 +158,84 @@ function LandingPage() {
           })}
         </ul>
 
-        <p className="mt-10 text-center text-xs text-muted-foreground">
+        <DemoAccounts />
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
           NeuroTrace is for education and emotional support only. It is not a
           diagnostic tool or a substitute for medical care.
         </p>
       </main>
+    </div>
+  );
+}
+
+const DEMO_ACCOUNTS = [
+  { role: "Super Admin", email: "leonelbaskin@gmail.com", password: "SuperAdmin123!" },
+  { role: "Facility Admin", email: "admin@demo.test", password: "Admin123!" },
+  { role: "Staff", email: "staff@demo.test", password: "Staff123!" },
+  { role: "Family", email: "family@demo.test", password: "Family123!" },
+];
+
+function DemoAccounts() {
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [msg, setMsg] = useState<string | null>(null);
+
+  async function seed() {
+    setStatus("loading");
+    setMsg(null);
+    try {
+      await seedDemoAccounts();
+      setStatus("done");
+      setMsg("Demo accounts ready. Sign in with any of the credentials below.");
+    } catch (e: any) {
+      setStatus("error");
+      setMsg(e.message ?? "Seed failed");
+    }
+  }
+
+  return (
+    <div className="mt-10 rounded-3xl border border-dashed border-border bg-surface/60 p-4">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full text-left text-sm font-medium"
+      >
+        {open ? "▾" : "▸"} Demo / test accounts
+      </button>
+      {open && (
+        <div className="mt-3 space-y-3 text-sm">
+          <button
+            onClick={seed}
+            disabled={status === "loading"}
+            className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            {status === "loading" ? "Setting up…" : "Set up demo accounts"}
+          </button>
+          {msg && (
+            <p className={status === "error" ? "text-destructive text-xs" : "text-xs text-muted-foreground"}>
+              {msg}
+            </p>
+          )}
+          <table className="w-full text-xs">
+            <thead className="text-muted-foreground">
+              <tr>
+                <th className="text-left font-medium">Role</th>
+                <th className="text-left font-medium">Email</th>
+                <th className="text-left font-medium">Password</th>
+              </tr>
+            </thead>
+            <tbody className="font-mono">
+              {DEMO_ACCOUNTS.map((a) => (
+                <tr key={a.email} className="border-t border-border">
+                  <td className="py-1 pr-2 font-sans">{a.role}</td>
+                  <td className="py-1 pr-2">{a.email}</td>
+                  <td className="py-1">{a.password}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
