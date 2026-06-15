@@ -449,35 +449,58 @@ export const decideStaffRequest = createServerFn({ method: "POST" })
       return { ok: true };
     }
 
-    // Approve: ensure auth user exists, assign staff role.
-    // Invite email is best-effort — fall back so rate limits / SMTP issues
-    // never block approval.
+    // Approve: ensure auth user exists AND always send an email so the staff
+    // member can set a password.
+    //  - New user  → inviteUserByEmail (sends invite email).
+    //  - Existing  → generateLink({ type: "recovery" }) which sends a reset
+    //    email pointing at /auth/set-password.
+    const redirectTo = inviteRedirectTo();
     let userId: string | undefined;
+    let emailSent = false;
+    let emailError: string | undefined;
 
     const { data: list } = await supabaseAdmin.auth.admin.listUsers();
-    userId = list?.users.find((u) => u.email?.toLowerCase() === req.email.toLowerCase())?.id;
+    const existing = list?.users.find(
+      (u) => u.email?.toLowerCase() === req.email.toLowerCase(),
+    );
 
-    if (!userId) {
-      const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-        req.email,
-        {
+    if (existing) {
+      userId = existing.id;
+      const { error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+        type: "recovery",
+        email: req.email,
+        options: { redirectTo },
+      });
+      if (linkErr) emailError = linkErr.message;
+      else emailSent = true;
+    } else {
+      const { data: invited, error: iErr } =
+        await supabaseAdmin.auth.admin.inviteUserByEmail(req.email, {
           data: { facility_id: req.facility_id, role: "staff" },
-          redirectTo: inviteRedirectTo(),
-        },
-      );
+          redirectTo,
+        });
       if (invited?.user?.id) {
         userId = invited.user.id;
+        emailSent = true;
       } else {
-        // Rate-limited or SMTP not configured — create the user directly so
-        // the admin can hand them a temp password.
+        emailError = iErr?.message ?? "Unknown invite error";
+        // Fallback so approval is not blocked, but flag that no email went out.
         const tempPassword = `Temp${Math.random().toString(36).slice(2, 10)}!A1`;
-        const { data: created, error: cErr } = await supabaseAdmin.auth.admin.createUser({
-          email: req.email,
-          password: tempPassword,
-          email_confirm: true,
-          user_metadata: { facility_id: req.facility_id, role: "staff", temp_password: tempPassword },
-        });
-        if (cErr) throw new Error(`Could not invite or create user: ${iErr?.message ?? cErr.message}`);
+        const { data: created, error: cErr } =
+          await supabaseAdmin.auth.admin.createUser({
+            email: req.email,
+            password: tempPassword,
+            email_confirm: true,
+            user_metadata: {
+              facility_id: req.facility_id,
+              role: "staff",
+              temp_password: tempPassword,
+            },
+          });
+        if (cErr)
+          throw new Error(
+            `Could not invite or create user: ${emailError} / ${cErr.message}`,
+          );
         userId = created.user?.id;
       }
     }
@@ -491,9 +514,19 @@ export const decideStaffRequest = createServerFn({ method: "POST" })
     }
     await supabaseAdmin
       .from("staff_requests")
-      .update({ status: "approved", decided_at: new Date().toISOString(), decided_by: context.userId })
+      .update({
+        status: "approved",
+        decided_at: new Date().toISOString(),
+        decided_by: context.userId,
+      })
       .eq("id", data.id);
-    return { ok: true };
+
+    if (!emailSent) {
+      console.warn(
+        `[decideStaffRequest] No email sent to ${req.email}: ${emailError}`,
+      );
+    }
+    return { ok: true, emailSent, emailError };
   });
 
 // ---------- Staff / Resident management ----------
