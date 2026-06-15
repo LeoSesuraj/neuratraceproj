@@ -1,6 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+
+function inviteRedirectTo(): string | undefined {
+  try {
+    const req = getRequest();
+    const origin =
+      req?.headers.get("origin") ??
+      (req?.headers.get("host")
+        ? `https://${req.headers.get("host")}`
+        : undefined);
+    return origin ? `${origin}/auth/set-password` : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 // ---------- Public ----------
 
