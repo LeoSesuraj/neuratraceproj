@@ -3,7 +3,7 @@ import { useState } from "react";
 import logo from "@/assets/neurotrace-logo.png";
 import { BookOpen, UserPlus, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getMyRole } from "@/lib/app.functions";
+import { getMyRole, seedDemoAccounts } from "@/lib/app.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
