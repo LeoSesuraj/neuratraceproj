@@ -53,6 +53,13 @@ export const lookupInvite = createServerFn({ method: "POST" })
 export const getMyRole = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
+    const email = (context.claims.email as string | undefined) ?? null;
+    const isSuper =
+      !!email && SUPER_ADMIN_EMAILS.includes(email.toLowerCase().trim());
+    if (isSuper) {
+      return { role: "super_admin" as const, facilityId: null, email };
+    }
     const { data, error } = await context.supabase
       .from("user_roles")
       .select("role, facility_id")
@@ -60,8 +67,282 @@ export const getMyRole = createServerFn({ method: "GET" })
       .limit(1)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return { role: data?.role ?? null, facilityId: data?.facility_id ?? null };
+    return {
+      role: (data?.role as string | null) ?? null,
+      facilityId: data?.facility_id ?? null,
+      email,
+    };
   });
+
+// ---------- Super Admin (email-gated) ----------
+
+async function assertSuperAdmin(context: { claims: { email?: unknown } }) {
+  const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
+  const email = (context.claims.email as string | undefined) ?? "";
+  if (!SUPER_ADMIN_EMAILS.includes(email.toLowerCase().trim())) {
+    throw new Error("Forbidden: super admin only");
+  }
+}
+
+export const listAllFacilities = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("facilities")
+      .select("id, name, created_at")
+      .order("name");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const createFacility = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ name: z.string().min(1).max(120) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
+      .from("facilities")
+      .insert({ name: data.name })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const deleteFacility = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("facilities").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const listAllStaffRequests = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("staff_requests")
+      .select("id, email, facility_id, status, created_at, facilities(name)")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const listAllResidents = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("residents")
+      .select("id, name, photo_url, dementia_type, facility_id, facilities(name)")
+      .order("name");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const createFacilityAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ email: z.string().email(), facility_id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: invited, error: iErr } =
+      await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
+        data: { facility_id: data.facility_id, role: "admin" },
+      });
+    if (iErr && !iErr.message.toLowerCase().includes("already")) {
+      throw new Error(iErr.message);
+    }
+    let userId = invited?.user?.id;
+    if (!userId) {
+      const { data: list } = await supabaseAdmin.auth.admin.listUsers();
+      userId = list?.users.find((u) => u.email === data.email)?.id;
+    }
+    if (!userId) throw new Error("Could not resolve user");
+    await supabaseAdmin
+      .from("user_roles")
+      .upsert({ user_id: userId, role: "admin", facility_id: data.facility_id });
+    return { ok: true };
+  });
+
+export const decideStaffRequestSuper = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ id: z.string().uuid(), approve: z.boolean() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: req, error: rErr } = await supabaseAdmin
+      .from("staff_requests")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (rErr || !req) throw new Error("Request not found");
+
+    if (!data.approve) {
+      await supabaseAdmin
+        .from("staff_requests")
+        .update({ status: "denied", decided_at: new Date().toISOString(), decided_by: context.userId })
+        .eq("id", data.id);
+      return { ok: true };
+    }
+    const { data: invited, error: iErr } =
+      await supabaseAdmin.auth.admin.inviteUserByEmail(req.email, {
+        data: { facility_id: req.facility_id, role: "staff" },
+      });
+    if (iErr && !iErr.message.toLowerCase().includes("already")) {
+      throw new Error(iErr.message);
+    }
+    let userId = invited?.user?.id;
+    if (!userId) {
+      const { data: list } = await supabaseAdmin.auth.admin.listUsers();
+      userId = list?.users.find((u) => u.email === req.email)?.id;
+    }
+    if (userId) {
+      await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: userId, role: "staff", facility_id: req.facility_id });
+    }
+    await supabaseAdmin
+      .from("staff_requests")
+      .update({ status: "approved", decided_at: new Date().toISOString(), decided_by: context.userId })
+      .eq("id", data.id);
+    return { ok: true };
+  });
+
+// ---------- Public seed for demo accounts (idempotent) ----------
+
+export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  async function ensureUser(email: string, password: string): Promise<string> {
+    const { data: list } = await supabaseAdmin.auth.admin.listUsers();
+    const existing = list?.users.find((u) => u.email === email);
+    if (existing) return existing.id;
+    const { data, error } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
+    if (error || !data.user) throw new Error(error?.message ?? "createUser failed");
+    return data.user.id;
+  }
+
+  const superUid = await ensureUser("leonelbaskin@gmail.com", "SuperAdmin123!");
+  const adminUid = await ensureUser("admin@demo.test", "Admin123!");
+  const staffUid = await ensureUser("staff@demo.test", "Staff123!");
+  const familyUid = await ensureUser("family@demo.test", "Family123!");
+
+  async function ensureFacility(name: string): Promise<string> {
+    const { data: existing } = await supabaseAdmin
+      .from("facilities")
+      .select("id")
+      .eq("name", name)
+      .maybeSingle();
+    if (existing) return existing.id;
+    const { data, error } = await supabaseAdmin
+      .from("facilities")
+      .insert({ name })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return data.id;
+  }
+
+  const sunrise = await ensureFacility("Sunrise Care");
+  const maple = await ensureFacility("Maple Grove");
+
+  // Roles (super admin gets a placeholder admin row at sunrise too, but UI uses email check)
+  await supabaseAdmin.from("user_roles").upsert(
+    [
+      { user_id: adminUid, role: "admin", facility_id: sunrise },
+      { user_id: staffUid, role: "staff", facility_id: sunrise },
+      { user_id: familyUid, role: "family", facility_id: sunrise },
+    ],
+    { onConflict: "user_id,role,facility_id" },
+  );
+
+  async function ensureResident(name: string, type: string): Promise<string> {
+    const { data: existing } = await supabaseAdmin
+      .from("residents")
+      .select("id")
+      .eq("name", name)
+      .eq("facility_id", sunrise)
+      .maybeSingle();
+    if (existing) return existing.id;
+    const { data, error } = await supabaseAdmin
+      .from("residents")
+      .insert({ name, facility_id: sunrise, dementia_type: type })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return data.id;
+  }
+
+  const eleanor = await ensureResident("Eleanor Hayes", "Alzheimer's");
+  const walter = await ensureResident("Walter Chen", "Vascular dementia");
+
+  await supabaseAdmin.from("resident_staff").upsert(
+    [
+      { resident_id: eleanor, user_id: staffUid, facility_id: sunrise },
+      { resident_id: walter, user_id: staffUid, facility_id: sunrise },
+    ],
+    { onConflict: "resident_id,user_id" },
+  );
+
+  await supabaseAdmin
+    .from("resident_family")
+    .upsert([{ resident_id: eleanor, user_id: familyUid }], {
+      onConflict: "resident_id,user_id",
+    });
+
+  // Sample mood today
+  const today = new Date().toISOString().slice(0, 10);
+  await supabaseAdmin.from("mood_logs").upsert(
+    { resident_id: eleanor, mood: "good", log_date: today, logged_by: staffUid },
+    { onConflict: "resident_id,log_date" },
+  );
+
+  // 8 weekly surveys
+  const surveys = [];
+  for (let i = 0; i < 8; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i * 7);
+    const ratings = ["improved", "stable", "declined"] as const;
+    surveys.push({
+      resident_id: eleanor,
+      staff_id: staffUid,
+      week_of: d.toISOString().slice(0, 10),
+      eating: ratings[i % 3],
+      mood: i % 2 === 0 ? "stable" : "improved",
+      social: "stable",
+      mobility: "stable",
+      behaviors: (i === 0 ? "mild" : "none") as "mild" | "none",
+    });
+  }
+  await supabaseAdmin
+    .from("weekly_surveys")
+    .upsert(surveys, { onConflict: "resident_id,week_of" });
+
+  return {
+    ok: true,
+    facilities: { sunrise, maple },
+    users: { superUid, adminUid, staffUid, familyUid },
+  };
+});
+
 
 export const redeemFamilyInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
