@@ -175,6 +175,7 @@ export const createFacilityAdmin = createServerFn({ method: "POST" })
     const { data: invited, error: iErr } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
         data: { facility_id: data.facility_id, role: "admin" },
+        redirectTo: inviteRedirectTo(),
       });
     if (iErr && !iErr.message.toLowerCase().includes("already")) {
       throw new Error(iErr.message);
