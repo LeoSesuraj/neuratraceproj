@@ -445,7 +445,10 @@ export const decideStaffRequest = createServerFn({ method: "POST" })
     // Approve: invite the user by email, assign staff role
     const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       req.email,
-      { data: { facility_id: req.facility_id, role: "staff" } },
+      {
+        data: { facility_id: req.facility_id, role: "staff" },
+        redirectTo: inviteRedirectTo(),
+      },
     );
     if (iErr && !iErr.message.toLowerCase().includes("already")) {
       throw new Error(iErr.message);
