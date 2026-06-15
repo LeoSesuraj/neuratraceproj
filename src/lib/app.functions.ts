@@ -449,23 +449,39 @@ export const decideStaffRequest = createServerFn({ method: "POST" })
       return { ok: true };
     }
 
-    // Approve: invite the user by email, assign staff role
-    const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      req.email,
-      {
-        data: { facility_id: req.facility_id, role: "staff" },
-        redirectTo: inviteRedirectTo(),
-      },
-    );
-    if (iErr && !iErr.message.toLowerCase().includes("already")) {
-      throw new Error(iErr.message);
-    }
-    let userId = invited?.user?.id;
+    // Approve: ensure auth user exists, assign staff role.
+    // Invite email is best-effort — fall back so rate limits / SMTP issues
+    // never block approval.
+    let userId: string | undefined;
+
+    const { data: list } = await supabaseAdmin.auth.admin.listUsers();
+    userId = list?.users.find((u) => u.email?.toLowerCase() === req.email.toLowerCase())?.id;
+
     if (!userId) {
-      // user might already exist; look up
-      const { data: list } = await supabaseAdmin.auth.admin.listUsers();
-      userId = list?.users.find((u) => u.email === req.email)?.id;
+      const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+        req.email,
+        {
+          data: { facility_id: req.facility_id, role: "staff" },
+          redirectTo: inviteRedirectTo(),
+        },
+      );
+      if (invited?.user?.id) {
+        userId = invited.user.id;
+      } else {
+        // Rate-limited or SMTP not configured — create the user directly so
+        // the admin can hand them a temp password.
+        const tempPassword = `Temp${Math.random().toString(36).slice(2, 10)}!A1`;
+        const { data: created, error: cErr } = await supabaseAdmin.auth.admin.createUser({
+          email: req.email,
+          password: tempPassword,
+          email_confirm: true,
+          user_metadata: { facility_id: req.facility_id, role: "staff", temp_password: tempPassword },
+        });
+        if (cErr) throw new Error(`Could not invite or create user: ${iErr?.message ?? cErr.message}`);
+        userId = created.user?.id;
+      }
     }
+
     if (userId) {
       await supabaseAdmin.from("user_roles").upsert({
         user_id: userId,
