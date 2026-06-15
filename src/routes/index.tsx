@@ -158,7 +158,9 @@ function LandingPage() {
           })}
         </ul>
 
-        <p className="mt-10 text-center text-xs text-muted-foreground">
+        <DemoAccounts />
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
           NeuroTrace is for education and emotional support only. It is not a
           diagnostic tool or a substitute for medical care.
         </p>
