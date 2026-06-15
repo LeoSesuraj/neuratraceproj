@@ -316,11 +316,22 @@ export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async
   );
 
   // 8 weekly surveys
-  const surveys = [];
+  type R = "improved" | "stable" | "declined";
+  type B = "none" | "mild" | "significant";
+  const ratings: readonly R[] = ["improved", "stable", "declined"];
+  const surveys: Array<{
+    resident_id: string;
+    staff_id: string;
+    week_of: string;
+    eating: R;
+    mood: R;
+    social: R;
+    mobility: R;
+    behaviors: B;
+  }> = [];
   for (let i = 0; i < 8; i++) {
     const d = new Date();
     d.setDate(d.getDate() - i * 7);
-    const ratings = ["improved", "stable", "declined"] as const;
     surveys.push({
       resident_id: eleanor,
       staff_id: staffUid,
@@ -329,7 +340,7 @@ export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async
       mood: i % 2 === 0 ? "stable" : "improved",
       social: "stable",
       mobility: "stable",
-      behaviors: (i === 0 ? "mild" : "none") as "mild" | "none",
+      behaviors: i === 0 ? "mild" : "none",
     });
   }
   await supabaseAdmin
