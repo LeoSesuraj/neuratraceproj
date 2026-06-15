@@ -247,7 +247,14 @@ export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async
   async function ensureUser(email: string, password: string): Promise<string> {
     const { data: list } = await supabaseAdmin.auth.admin.listUsers();
     const existing = list?.users.find((u) => u.email === email);
-    if (existing) return existing.id;
+    if (existing) {
+      // Reset password + confirm email so demo accounts always work.
+      await supabaseAdmin.auth.admin.updateUserById(existing.id, {
+        password,
+        email_confirm: true,
+      });
+      return existing.id;
+    }
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
