@@ -1,6 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+
+function inviteRedirectTo(): string | undefined {
+  try {
+    const req = getRequest();
+    const origin =
+      req?.headers.get("origin") ??
+      (req?.headers.get("host")
+        ? `https://${req.headers.get("host")}`
+        : undefined);
+    return origin ? `${origin}/auth/set-password` : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 // ---------- Public ----------
 
@@ -160,6 +175,7 @@ export const createFacilityAdmin = createServerFn({ method: "POST" })
     const { data: invited, error: iErr } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
         data: { facility_id: data.facility_id, role: "admin" },
+        redirectTo: inviteRedirectTo(),
       });
     if (iErr && !iErr.message.toLowerCase().includes("already")) {
       throw new Error(iErr.message);
@@ -201,6 +217,7 @@ export const decideStaffRequestSuper = createServerFn({ method: "POST" })
     const { data: invited, error: iErr } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(req.email, {
         data: { facility_id: req.facility_id, role: "staff" },
+        redirectTo: inviteRedirectTo(),
       });
     if (iErr && !iErr.message.toLowerCase().includes("already")) {
       throw new Error(iErr.message);
@@ -428,7 +445,10 @@ export const decideStaffRequest = createServerFn({ method: "POST" })
     // Approve: invite the user by email, assign staff role
     const { data: invited, error: iErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       req.email,
-      { data: { facility_id: req.facility_id, role: "staff" } },
+      {
+        data: { facility_id: req.facility_id, role: "staff" },
+        redirectTo: inviteRedirectTo(),
+      },
     );
     if (iErr && !iErr.message.toLowerCase().includes("already")) {
       throw new Error(iErr.message);
