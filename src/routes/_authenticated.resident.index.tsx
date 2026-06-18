@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { listResidentsForMe, redeemFamilyKey } from "@/lib/app.functions";
+import { listFamilyResidentsForMe, redeemFamilyKey } from "@/lib/app.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus } from "lucide-react";
 
@@ -13,8 +13,8 @@ function ResidentSelector() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: residents = [], isLoading } = useQuery({
-    queryKey: ["my-residents"],
-    queryFn: () => listResidentsForMe(),
+    queryKey: ["family-residents"],
+    queryFn: () => listFamilyResidentsForMe(),
   });
   const [adding, setAdding] = useState(false);
   const [code, setCode] = useState("");
@@ -26,7 +26,7 @@ function ResidentSelector() {
       setCode("");
       setAdding(false);
       setError(null);
-      qc.invalidateQueries({ queryKey: ["my-residents"] });
+      qc.invalidateQueries({ queryKey: ["family-residents"] });
       if (r.kind === "family" && r.resident_id) {
         navigate({ to: "/resident/$residentId", params: { residentId: r.resident_id } });
       }
