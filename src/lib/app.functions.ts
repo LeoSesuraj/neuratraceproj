@@ -747,6 +747,14 @@ export const dismissAlert = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    const { data: alert } = await context.supabase
+      .from("decline_alerts")
+      .select("resident_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!alert || !(await canEditResident(context.supabase, context.userId, alert.resident_id))) {
+      throw new Error("Forbidden");
+    }
     const { error } = await context.supabase
       .from("decline_alerts")
       .update({ dismissed_at: new Date().toISOString() })
