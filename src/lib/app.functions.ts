@@ -156,10 +156,10 @@ export const getMyRole = createServerFn({ method: "GET" })
       .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
     const roles = data ?? [];
-    const family = roles.find((r) => r.role === "family");
     const admin = roles.find((r) => r.role === "admin");
     const staff = roles.find((r) => r.role === "staff");
-    const primary = family ?? admin ?? staff ?? null;
+    const family = roles.find((r) => r.role === "family");
+    const primary = admin ?? staff ?? family ?? null;
     return {
       role: (primary?.role as string | null) ?? null,
       facilityId: primary?.facility_id ?? null,
@@ -180,7 +180,6 @@ async function getPrimaryAccess(
     .eq("user_id", context.userId);
   if (error) throw new Error(error.message);
   const roles = data ?? [];
-  if (roles.some((r) => r.role === "family")) return { role: "family", facilityIds: [] };
   const adminFacilities = roles
     .filter((r) => r.role === "admin" && r.facility_id)
     .map((r) => r.facility_id as string);
@@ -189,6 +188,7 @@ async function getPrimaryAccess(
     .filter((r) => r.role === "staff" && r.facility_id)
     .map((r) => r.facility_id as string);
   if (staffFacilities.length) return { role: "staff", facilityIds: staffFacilities };
+  if (roles.some((r) => r.role === "family")) return { role: "family", facilityIds: [] };
   return { role: null, facilityIds: [] };
 }
 
@@ -533,14 +533,6 @@ async function canEditResident(
   userId: string,
   residentId: string,
 ): Promise<boolean> {
-  const { data: familyRole } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .eq("role", "family")
-    .limit(1)
-    .maybeSingle();
-  if (familyRole) return false;
   const { data: familyLink } = await supabase
     .from("resident_family")
     .select("resident_id")
