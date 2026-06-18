@@ -68,40 +68,56 @@ export const lookupKey = createServerFn({ method: "POST" })
     return { found: false as const };
   });
 
+async function redeemFamilyResidentKeyForUser(codeInput: string, userId: string) {
+  const { normalizeKey, dailyKey } = await import("./keys.server");
+  const code = normalizeKey(codeInput);
+  if (!code) throw new Error("Invalid key.");
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: residents } = await supabaseAdmin
+    .from("residents")
+    .select("id, facility_id");
+
+  for (const r of residents ?? []) {
+    if (dailyKey("family", r.id) === code) {
+      await supabaseAdmin.from("resident_family").upsert(
+        { resident_id: r.id, user_id: userId },
+        { onConflict: "resident_id,user_id" },
+      );
+      await supabaseAdmin.from("user_roles").upsert(
+        { user_id: userId, role: "family", facility_id: r.facility_id },
+        { onConflict: "user_id,role,facility_id" },
+      );
+      return { ok: true, kind: "family" as const, resident_id: r.id };
+    }
+  }
+
+  return null;
+}
+
+export const redeemFamilyKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ code: z.string().min(1) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const family = await redeemFamilyResidentKeyForUser(data.code, context.userId);
+    if (!family) throw new Error("That is not a resident family key.");
+    return family;
+  });
+
 // Authed: after sign-up, link the new user to the resident/facility by key.
 export const redeemKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ code: z.string().min(1) }).parse(d))
   .handler(async ({ data, context }) => {
+    const family = await redeemFamilyResidentKeyForUser(data.code, context.userId);
+    if (family) return family;
+
     const { normalizeKey, dailyKey } = await import("./keys.server");
     const code = normalizeKey(data.code);
     if (!code) throw new Error("Invalid key.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Family
-    const { data: residents } = await supabaseAdmin
-      .from("residents")
-      .select("id, facility_id");
-    for (const r of residents ?? []) {
-      if (dailyKey("family", r.id) === code) {
-        await supabaseAdmin
-          .from("resident_family")
-          .upsert(
-            { resident_id: r.id, user_id: context.userId },
-            { onConflict: "resident_id,user_id" },
-          );
-        await supabaseAdmin.from("user_roles").upsert(
-          { user_id: context.userId, role: "family", facility_id: r.facility_id },
-          { onConflict: "user_id,role,facility_id" },
-        );
-        return { ok: true, kind: "family" as const, resident_id: r.id };
-      }
-    }
-
     // Staff / Admin
-    const { data: facilities } = await supabaseAdmin
-      .from("facilities")
-      .select("id");
+    const { data: facilities } = await supabaseAdmin.from("facilities").select("id");
     for (const f of facilities ?? []) {
       if (dailyKey("staff", f.id) === code) {
         await supabaseAdmin.from("user_roles").upsert(
