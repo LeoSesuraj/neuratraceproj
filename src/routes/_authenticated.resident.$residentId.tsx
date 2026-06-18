@@ -192,12 +192,14 @@ function ResidentFeed() {
             >
               Learn more →
             </Link>
-            <button
-              onClick={() => dismiss.mutate(a.id)}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              Dismiss
-            </button>
+              {canEdit && (
+                <button
+                  onClick={() => dismiss.mutate(a.id)}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Dismiss
+                </button>
+              )}
           </div>
         </div>
       ))}
