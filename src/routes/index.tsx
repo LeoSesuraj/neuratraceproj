@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
 });
 
 type SecondaryCard = {
-  to: "/auth/join-staff" | "/auth/join-family" | "/learn";
+  to: "/auth/join" | "/learn";
   icon: typeof UserPlus;
   label: string;
   description: string;
@@ -30,18 +30,10 @@ type SecondaryCard = {
 
 const secondaryCards: SecondaryCard[] = [
   {
-    to: "/auth/join-staff",
+    to: "/auth/join",
     icon: UserPlus,
-    label: "Join as Staff",
-    description: "Request access to your facility.",
-    tone: "bg-sage/40",
-    iconColor: "text-foreground",
-  },
-  {
-    to: "/auth/join-family",
-    icon: Users,
-    label: "Join as Family",
-    description: "Have an invite link? Get started here.",
+    label: "Join with a key",
+    description: "Family, staff, or admin — sign up with today's key.",
     tone: "bg-warm/70",
     iconColor: "text-foreground",
   },
