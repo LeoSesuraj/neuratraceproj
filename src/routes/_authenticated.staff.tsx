@@ -209,17 +209,6 @@ function ResidentCard({ resident }: { resident: Resident }) {
 
       {open === "survey" && <SurveyForm residentId={resident.id} onDone={() => setOpen(null)} />}
       {open === "photo" && <PhotoForm residentId={resident.id} onDone={() => setOpen(null)} />}
-      {open === "key" && (
-        <div className="mt-4">
-          <p className="mb-2 text-xs text-muted-foreground">
-            Share with this resident's family. Refreshes daily at midnight UTC.
-          </p>
-          <KeyCard
-            queryKey={["family-key", resident.id]}
-            fetch={() => getResidentDailyKey({ data: { resident_id: resident.id } })}
-          />
-        </div>
-      )}
     </div>
   );
 }
