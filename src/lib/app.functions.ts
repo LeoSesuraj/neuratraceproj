@@ -457,9 +457,10 @@ export const listResidentsForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const access = await getPrimaryAccess(context);
 
     // Super admin sees everything.
-    if (await isSuperAdmin(context)) {
+    if (access.role === "super_admin") {
       const { data, error } = await supabaseAdmin
         .from("residents")
         .select("id, name, photo_url, facility_id, dementia_type")
@@ -468,38 +469,21 @@ export const listResidentsForMe = createServerFn({ method: "GET" })
       return data ?? [];
     }
 
-    // Gather user's role memberships.
-    const { data: roles } = await supabaseAdmin
-      .from("user_roles")
-      .select("role, facility_id")
-      .eq("user_id", context.userId);
-    const roleSet = new Set((roles ?? []).map((r) => r.role));
-    const adminFacilities = (roles ?? [])
-      .filter((r) => r.role === "admin" && r.facility_id)
-      .map((r) => r.facility_id as string);
-
     const ids = new Set<string>();
 
-    // Admin: all residents in their facilities.
-    if (adminFacilities.length) {
+    if (access.role === "admin") {
       const { data } = await supabaseAdmin
         .from("residents")
         .select("id")
-        .in("facility_id", adminFacilities);
+        .in("facility_id", access.facilityIds);
       (data ?? []).forEach((r) => ids.add(r.id));
-    }
-
-    // Staff: residents assigned to them.
-    if (roleSet.has("staff")) {
+    } else if (access.role === "staff") {
       const { data } = await supabaseAdmin
         .from("resident_staff")
         .select("resident_id")
         .eq("user_id", context.userId);
       (data ?? []).forEach((r) => ids.add(r.resident_id as string));
-    }
-
-    // Family: only residents linked by key.
-    if (roleSet.has("family")) {
+    } else if (access.role === "family") {
       const { data } = await supabaseAdmin
         .from("resident_family")
         .select("resident_id")
