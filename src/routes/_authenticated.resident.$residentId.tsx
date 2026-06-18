@@ -24,6 +24,7 @@ import {
 } from "@/lib/app.functions";
 import { VISIT_SUGGESTIONS } from "@/lib/visit-mode";
 import { supabase } from "@/integrations/supabase/client";
+import { FilePicker } from "@/components/file-picker";
 
 export const Route = createFileRoute("/_authenticated/resident/$residentId")({
   component: ResidentFeed,
@@ -713,12 +714,7 @@ function InlinePhotoUploader({ residentId }: { residentId: string }) {
     <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-soft">
       <h2 className="text-lg">Post a photo</h2>
       <form onSubmit={onSubmit} className="mt-3 grid gap-3">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="text-sm"
-        />
+        <FilePicker file={file} onChange={setFile} />
         <input
           value={caption}
           onChange={(e) => setCaption(e.target.value)}

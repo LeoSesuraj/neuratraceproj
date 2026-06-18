@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import logo from "@/assets/neurotrace-logo.png";
-import { BookOpen, UserPlus, Users } from "lucide-react";
+import { BookOpen, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, seedDemoAccounts } from "@/lib/app.functions";
 
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
 });
 
 type SecondaryCard = {
-  to: "/auth/join-staff" | "/auth/join-family" | "/learn";
+  to: "/auth/join" | "/learn";
   icon: typeof UserPlus;
   label: string;
   description: string;
@@ -30,18 +30,10 @@ type SecondaryCard = {
 
 const secondaryCards: SecondaryCard[] = [
   {
-    to: "/auth/join-staff",
+    to: "/auth/join",
     icon: UserPlus,
-    label: "Join as Staff",
-    description: "Request access to your facility.",
-    tone: "bg-sage/40",
-    iconColor: "text-foreground",
-  },
-  {
-    to: "/auth/join-family",
-    icon: Users,
-    label: "Join as Family",
-    description: "Have an invite link? Get started here.",
+    label: "Join with a key",
+    description: "Family, staff, or admin — sign up with today's key.",
     tone: "bg-warm/70",
     iconColor: "text-foreground",
   },
@@ -138,7 +130,7 @@ function LandingPage() {
           <div className="h-px flex-1 bg-border" />
         </div>
 
-        <ul className="mt-6 grid gap-3 sm:grid-cols-3">
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2">
           {secondaryCards.map((c) => {
             const Icon = c.icon;
             return (
