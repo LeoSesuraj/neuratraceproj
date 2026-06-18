@@ -12,7 +12,7 @@ import {
   type ResidentWithFacility,
 } from "@/components/grouped-residents";
 
-export const Route = createFileRoute("/_authenticated/admin")({
+export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminPage,
 });
 
