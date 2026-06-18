@@ -36,11 +36,6 @@ function StaffPage() {
     queryKey: ["residents"],
     queryFn: () => listResidentsForMe(),
   });
-  const { data: roleInfo } = useQuery({
-    queryKey: ["my-role"],
-    queryFn: () => getMyRole(),
-  });
-  const facilityId = roleInfo?.facilityId ?? residents[0]?.facility_id ?? null;
   const [name, setName] = useState("");
 
   const create = useMutation({
@@ -58,19 +53,6 @@ function StaffPage() {
         <h1 className="mt-1 text-3xl">Your residents</h1>
       </header>
 
-      {facilityId && (
-        <section className="mt-6">
-          <h2 className="text-sm font-medium text-muted-foreground">
-            Today's staff signup key
-          </h2>
-          <div className="mt-2">
-            <KeyCard
-              queryKey={["staff-key", facilityId]}
-              fetch={() => getFacilityStaffKey({ data: { facility_id: facilityId } })}
-            />
-          </div>
-        </section>
-      )}
 
       <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
         <h2 className="text-lg">Add a resident</h2>
