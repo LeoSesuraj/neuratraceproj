@@ -415,9 +415,63 @@ export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async
 export const listResidentsForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Super admin sees everything.
+    if (await isSuperAdmin(context)) {
+      const { data, error } = await supabaseAdmin
+        .from("residents")
+        .select("id, name, photo_url, facility_id, dementia_type")
+        .order("name");
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    }
+
+    // Gather user's role memberships.
+    const { data: roles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role, facility_id")
+      .eq("user_id", context.userId);
+    const roleSet = new Set((roles ?? []).map((r) => r.role));
+    const adminFacilities = (roles ?? [])
+      .filter((r) => r.role === "admin" && r.facility_id)
+      .map((r) => r.facility_id as string);
+
+    const ids = new Set<string>();
+
+    // Admin: all residents in their facilities.
+    if (adminFacilities.length) {
+      const { data } = await supabaseAdmin
+        .from("residents")
+        .select("id")
+        .in("facility_id", adminFacilities);
+      (data ?? []).forEach((r) => ids.add(r.id));
+    }
+
+    // Staff: residents assigned to them.
+    if (roleSet.has("staff")) {
+      const { data } = await supabaseAdmin
+        .from("resident_staff")
+        .select("resident_id")
+        .eq("user_id", context.userId);
+      (data ?? []).forEach((r) => ids.add(r.resident_id as string));
+    }
+
+    // Family: only residents linked by key.
+    if (roleSet.has("family")) {
+      const { data } = await supabaseAdmin
+        .from("resident_family")
+        .select("resident_id")
+        .eq("user_id", context.userId);
+      (data ?? []).forEach((r) => ids.add(r.resident_id as string));
+    }
+
+    if (ids.size === 0) return [];
+
+    const { data, error } = await supabaseAdmin
       .from("residents")
       .select("id, name, photo_url, facility_id, dementia_type")
+      .in("id", Array.from(ids))
       .order("name");
     if (error) throw new Error(error.message);
     return data ?? [];
