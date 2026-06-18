@@ -115,7 +115,7 @@ type Behavior = "none" | "mild" | "significant";
 
 function ResidentCard({ resident }: { resident: Resident }) {
   const qc = useQueryClient();
-  const [open, setOpen] = useState<"mood" | "survey" | "photo" | "key" | null>(null);
+  const [open, setOpen] = useState<"mood" | "survey" | "photo" | null>(null);
   const [savedMood, setSavedMood] = useState<"good" | "mixed" | "hard" | null>(null);
 
   const mood = useMutation({
