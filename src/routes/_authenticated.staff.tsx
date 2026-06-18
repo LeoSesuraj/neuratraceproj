@@ -170,13 +170,6 @@ function ResidentCard({ resident }: { resident: Resident }) {
           >
             Post photo
           </button>
-          <button
-            type="button"
-            onClick={() => setOpen(open === "key" ? null : "key")}
-            className="rounded-full border border-border px-3 py-1.5 hover:bg-surface"
-          >
-            Family key
-          </button>
           <Link
             to="/resident/$residentId"
             params={{ residentId: resident.id }}
