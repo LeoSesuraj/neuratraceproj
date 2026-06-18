@@ -265,7 +265,7 @@ function PhotoForm({ residentId, onDone }: { residentId: string; onDone: () => v
     setError(null);
     try {
       const base64 = await fileToBase64(file);
-      const { path } = await uploadResidentPhoto({
+      const { url, path } = await uploadResidentPhoto({
         data: {
           resident_id: residentId,
           filename: file.name,
@@ -274,8 +274,9 @@ function PhotoForm({ residentId, onDone }: { residentId: string; onDone: () => v
         },
       });
       await createPhotoPost({
-        data: { resident_id: residentId, photo_path: path, caption: caption || undefined },
+        data: { resident_id: residentId, photo_path: url || path, caption: caption || undefined },
       });
+
       qc.invalidateQueries({ queryKey: ["resident", residentId] });
       onDone();
     } catch (err) {
