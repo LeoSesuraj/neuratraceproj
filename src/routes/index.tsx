@@ -47,20 +47,62 @@ const secondaryCards: SecondaryCard[] = [
   },
 ];
 
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000;
+type AttemptRecord = { count: number; lockedUntil: number };
+function attemptKey(email: string) {
+  return `login_attempts:${email.toLowerCase().trim()}`;
+}
+function readAttempts(email: string): AttemptRecord {
+  if (typeof window === "undefined") return { count: 0, lockedUntil: 0 };
+  try {
+    const raw = localStorage.getItem(attemptKey(email));
+    return raw ? (JSON.parse(raw) as AttemptRecord) : { count: 0, lockedUntil: 0 };
+  } catch {
+    return { count: 0, lockedUntil: 0 };
+  }
+}
+function writeAttempts(email: string, rec: AttemptRecord) {
+  try { localStorage.setItem(attemptKey(email), JSON.stringify(rec)); } catch { /* ignore */ }
+}
+function clearAttempts(email: string) {
+  try { localStorage.removeItem(attemptKey(email)); } catch { /* ignore */ }
+}
+
 function LandingPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setInfo(null);
+    const rec = readAttempts(email);
+    if (rec.lockedUntil && rec.lockedUntil > Date.now()) {
+      const mins = Math.ceil((rec.lockedUntil - Date.now()) / 60000);
+      setError(`Too many attempts. Try again in ${mins} minute${mins === 1 ? "" : "s"}.`);
+      return;
+    }
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      if (error) {
+        const next = rec.count + 1;
+        if (next >= MAX_ATTEMPTS) {
+          writeAttempts(email, { count: next, lockedUntil: Date.now() + LOCKOUT_MS });
+          setError("Too many attempts. Try again in 15 minutes.");
+        } else {
+          writeAttempts(email, { count: next, lockedUntil: 0 });
+          setError(error.message);
+        }
+        return;
+      }
+      clearAttempts(email);
       const { role } = await getMyRole();
       if (role === "super_admin") navigate({ to: "/admin/super" });
       else if (role === "admin") navigate({ to: "/admin" });
@@ -70,6 +112,27 @@ function LandingPage() {
       setError(e.message ?? "Sign in failed");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function onForgotPassword() {
+    setError(null);
+    setInfo(null);
+    if (!email) {
+      setError("Enter your email above first, then tap Forgot password.");
+      return;
+    }
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/set-password`,
+      });
+      if (error) throw error;
+      setInfo("Check your email for a reset link.");
+    } catch (e: any) {
+      setError(e.message ?? "Could not send reset email");
+    } finally {
+      setResetLoading(false);
     }
   }
 
@@ -115,6 +178,11 @@ function LandingPage() {
               {error}
             </p>
           )}
+          {info && (
+            <p className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary">
+              {info}
+            </p>
+          )}
           <button
             type="submit"
             disabled={loading}
@@ -122,7 +190,16 @@ function LandingPage() {
           >
             {loading ? "Signing in…" : "Sign in"}
           </button>
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            disabled={resetLoading}
+            className="w-full text-center text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >
+            {resetLoading ? "Sending reset link…" : "Forgot password?"}
+          </button>
         </form>
+
 
         <div className="mt-10 flex items-center gap-4">
           <div className="h-px flex-1 bg-border" />
