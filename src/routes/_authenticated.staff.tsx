@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -10,6 +10,7 @@ import {
   createPhotoPost,
 } from "@/lib/app.functions";
 import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/_authenticated/staff")({
   component: StaffPage,
@@ -127,8 +128,14 @@ function ResidentCard({ resident }: { resident: Resident }) {
   return (
     <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">{resident.name}</h3>
-        <div className="flex gap-2 text-xs">
+        <Link
+          to="/resident/$residentId"
+          params={{ residentId: resident.id }}
+          className="text-lg font-medium hover:underline"
+        >
+          {resident.name}
+        </Link>
+        <div className="flex flex-wrap justify-end gap-2 text-xs">
           <button onClick={() => setOpen(open === "mood" ? null : "mood")} className="rounded-full border border-border px-3 py-1.5">
             Today's mood
           </button>
@@ -138,6 +145,13 @@ function ResidentCard({ resident }: { resident: Resident }) {
           <button onClick={() => setOpen(open === "photo" ? null : "photo")} className="rounded-full border border-border px-3 py-1.5">
             Post photo
           </button>
+          <Link
+            to="/resident/$residentId"
+            params={{ residentId: resident.id }}
+            className="rounded-full bg-primary px-3 py-1.5 font-semibold text-primary-foreground"
+          >
+            Open page
+          </Link>
         </div>
       </div>
 
@@ -160,6 +174,7 @@ function ResidentCard({ resident }: { resident: Resident }) {
     </div>
   );
 }
+
 
 function SurveyForm({ residentId, onDone }: { residentId: string; onDone: () => void }) {
   const qc = useQueryClient();
@@ -250,7 +265,7 @@ function PhotoForm({ residentId, onDone }: { residentId: string; onDone: () => v
     setError(null);
     try {
       const base64 = await fileToBase64(file);
-      const { path } = await uploadResidentPhoto({
+      const { url, path } = await uploadResidentPhoto({
         data: {
           resident_id: residentId,
           filename: file.name,
@@ -259,8 +274,9 @@ function PhotoForm({ residentId, onDone }: { residentId: string; onDone: () => v
         },
       });
       await createPhotoPost({
-        data: { resident_id: residentId, photo_path: path, caption: caption || undefined },
+        data: { resident_id: residentId, photo_path: url || path, caption: caption || undefined },
       });
+
       qc.invalidateQueries({ queryKey: ["resident", residentId] });
       onDone();
     } catch (err) {
