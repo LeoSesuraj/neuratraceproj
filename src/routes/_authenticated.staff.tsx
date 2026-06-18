@@ -237,14 +237,17 @@ function SurveyForm({ residentId, onDone }: { residentId: string; onDone: () => 
 }
 
 function PhotoForm({ residentId, onDone }: { residentId: string; onDone: () => void }) {
+  const qc = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!file) return;
     setLoading(true);
+    setError(null);
     try {
       const base64 = await fileToBase64(file);
       const { path } = await uploadResidentPhoto({
@@ -258,11 +261,15 @@ function PhotoForm({ residentId, onDone }: { residentId: string; onDone: () => v
       await createPhotoPost({
         data: { resident_id: residentId, photo_path: path, caption: caption || undefined },
       });
+      qc.invalidateQueries({ queryKey: ["resident", residentId] });
       onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setLoading(false);
     }
   }
+
 
   return (
     <form onSubmit={onSubmit} className="mt-4 grid gap-3">
