@@ -10,6 +10,7 @@ import {
   uploadResidentPhoto,
   createPhotoPost,
   getResidentDailyKey,
+  getMyRole,
 } from "@/lib/app.functions";
 import { KeyCard } from "@/components/key-card";
 import { FilePicker } from "@/components/file-picker";
@@ -36,6 +37,10 @@ function StaffPage() {
     queryKey: ["residents"],
     queryFn: () => listResidentsForMe(),
   });
+  const { data: roleInfo, isLoading: roleLoading } = useQuery({
+    queryKey: ["my-role"],
+    queryFn: () => getMyRole(),
+  });
   const [name, setName] = useState("");
 
   const create = useMutation({
@@ -45,6 +50,21 @@ function StaffPage() {
       qc.invalidateQueries({ queryKey: ["residents"] });
     },
   });
+
+  if (roleLoading) {
+    return <div className="mx-auto max-w-3xl px-5 py-8 text-sm text-muted-foreground">Loading…</div>;
+  }
+  if (!roleInfo || !["staff", "admin", "super_admin"].includes(roleInfo.role ?? "")) {
+    return (
+      <div className="mx-auto max-w-3xl px-5 py-8">
+        <h1 className="text-3xl">Family access</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Staff tools are only available to care team accounts.</p>
+        <Link to="/resident" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">
+          Go to your loved ones →
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8">
