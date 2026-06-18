@@ -1,51 +1,36 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   listAllFacilities,
   createFacility,
   deleteFacility,
-  listAllStaffRequests,
-  decideStaffRequestSuper,
   listAllResidents,
-  createFacilityAdmin,
+  getFacilityAdminKey,
 } from "@/lib/app.functions";
-import { supabase } from "@/integrations/supabase/client";
+import { KeyCard } from "@/components/key-card";
 
 export const Route = createFileRoute("/_authenticated/admin/super")({
   component: SuperAdminPage,
 });
 
-type Tab = "facilities" | "requests" | "admins" | "residents";
+type Tab = "facilities" | "keys" | "residents";
 
 function SuperAdminPage() {
-  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("facilities");
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-primary">Super Admin</p>
-          <h1 className="mt-1 text-3xl">All facilities</h1>
-        </div>
-        <button
-          onClick={async () => {
-            await supabase.auth.signOut();
-            navigate({ to: "/" });
-          }}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Sign out
-        </button>
+      <header>
+        <p className="text-sm font-medium text-primary">Super Admin</p>
+        <h1 className="mt-1 text-3xl">All facilities</h1>
       </header>
 
       <nav className="mt-6 flex flex-wrap gap-2">
         {(
           [
             ["facilities", "Facilities"],
-            ["requests", "Staff requests"],
-            ["admins", "Facility admins"],
+            ["keys", "Admin signup keys"],
             ["residents", "All residents"],
           ] as const
         ).map(([k, label]) => (
@@ -65,8 +50,7 @@ function SuperAdminPage() {
 
       <div className="mt-6">
         {tab === "facilities" && <FacilitiesTab />}
-        {tab === "requests" && <RequestsTab />}
-        {tab === "admins" && <AdminsTab />}
+        {tab === "keys" && <KeysTab />}
         {tab === "residents" && <ResidentsTab />}
       </div>
     </div>
@@ -135,117 +119,31 @@ function FacilitiesTab() {
   );
 }
 
-function RequestsTab() {
-  const qc = useQueryClient();
-  const { data: requests = [] } = useQuery({
-    queryKey: ["all-staff-requests"],
-    queryFn: () => listAllStaffRequests(),
-  });
-  const decide = useMutation({
-    mutationFn: (v: { id: string; approve: boolean }) => decideStaffRequestSuper({ data: v }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["all-staff-requests"] }),
-  });
-
-  return (
-    <ul className="grid gap-2">
-      {requests.length === 0 && (
-        <li className="rounded-2xl border border-dashed border-border bg-surface p-6 text-sm text-muted-foreground">
-          No staff requests.
-        </li>
-      )}
-      {requests.map((r) => {
-        const facility = (r as { facilities: { name: string } | null }).facilities;
-        return (
-          <li
-            key={r.id}
-            className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 shadow-soft"
-          >
-            <div>
-              <p className="font-medium">{r.email}</p>
-              <p className="text-xs text-muted-foreground">
-                {facility?.name ?? "—"} · {r.status} ·{" "}
-                {new Date(r.created_at).toLocaleString()}
-              </p>
-            </div>
-            {r.status === "pending" && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => decide.mutate({ id: r.id, approve: false })}
-                  className="rounded-full border border-border px-3 py-1.5 text-xs"
-                >
-                  Deny
-                </button>
-                <button
-                  onClick={() => decide.mutate({ id: r.id, approve: true })}
-                  className="rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-                >
-                  Approve
-                </button>
-              </div>
-            )}
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-function AdminsTab() {
+function KeysTab() {
   const { data: facilities = [] } = useQuery({
     queryKey: ["all-facilities"],
     queryFn: () => listAllFacilities(),
   });
-  const [email, setEmail] = useState("");
-  const [facilityId, setFacilityId] = useState("");
-  const [msg, setMsg] = useState<string | null>(null);
-  const create = useMutation({
-    mutationFn: () => createFacilityAdmin({ data: { email, facility_id: facilityId } }),
-    onSuccess: () => {
-      setMsg(`Invite sent to ${email}.`);
-      setEmail("");
-    },
-    onError: (e: Error) => setMsg(e.message),
-  });
 
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
-      <h2 className="text-lg">Invite a new facility admin</h2>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (email && facilityId) create.mutate();
-        }}
-        className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]"
-      >
-        <input
-          type="email"
-          required
-          placeholder="admin@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm"
-        />
-        <select
-          required
-          value={facilityId}
-          onChange={(e) => setFacilityId(e.target.value)}
-          className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm"
-        >
-          <option value="">Choose facility…</option>
-          {facilities.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.name}
-            </option>
-          ))}
-        </select>
-        <button
-          disabled={create.isPending}
-          className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-        >
-          {create.isPending ? "Sending…" : "Send invite"}
-        </button>
-      </form>
-      {msg && <p className="mt-3 text-sm text-muted-foreground">{msg}</p>}
+    <section>
+      <p className="text-sm text-muted-foreground">
+        Each facility has a daily-rotating key for new admins to sign up. Share
+        privately. Keys refresh at midnight UTC.
+      </p>
+      <ul className="mt-4 grid gap-3">
+        {facilities.map((f) => (
+          <li key={f.id} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+            <p className="font-medium">{f.name}</p>
+            <div className="mt-2">
+              <KeyCard
+                queryKey={["admin-key", f.id]}
+                fetch={() => getFacilityAdminKey({ data: { facility_id: f.id } })}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
