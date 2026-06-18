@@ -764,9 +764,16 @@ export const uploadResidentPhoto = createServerFn({ method: "POST" })
     const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
     const ext = data.filename.split(".").pop() || "jpg";
     const path = `${data.resident_id}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabaseAdmin.storage
+    let { error } = await supabaseAdmin.storage
       .from("resident-photos")
       .upload(path, bytes, { contentType: data.contentType, upsert: false });
+    if (error && /bucket not found/i.test(error.message)) {
+      await supabaseAdmin.storage.createBucket("resident-photos", { public: true });
+      ({ error } = await supabaseAdmin.storage
+        .from("resident-photos")
+        .upload(path, bytes, { contentType: data.contentType, upsert: false }));
+    }
     if (error) throw new Error(error.message);
     return { path };
   });
+
