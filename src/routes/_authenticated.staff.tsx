@@ -129,14 +129,25 @@ function ResidentCard({ resident }: { resident: Resident }) {
 
   return (
     <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
-      <div className="flex items-center justify-between gap-2">
-        <Link
-          to="/resident/$residentId"
-          params={{ residentId: resident.id }}
-          className="text-lg font-medium hover:underline"
-        >
-          {resident.name}
-        </Link>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Link
+            to="/resident/$residentId"
+            params={{ residentId: resident.id }}
+            className="text-lg font-medium hover:underline"
+          >
+            {resident.name}
+          </Link>
+          <div className="mt-2 max-w-xs">
+            <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+              {resident.name.split(" ")[0]}'s family key (today)
+            </p>
+            <KeyCard
+              queryKey={["family-key", resident.id]}
+              fetch={() => getResidentDailyKey({ data: { resident_id: resident.id } })}
+            />
+          </div>
+        </div>
         <div className="flex flex-wrap justify-end gap-2 text-xs">
           <button
             type="button"
