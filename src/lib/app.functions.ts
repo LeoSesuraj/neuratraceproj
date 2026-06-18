@@ -647,6 +647,31 @@ export const submitWeeklySurvey = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Daily-note posts are stored as rows in `posts` with no photo and a
+// caption prefixed by NOTE_PREFIX + JSON{activities, food, feelings, note_date}.
+// This avoids a schema change while still being upsertable per (resident, day).
+const NOTE_PREFIX = "__DAILY_NOTE__";
+
+type DailyNotePayload = {
+  activities: string;
+  food: string;
+  feelings: string;
+  note_date: string;
+};
+
+function encodeNote(p: DailyNotePayload): string {
+  return NOTE_PREFIX + JSON.stringify(p);
+}
+
+function decodeNote(caption: string | null): DailyNotePayload | null {
+  if (!caption || !caption.startsWith(NOTE_PREFIX)) return null;
+  try {
+    return JSON.parse(caption.slice(NOTE_PREFIX.length)) as DailyNotePayload;
+  } catch {
+    return null;
+  }
+}
+
 export const createPhotoPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
@@ -665,6 +690,98 @@ export const createPhotoPost = createServerFn({ method: "POST" })
       photo_url: data.photo_path,
       caption: data.caption || null,
     });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+async function canEditResident(
+  supabase: import("@supabase/supabase-js").SupabaseClient,
+  userId: string,
+  residentId: string,
+): Promise<boolean> {
+  const { data: isAdmin } = await supabase.rpc("has_role", {
+    _user_id: userId,
+    _role: "admin",
+  });
+  if (isAdmin) return true;
+  const { data: link } = await supabase
+    .from("resident_staff")
+    .select("resident_id")
+    .eq("resident_id", residentId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return !!link;
+}
+
+export const upsertDailyNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        resident_id: z.string().uuid(),
+        note_date: z.string(),
+        activities: z.string().max(2000).default(""),
+        food: z.string().max(2000).default(""),
+        feelings: z.string().max(2000).default(""),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
+      throw new Error("Forbidden");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const caption = encodeNote({
+      activities: data.activities,
+      food: data.food,
+      feelings: data.feelings,
+      note_date: data.note_date,
+    });
+
+    const { data: existing } = await supabaseAdmin
+      .from("posts")
+      .select("id, caption")
+      .eq("resident_id", data.resident_id)
+      .is("photo_url", null)
+      .like("caption", `${NOTE_PREFIX}%`);
+    const match = (existing ?? []).find((p) => {
+      const n = decodeNote(p.caption);
+      return n?.note_date === data.note_date;
+    });
+
+    if (match) {
+      const { error } = await supabaseAdmin
+        .from("posts")
+        .update({ caption })
+        .eq("id", match.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabaseAdmin.from("posts").insert({
+        resident_id: data.resident_id,
+        author_id: context.userId,
+        photo_url: null,
+        caption,
+      });
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
+export const deletePost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("posts")
+      .select("resident_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!row) throw new Error("Post not found");
+    if (!(await canEditResident(context.supabase, context.userId, row.resident_id))) {
+      throw new Error("Forbidden");
+    }
+    const { error } = await supabaseAdmin.from("posts").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -701,16 +818,44 @@ export const getResidentOverview = createServerFn({ method: "POST" })
       .eq("log_date", today)
       .maybeSingle();
 
-    const { data: posts } = await context.supabase
+    const { data: rawPosts } = await context.supabase
       .from("posts")
       .select("id, photo_url, caption, created_at, author_id")
       .eq("resident_id", data.resident_id)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(100);
+
+    const photoPosts: Array<{
+      id: string;
+      photo_url: string | null;
+      caption: string | null;
+      created_at: string;
+      author_id: string;
+    }> = [];
+    const noteEntries: Array<{
+      id: string;
+      created_at: string;
+      author_id: string;
+      note: DailyNotePayload;
+    }> = [];
+
+    for (const p of rawPosts ?? []) {
+      const note = decodeNote(p.caption);
+      if (note) {
+        noteEntries.push({
+          id: p.id,
+          created_at: p.created_at,
+          author_id: p.author_id,
+          note,
+        });
+      } else {
+        photoPosts.push(p);
+      }
+    }
 
     const { data: surveys } = await context.supabase
       .from("weekly_surveys")
-      .select("week_of, eating, mood, social, mobility, behaviors")
+      .select("week_of, eating, mood, social, mobility, behaviors, notes")
       .eq("resident_id", data.resident_id)
       .order("week_of", { ascending: false })
       .limit(8);
@@ -722,16 +867,30 @@ export const getResidentOverview = createServerFn({ method: "POST" })
       .is("dismissed_at", null);
 
     const signedPhoto = await signPhoto(resident.photo_url);
-    const postsWithUrls = await Promise.all(
-      (posts ?? []).map(async (p) => ({ ...p, photo_url: await signPhoto(p.photo_url) })),
+    const photosWithUrls = await Promise.all(
+      photoPosts.map(async (p) => ({ ...p, photo_url: await signPhoto(p.photo_url) })),
     );
+
+    const canEdit = await canEditResident(
+      context.supabase,
+      context.userId,
+      data.resident_id,
+    );
+
+    const notes = noteEntries
+      .slice()
+      .sort((a, b) => (a.note.note_date < b.note.note_date ? 1 : -1))
+      .slice(0, 14);
 
     return {
       resident: { ...resident, photo_url: signedPhoto },
       todayMood: (mood?.mood as "good" | "mixed" | "hard" | undefined) ?? null,
-      posts: postsWithUrls,
+      posts: photosWithUrls,
+      notes,
       surveys: (surveys ?? []).slice().reverse(),
+      latestSurvey: (surveys ?? [])[0] ?? null,
       alerts: alerts ?? [],
+      canEdit,
     };
   });
 
@@ -764,16 +923,25 @@ export const uploadResidentPhoto = createServerFn({ method: "POST" })
     const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
     const ext = data.filename.split(".").pop() || "jpg";
     const path = `${data.resident_id}/${crypto.randomUUID()}.${ext}`;
-    let { error } = await supabaseAdmin.storage
-      .from("resident-photos")
-      .upload(path, bytes, { contentType: data.contentType, upsert: false });
+
+    async function tryUpload() {
+      return supabaseAdmin.storage
+        .from("resident-photos")
+        .upload(path, bytes, { contentType: data.contentType, upsert: false });
+    }
+    let { error } = await tryUpload();
     if (error && /bucket not found/i.test(error.message)) {
       await supabaseAdmin.storage.createBucket("resident-photos", { public: true });
-      ({ error } = await supabaseAdmin.storage
-        .from("resident-photos")
-        .upload(path, bytes, { contentType: data.contentType, upsert: false }));
+      ({ error } = await tryUpload());
     }
     if (error) throw new Error(error.message);
-    return { path };
+
+    // Bucket is public — return the public URL so the family feed renders it
+    // directly without needing a (sometimes flaky) signed-URL round-trip.
+    const { data: pub } = supabaseAdmin.storage
+      .from("resident-photos")
+      .getPublicUrl(path);
+    return { path, url: pub.publicUrl };
   });
+
 
