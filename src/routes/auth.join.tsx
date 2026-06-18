@@ -115,6 +115,7 @@ function JoinPage() {
     );
   }
 
+  if (!info.found) return null;
   const role =
     info.kind === "family"
       ? `${info.resident_name}'s family`
