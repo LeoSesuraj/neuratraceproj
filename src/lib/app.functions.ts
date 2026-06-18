@@ -533,6 +533,14 @@ async function canEditResident(
   userId: string,
   residentId: string,
 ): Promise<boolean> {
+  const { data: familyRole } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "family")
+    .limit(1)
+    .maybeSingle();
+  if (familyRole) return false;
   const { data: familyLink } = await supabase
     .from("resident_family")
     .select("resident_id")
