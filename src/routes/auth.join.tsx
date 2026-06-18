@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { lookupKey, redeemKey } from "@/lib/app.functions";
+import { lookupKey, redeemKey, signupWithKey } from "@/lib/app.functions";
 
 const searchSchema = z.object({ code: z.string().optional() });
 
