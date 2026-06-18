@@ -20,6 +20,7 @@ import { Route as LearnJourneyRouteImport } from './routes/learn.journey'
 import { Route as LearnConnectRouteImport } from './routes/learn.connect'
 import { Route as LearnCoachRouteImport } from './routes/learn.coach'
 import { Route as AuthSetPasswordRouteImport } from './routes/auth.set-password'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthJoinRouteImport } from './routes/auth.join'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -89,6 +90,11 @@ const LearnCoachRoute = LearnCoachRouteImport.update({
 const AuthSetPasswordRoute = AuthSetPasswordRouteImport.update({
   id: '/set-password',
   path: '/set-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/auth/join': typeof AuthJoinRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/set-password': typeof AuthSetPasswordRoute
   '/learn/coach': typeof LearnCoachRouteWithChildren
   '/learn/connect': typeof LearnConnectRouteWithChildren
@@ -210,6 +217,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/auth/join': typeof AuthJoinRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/set-password': typeof AuthSetPasswordRoute
   '/learn/journey': typeof LearnJourneyRoute
   '/learn': typeof LearnIndexRoute
@@ -236,6 +244,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/auth/join': typeof AuthJoinRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/set-password': typeof AuthSetPasswordRoute
   '/learn/coach': typeof LearnCoachRouteWithChildren
   '/learn/connect': typeof LearnConnectRouteWithChildren
@@ -266,6 +275,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/auth/join'
     | '/auth/login'
+    | '/auth/reset-password'
     | '/auth/set-password'
     | '/learn/coach'
     | '/learn/connect'
@@ -294,6 +304,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/auth/join'
     | '/auth/login'
+    | '/auth/reset-password'
     | '/auth/set-password'
     | '/learn/journey'
     | '/learn'
@@ -319,6 +330,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/auth/join'
     | '/auth/login'
+    | '/auth/reset-password'
     | '/auth/set-password'
     | '/learn/coach'
     | '/learn/connect'
@@ -431,6 +443,13 @@ declare module '@tanstack/react-router' {
       path: '/set-password'
       fullPath: '/auth/set-password'
       preLoaderRoute: typeof AuthSetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof AuthRoute
     }
     '/auth/login': {
@@ -571,12 +590,14 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 interface AuthRouteChildren {
   AuthJoinRoute: typeof AuthJoinRoute
   AuthLoginRoute: typeof AuthLoginRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSetPasswordRoute: typeof AuthSetPasswordRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthJoinRoute: AuthJoinRoute,
   AuthLoginRoute: AuthLoginRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSetPasswordRoute: AuthSetPasswordRoute,
 }
 
