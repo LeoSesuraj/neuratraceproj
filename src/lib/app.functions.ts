@@ -242,7 +242,14 @@ export const getFacilityStaffKey = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ facility_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     if (!(await isSuperAdmin(context))) {
-      await assertFacilityMember(context.supabase, context.userId, data.facility_id);
+      const { data: row } = await context.supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", context.userId)
+        .eq("facility_id", data.facility_id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!row) throw new Error("Forbidden: admin only");
     }
     const { dailyKey, utcDateString } = await import("./keys.server");
     return { code: dailyKey("staff", data.facility_id), valid_date: utcDateString() };
