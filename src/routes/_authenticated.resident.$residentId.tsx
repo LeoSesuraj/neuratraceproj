@@ -61,7 +61,26 @@ function ResidentFeed() {
 
   const { resident, todayMood, posts, surveys, alerts } = data;
   const moodTone = todayMood ? MOOD_TONE[todayMood] : null;
-  const suggestions = todayMood ? VISIT_SUGGESTIONS[todayMood] : VISIT_SUGGESTIONS.mixed;
+
+  // Derive a "trend mood" from the most recent weekly surveys so the
+  // visit suggestions reflect the graphical trend, not just today's note.
+  const trendMood: "good" | "mixed" | "hard" = (() => {
+    if (surveys.length === 0) return todayMood ?? "mixed";
+    const recent = surveys.slice(-2);
+    const scores = recent.flatMap((s) => [
+      RATING_TO_NUM[s.eating],
+      RATING_TO_NUM[s.mood],
+      RATING_TO_NUM[s.social],
+      RATING_TO_NUM[s.mobility],
+      RATING_TO_NUM[s.behaviors],
+    ]);
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    if (avg >= 2.5) return "good";
+    if (avg >= 1.75) return "mixed";
+    return "hard";
+  })();
+  const trendTone = MOOD_TONE[trendMood];
+  const suggestions = VISIT_SUGGESTIONS[trendMood];
 
   const chartData = surveys.map((s) => ({
     week: s.week_of.slice(5),
@@ -71,6 +90,9 @@ function ResidentFeed() {
     Mobility: RATING_TO_NUM[s.mobility],
     Behaviors: RATING_TO_NUM[s.behaviors],
   }));
+
+
+
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-6 pb-20">
@@ -205,7 +227,7 @@ function ResidentFeed() {
               <h3 className="text-lg font-semibold">Visit suggestions</h3>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Ideas tuned to {resident.name}'s {moodTone?.label.toLowerCase() ?? "day"}.
+              Ideas tuned to {resident.name}'s recent trend ({trendTone.label.toLowerCase()}).
             </p>
             <ul className="mt-4 space-y-3">
               {suggestions.map((s) => (
