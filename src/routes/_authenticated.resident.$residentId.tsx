@@ -124,11 +124,11 @@ function ResidentFeed() {
     <div className="mx-auto max-w-3xl px-5 py-6 pb-20">
       <div className="flex items-center justify-between">
         <Link
-          to="/resident"
+          to={canEdit ? "/staff" : "/resident"}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          All residents
+          {canEdit ? "All residents (staff)" : "All residents"}
         </Link>
         <button
           onClick={async () => {
