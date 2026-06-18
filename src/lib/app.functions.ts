@@ -1,21 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-
-function inviteRedirectTo(): string | undefined {
-  try {
-    const req = getRequest();
-    const origin =
-      req?.headers.get("origin") ??
-      (req?.headers.get("host")
-        ? `https://${req.headers.get("host")}`
-        : undefined);
-    return origin ? `${origin}/auth/set-password` : undefined;
-  } catch {
-    return undefined;
-  }
-}
 
 // ---------- Public ----------
 
@@ -29,38 +14,112 @@ export const listFacilities = createServerFn({ method: "GET" }).handler(async ()
   return data ?? [];
 });
 
-export const submitStaffRequest = createServerFn({ method: "POST" })
-  .inputValidator((d) =>
-    z.object({ email: z.string().email(), facility_id: z.string().uuid() }).parse(d),
-  )
+// Public: identify a signup key without revealing what each scope's key is.
+// Iterates current-day keys for each kind and finds a match.
+export const lookupKey = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ code: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
+    const { normalizeKey, dailyKey } = await import("./keys.server");
+    const code = normalizeKey(data.code);
+    if (!code) return { found: false as const };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
-      .from("staff_requests")
-      .insert({ email: data.email, facility_id: data.facility_id });
-    if (error) throw new Error(error.message);
-    return { ok: true };
+
+    // Try family (per resident)
+    const { data: residents } = await supabaseAdmin
+      .from("residents")
+      .select("id, name, facility_id, facilities(name)");
+    for (const r of residents ?? []) {
+      if (dailyKey("family", r.id) === code) {
+        const fac = r.facilities as unknown as { name: string } | null;
+        return {
+          found: true as const,
+          kind: "family" as const,
+          resident_id: r.id,
+          resident_name: r.name,
+          facility_id: r.facility_id,
+          facility_name: fac?.name ?? null,
+        };
+      }
+    }
+
+    // Try staff & admin (per facility)
+    const { data: facilities } = await supabaseAdmin
+      .from("facilities")
+      .select("id, name");
+    for (const f of facilities ?? []) {
+      if (dailyKey("staff", f.id) === code) {
+        return {
+          found: true as const,
+          kind: "staff" as const,
+          facility_id: f.id,
+          facility_name: f.name,
+        };
+      }
+      if (dailyKey("admin", f.id) === code) {
+        return {
+          found: true as const,
+          kind: "admin" as const,
+          facility_id: f.id,
+          facility_name: f.name,
+        };
+      }
+    }
+
+    return { found: false as const };
   });
 
-export const lookupInvite = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ token: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
+// Authed: after sign-up, link the new user to the resident/facility by key.
+export const redeemKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ code: z.string().min(1) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { normalizeKey, dailyKey } = await import("./keys.server");
+    const code = normalizeKey(data.code);
+    if (!code) throw new Error("Invalid key.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: invite, error } = await supabaseAdmin
-      .from("invites")
-      .select("id, role, resident_id, facility_id, used, residents(name)")
-      .eq("token", data.token)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!invite) return { found: false as const };
-    const residents = invite.residents as unknown as { name: string } | null;
-    return {
-      found: true as const,
-      role: invite.role,
-      used: invite.used,
-      residentId: invite.resident_id,
-      residentName: residents?.name ?? null,
-    };
+
+    // Family
+    const { data: residents } = await supabaseAdmin
+      .from("residents")
+      .select("id, facility_id");
+    for (const r of residents ?? []) {
+      if (dailyKey("family", r.id) === code) {
+        await supabaseAdmin
+          .from("resident_family")
+          .upsert(
+            { resident_id: r.id, user_id: context.userId },
+            { onConflict: "resident_id,user_id" },
+          );
+        await supabaseAdmin.from("user_roles").upsert(
+          { user_id: context.userId, role: "family", facility_id: r.facility_id },
+          { onConflict: "user_id,role,facility_id" },
+        );
+        return { ok: true, kind: "family" as const, resident_id: r.id };
+      }
+    }
+
+    // Staff / Admin
+    const { data: facilities } = await supabaseAdmin
+      .from("facilities")
+      .select("id");
+    for (const f of facilities ?? []) {
+      if (dailyKey("staff", f.id) === code) {
+        await supabaseAdmin.from("user_roles").upsert(
+          { user_id: context.userId, role: "staff", facility_id: f.id },
+          { onConflict: "user_id,role,facility_id" },
+        );
+        return { ok: true, kind: "staff" as const, facility_id: f.id };
+      }
+      if (dailyKey("admin", f.id) === code) {
+        await supabaseAdmin.from("user_roles").upsert(
+          { user_id: context.userId, role: "admin", facility_id: f.id },
+          { onConflict: "user_id,role,facility_id" },
+        );
+        return { ok: true, kind: "admin" as const, facility_id: f.id };
+      }
+    }
+
+    throw new Error("Key not recognized. Ask for today's key — they refresh at midnight UTC.");
   });
 
 // ---------- Authenticated ----------
@@ -89,12 +148,78 @@ export const getMyRole = createServerFn({ method: "GET" })
     };
   });
 
+// ---------- Daily Keys (display) ----------
+
+async function assertFacilityMember(
+  supabase: import("@supabase/supabase-js").SupabaseClient,
+  userId: string,
+  facilityId: string,
+) {
+  const { data } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("facility_id", facilityId)
+    .in("role", ["staff", "admin"])
+    .limit(1)
+    .maybeSingle();
+  if (!data) throw new Error("Forbidden");
+}
+
+async function isSuperAdmin(context: { claims: { email?: unknown } }): Promise<boolean> {
+  const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
+  const email = (context.claims.email as string | undefined) ?? "";
+  return SUPER_ADMIN_EMAILS.includes(email.toLowerCase().trim());
+}
+
+export const getResidentDailyKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ resident_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    // Only staff/admin assigned to the resident (or super admin) may view.
+    if (!(await isSuperAdmin(context))) {
+      const { data: row } = await context.supabase
+        .from("resident_staff")
+        .select("resident_id")
+        .eq("resident_id", data.resident_id)
+        .eq("user_id", context.userId)
+        .maybeSingle();
+      if (!row) {
+        const { data: isAdmin } = await context.supabase.rpc("has_role", {
+          _user_id: context.userId,
+          _role: "admin",
+        });
+        if (!isAdmin) throw new Error("Forbidden");
+      }
+    }
+    const { dailyKey, utcDateString } = await import("./keys.server");
+    return { code: dailyKey("family", data.resident_id), valid_date: utcDateString() };
+  });
+
+export const getFacilityStaffKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ facility_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    if (!(await isSuperAdmin(context))) {
+      await assertFacilityMember(context.supabase, context.userId, data.facility_id);
+    }
+    const { dailyKey, utcDateString } = await import("./keys.server");
+    return { code: dailyKey("staff", data.facility_id), valid_date: utcDateString() };
+  });
+
+export const getFacilityAdminKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ facility_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    if (!(await isSuperAdmin(context))) throw new Error("Forbidden: super admin only");
+    const { dailyKey, utcDateString } = await import("./keys.server");
+    return { code: dailyKey("admin", data.facility_id), valid_date: utcDateString() };
+  });
+
 // ---------- Super Admin (email-gated) ----------
 
 async function assertSuperAdmin(context: { claims: { email?: unknown } }) {
-  const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
-  const email = (context.claims.email as string | undefined) ?? "";
-  if (!SUPER_ADMIN_EMAILS.includes(email.toLowerCase().trim())) {
+  if (!(await isSuperAdmin(context))) {
     throw new Error("Forbidden: super admin only");
   }
 }
@@ -138,19 +263,6 @@ export const deleteFacility = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const listAllStaffRequests = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertSuperAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("staff_requests")
-      .select("id, email, facility_id, status, created_at, facilities(name)")
-      .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return data ?? [];
-  });
-
 export const listAllResidents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -164,81 +276,6 @@ export const listAllResidents = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
-export const createFacilityAdmin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ email: z.string().email(), facility_id: z.string().uuid() }).parse(d),
-  )
-  .handler(async ({ data, context }) => {
-    await assertSuperAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: invited, error: iErr } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
-        data: { facility_id: data.facility_id, role: "admin" },
-        redirectTo: inviteRedirectTo(),
-      });
-    if (iErr && !iErr.message.toLowerCase().includes("already")) {
-      throw new Error(iErr.message);
-    }
-    let userId = invited?.user?.id;
-    if (!userId) {
-      const { data: list } = await supabaseAdmin.auth.admin.listUsers();
-      userId = list?.users.find((u) => u.email === data.email)?.id;
-    }
-    if (!userId) throw new Error("Could not resolve user");
-    await supabaseAdmin
-      .from("user_roles")
-      .upsert({ user_id: userId, role: "admin", facility_id: data.facility_id });
-    return { ok: true };
-  });
-
-export const decideStaffRequestSuper = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ id: z.string().uuid(), approve: z.boolean() }).parse(d),
-  )
-  .handler(async ({ data, context }) => {
-    await assertSuperAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: req, error: rErr } = await supabaseAdmin
-      .from("staff_requests")
-      .select("*")
-      .eq("id", data.id)
-      .maybeSingle();
-    if (rErr || !req) throw new Error("Request not found");
-
-    if (!data.approve) {
-      await supabaseAdmin
-        .from("staff_requests")
-        .update({ status: "denied", decided_at: new Date().toISOString(), decided_by: context.userId })
-        .eq("id", data.id);
-      return { ok: true };
-    }
-    const { data: invited, error: iErr } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(req.email, {
-        data: { facility_id: req.facility_id, role: "staff" },
-        redirectTo: inviteRedirectTo(),
-      });
-    if (iErr && !iErr.message.toLowerCase().includes("already")) {
-      throw new Error(iErr.message);
-    }
-    let userId = invited?.user?.id;
-    if (!userId) {
-      const { data: list } = await supabaseAdmin.auth.admin.listUsers();
-      userId = list?.users.find((u) => u.email === req.email)?.id;
-    }
-    if (userId) {
-      await supabaseAdmin
-        .from("user_roles")
-        .upsert({ user_id: userId, role: "staff", facility_id: req.facility_id });
-    }
-    await supabaseAdmin
-      .from("staff_requests")
-      .update({ status: "approved", decided_at: new Date().toISOString(), decided_by: context.userId })
-      .eq("id", data.id);
-    return { ok: true };
-  });
-
 // ---------- Public seed for demo accounts (idempotent) ----------
 
 export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async () => {
@@ -248,7 +285,6 @@ export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async
     const { data: list } = await supabaseAdmin.auth.admin.listUsers();
     const existing = list?.users.find((u) => u.email === email);
     if (existing) {
-      // Reset password + confirm email so demo accounts always work.
       await supabaseAdmin.auth.admin.updateUserById(existing.id, {
         password,
         email_confirm: true,
@@ -288,7 +324,6 @@ export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async
   const sunrise = await ensureFacility("Sunrise Care");
   const maple = await ensureFacility("Maple Grove");
 
-  // Roles (super admin gets a placeholder admin row at sunrise too, but UI uses email check)
   await supabaseAdmin.from("user_roles").upsert(
     [
       { user_id: adminUid, role: "admin", facility_id: sunrise },
@@ -332,16 +367,13 @@ export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async
       onConflict: "resident_id,user_id",
     });
 
-  // Sample mood today
   const today = new Date().toISOString().slice(0, 10);
   await supabaseAdmin.from("mood_logs").upsert(
     { resident_id: eleanor, mood: "good", log_date: today, logged_by: staffUid },
     { onConflict: "resident_id,log_date" },
   );
 
-  // 8 weekly surveys
   type R = "improved" | "stable" | "declined";
-  type B = "none" | "mild" | "significant";
   const ratings: readonly R[] = ["improved", "stable", "declined"];
   const surveys: Array<{
     resident_id: string;
@@ -351,7 +383,7 @@ export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async
     mood: R;
     social: R;
     mobility: R;
-    behaviors: B;
+    behaviors: "none" | "mild" | "significant";
   }> = [];
   for (let i = 0; i < 8; i++) {
     const d = new Date();
@@ -378,157 +410,6 @@ export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async
   };
 });
 
-
-export const redeemFamilyInvite = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ token: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: invite, error } = await supabaseAdmin
-      .from("invites")
-      .select("*")
-      .eq("token", data.token)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!invite || invite.used || invite.role !== "family" || !invite.resident_id) {
-      throw new Error("Invalid or already-used invite.");
-    }
-    await supabaseAdmin.from("resident_family").upsert({
-      resident_id: invite.resident_id,
-      user_id: context.userId,
-    });
-    await supabaseAdmin.from("user_roles").upsert({
-      user_id: context.userId,
-      role: "family",
-      facility_id: invite.facility_id,
-    });
-    await supabaseAdmin.from("invites").update({ used: true }).eq("id", invite.id);
-    return { ok: true, residentId: invite.resident_id };
-  });
-
-// ---------- Admin ----------
-
-async function assertAdmin(supabase: import("@supabase/supabase-js").SupabaseClient, userId: string) {
-  const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-  if (!data) throw new Error("Forbidden");
-}
-
-export const listPendingStaffRequests = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context.supabase, context.userId);
-    const { data, error } = await context.supabase
-      .from("staff_requests")
-      .select("id, email, facility_id, status, created_at")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return data ?? [];
-  });
-
-export const decideStaffRequest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ id: z.string().uuid(), approve: z.boolean() }).parse(d),
-  )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: req, error: rErr } = await supabaseAdmin
-      .from("staff_requests")
-      .select("*")
-      .eq("id", data.id)
-      .maybeSingle();
-    if (rErr || !req) throw new Error("Request not found");
-
-    if (!data.approve) {
-      await supabaseAdmin
-        .from("staff_requests")
-        .update({ status: "denied", decided_at: new Date().toISOString(), decided_by: context.userId })
-        .eq("id", data.id);
-      return { ok: true };
-    }
-
-    // Approve: ensure auth user exists AND always send an email so the staff
-    // member can set a password.
-    //  - New user  → inviteUserByEmail (sends invite email).
-    //  - Existing  → generateLink({ type: "recovery" }) which sends a reset
-    //    email pointing at /auth/set-password.
-    const redirectTo = inviteRedirectTo();
-    let userId: string | undefined;
-    let emailSent = false;
-    let emailError: string | undefined;
-
-    const { data: list } = await supabaseAdmin.auth.admin.listUsers();
-    const existing = list?.users.find(
-      (u) => u.email?.toLowerCase() === req.email.toLowerCase(),
-    );
-
-    if (existing) {
-      userId = existing.id;
-      const { error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
-        type: "recovery",
-        email: req.email,
-        options: { redirectTo },
-      });
-      if (linkErr) emailError = linkErr.message;
-      else emailSent = true;
-    } else {
-      const { data: invited, error: iErr } =
-        await supabaseAdmin.auth.admin.inviteUserByEmail(req.email, {
-          data: { facility_id: req.facility_id, role: "staff" },
-          redirectTo,
-        });
-      if (invited?.user?.id) {
-        userId = invited.user.id;
-        emailSent = true;
-      } else {
-        emailError = iErr?.message ?? "Unknown invite error";
-        // Fallback so approval is not blocked, but flag that no email went out.
-        const tempPassword = `Temp${Math.random().toString(36).slice(2, 10)}!A1`;
-        const { data: created, error: cErr } =
-          await supabaseAdmin.auth.admin.createUser({
-            email: req.email,
-            password: tempPassword,
-            email_confirm: true,
-            user_metadata: {
-              facility_id: req.facility_id,
-              role: "staff",
-              temp_password: tempPassword,
-            },
-          });
-        if (cErr)
-          throw new Error(
-            `Could not invite or create user: ${emailError} / ${cErr.message}`,
-          );
-        userId = created.user?.id;
-      }
-    }
-
-    if (userId) {
-      await supabaseAdmin.from("user_roles").upsert({
-        user_id: userId,
-        role: "staff",
-        facility_id: req.facility_id,
-      });
-    }
-    await supabaseAdmin
-      .from("staff_requests")
-      .update({
-        status: "approved",
-        decided_at: new Date().toISOString(),
-        decided_by: context.userId,
-      })
-      .eq("id", data.id);
-
-    if (!emailSent) {
-      console.warn(
-        `[decideStaffRequest] No email sent to ${req.email}: ${emailError}`,
-      );
-    }
-    return { ok: true, emailSent, emailError };
-  });
-
 // ---------- Staff / Resident management ----------
 
 export const listResidentsForMe = createServerFn({ method: "GET" })
@@ -554,7 +435,6 @@ export const createResident = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    // Get the user's facility
     const { data: role } = await context.supabase
       .from("user_roles")
       .select("facility_id")
@@ -583,18 +463,7 @@ export const createResident = createServerFn({ method: "POST" })
       facility_id: role.facility_id,
     });
 
-    const { data: invite } = await supabaseAdmin
-      .from("invites")
-      .insert({
-        role: "family",
-        resident_id: resident.id,
-        facility_id: role.facility_id,
-        created_by: context.userId,
-      })
-      .select("token")
-      .single();
-
-    return { resident, inviteToken: invite?.token ?? null };
+    return { resident };
   });
 
 export const logTodayMood = createServerFn({ method: "POST" })
@@ -647,9 +516,6 @@ export const submitWeeklySurvey = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// Daily-note posts are stored as rows in `posts` with no photo and a
-// caption prefixed by NOTE_PREFIX + JSON{activities, food, feelings, note_date}.
-// This avoids a schema change while still being upsertable per (resident, day).
 const NOTE_PREFIX = "__DAILY_NOTE__";
 
 type DailyNotePayload = {
@@ -936,12 +802,8 @@ export const uploadResidentPhoto = createServerFn({ method: "POST" })
     }
     if (error) throw new Error(error.message);
 
-    // Bucket is public — return the public URL so the family feed renders it
-    // directly without needing a (sometimes flaky) signed-URL round-trip.
     const { data: pub } = supabaseAdmin.storage
       .from("resident-photos")
       .getPublicUrl(path);
     return { path, url: pub.publicUrl };
   });
-
-
