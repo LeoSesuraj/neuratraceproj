@@ -9,8 +9,6 @@ import {
   submitWeeklySurvey,
   uploadResidentPhoto,
   createPhotoPost,
-  getMyRole,
-  getFacilityStaffKey,
   getResidentDailyKey,
 } from "@/lib/app.functions";
 import { KeyCard } from "@/components/key-card";
