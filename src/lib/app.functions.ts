@@ -94,10 +94,24 @@ async function redeemFamilyResidentKeyForUser(codeInput: string, userId: string)
   return null;
 }
 
+async function assertCanRedeemFamilyKeyForUser(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: elevatedRoles } = await supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .in("role", ["staff", "admin"])
+    .limit(1);
+  if ((elevatedRoles ?? []).length > 0) {
+    throw new Error("Resident keys create family access only. Sign out and create a family account to use this key.");
+  }
+}
+
 export const redeemFamilyKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ code: z.string().min(1) }).parse(d))
   .handler(async ({ data, context }) => {
+    await assertCanRedeemFamilyKeyForUser(context.userId);
     const family = await redeemFamilyResidentKeyForUser(data.code, context.userId);
     if (!family) throw new Error("That is not a resident family key.");
     return family;
@@ -108,6 +122,7 @@ export const redeemKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ code: z.string().min(1) }).parse(d))
   .handler(async ({ data, context }) => {
+    await assertCanRedeemFamilyKeyForUser(context.userId);
     const family = await redeemFamilyResidentKeyForUser(data.code, context.userId);
     if (family) return family;
 
