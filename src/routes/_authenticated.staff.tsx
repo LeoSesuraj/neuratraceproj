@@ -162,6 +162,7 @@ function ResidentCard({ resident }: { resident: Resident }) {
 }
 
 function SurveyForm({ residentId, onDone }: { residentId: string; onDone: () => void }) {
+  const qc = useQueryClient();
   const [eating, setEating] = useState<Rating>("stable");
   const [moodR, setMoodR] = useState<Rating>("stable");
   const [social, setSocial] = useState<Rating>("stable");
@@ -183,8 +184,12 @@ function SurveyForm({ residentId, onDone }: { residentId: string; onDone: () => 
           notes: notes || undefined,
         },
       }),
-    onSuccess: onDone,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["resident", residentId] });
+      onDone();
+    },
   });
+
 
   return (
     <form
