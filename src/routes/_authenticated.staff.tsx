@@ -115,7 +115,7 @@ type Behavior = "none" | "mild" | "significant";
 
 function ResidentCard({ resident }: { resident: Resident }) {
   const qc = useQueryClient();
-  const [open, setOpen] = useState<"mood" | "survey" | "photo" | "key" | null>(null);
+  const [open, setOpen] = useState<"mood" | "survey" | "photo" | null>(null);
   const [savedMood, setSavedMood] = useState<"good" | "mixed" | "hard" | null>(null);
 
   const mood = useMutation({
@@ -129,14 +129,25 @@ function ResidentCard({ resident }: { resident: Resident }) {
 
   return (
     <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
-      <div className="flex items-center justify-between gap-2">
-        <Link
-          to="/resident/$residentId"
-          params={{ residentId: resident.id }}
-          className="text-lg font-medium hover:underline"
-        >
-          {resident.name}
-        </Link>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Link
+            to="/resident/$residentId"
+            params={{ residentId: resident.id }}
+            className="text-lg font-medium hover:underline"
+          >
+            {resident.name}
+          </Link>
+          <div className="mt-2 max-w-xs">
+            <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+              {resident.name.split(" ")[0]}'s family key (today)
+            </p>
+            <KeyCard
+              queryKey={["family-key", resident.id]}
+              fetch={() => getResidentDailyKey({ data: { resident_id: resident.id } })}
+            />
+          </div>
+        </div>
         <div className="flex flex-wrap justify-end gap-2 text-xs">
           <button
             type="button"
@@ -158,13 +169,6 @@ function ResidentCard({ resident }: { resident: Resident }) {
             className="rounded-full border border-border px-3 py-1.5 hover:bg-surface"
           >
             Post photo
-          </button>
-          <button
-            type="button"
-            onClick={() => setOpen(open === "key" ? null : "key")}
-            className="rounded-full border border-border px-3 py-1.5 hover:bg-surface"
-          >
-            Family key
           </button>
           <Link
             to="/resident/$residentId"
@@ -205,17 +209,6 @@ function ResidentCard({ resident }: { resident: Resident }) {
 
       {open === "survey" && <SurveyForm residentId={resident.id} onDone={() => setOpen(null)} />}
       {open === "photo" && <PhotoForm residentId={resident.id} onDone={() => setOpen(null)} />}
-      {open === "key" && (
-        <div className="mt-4">
-          <p className="mb-2 text-xs text-muted-foreground">
-            Share with this resident's family. Refreshes daily at midnight UTC.
-          </p>
-          <KeyCard
-            queryKey={["family-key", resident.id]}
-            fetch={() => getResidentDailyKey({ data: { resident_id: resident.id } })}
-          />
-        </div>
-      )}
     </div>
   );
 }
