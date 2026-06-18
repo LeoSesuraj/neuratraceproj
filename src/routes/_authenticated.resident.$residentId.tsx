@@ -82,6 +82,17 @@ function ResidentFeed() {
   const trendTone = MOOD_TONE[trendMood];
   const suggestions = VISIT_SUGGESTIONS[trendMood];
 
+  const chartData = surveys.map((s) => ({
+    week: s.week_of.slice(5),
+    Eating: RATING_TO_NUM[s.eating],
+    Mood: RATING_TO_NUM[s.mood],
+    Social: RATING_TO_NUM[s.social],
+    Mobility: RATING_TO_NUM[s.mobility],
+    Behaviors: RATING_TO_NUM[s.behaviors],
+  }));
+
+
+
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-6 pb-20">
