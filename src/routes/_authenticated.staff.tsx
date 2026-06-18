@@ -1,6 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Check } from "lucide-react";
 import {
   listResidentsForMe,
   createResident,
@@ -8,9 +9,12 @@ import {
   submitWeeklySurvey,
   uploadResidentPhoto,
   createPhotoPost,
+  getMyRole,
+  getFacilityStaffKey,
+  getResidentDailyKey,
 } from "@/lib/app.functions";
-import { supabase } from "@/integrations/supabase/client";
-
+import { KeyCard } from "@/components/key-card";
+import { FilePicker } from "@/components/file-picker";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   component: StaffPage,
@@ -29,45 +33,48 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 function StaffPage() {
-  const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: residents = [] } = useQuery({
     queryKey: ["residents"],
     queryFn: () => listResidentsForMe(),
   });
+  const { data: roleInfo } = useQuery({
+    queryKey: ["my-role"],
+    queryFn: () => getMyRole(),
+  });
+  const facilityId = roleInfo?.facilityId ?? residents[0]?.facility_id ?? null;
   const [name, setName] = useState("");
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
 
   const create = useMutation({
     mutationFn: () => createResident({ data: { name } }),
-    onSuccess: (r) => {
+    onSuccess: () => {
       setName("");
       qc.invalidateQueries({ queryKey: ["residents"] });
-      if (r.inviteToken) {
-        setInviteLink(`${window.location.origin}/auth/join-family?token=${r.inviteToken}`);
-      }
     },
   });
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-primary">Staff</p>
-          <h1 className="mt-1 text-3xl">Your residents</h1>
-        </div>
-        <button
-          onClick={async () => {
-            await supabase.auth.signOut();
-            navigate({ to: "/" });
-          }}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Sign out
-        </button>
+      <header>
+        <p className="text-sm font-medium text-primary">Staff</p>
+        <h1 className="mt-1 text-3xl">Your residents</h1>
       </header>
 
-      <section className="mt-8 rounded-3xl border border-border bg-card p-5 shadow-soft">
+      {facilityId && (
+        <section className="mt-6">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Today's staff signup key
+          </h2>
+          <div className="mt-2">
+            <KeyCard
+              queryKey={["staff-key", facilityId]}
+              fetch={() => getFacilityStaffKey({ data: { facility_id: facilityId } })}
+            />
+          </div>
+        </section>
+      )}
+
+      <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
         <h2 className="text-lg">Add a resident</h2>
         <form
           onSubmit={(e) => {
@@ -86,15 +93,6 @@ function StaffPage() {
             Add
           </button>
         </form>
-        {inviteLink && (
-          <div className="mt-4 rounded-2xl bg-sky-soft p-4 text-sm">
-            <p className="font-medium">Family invite link:</p>
-            <p className="mt-1 break-all font-mono text-xs">{inviteLink}</p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Send this to the resident's family. It works only once.
-            </p>
-          </div>
-        )}
       </section>
 
       <section className="mt-6 grid gap-4">
@@ -117,17 +115,21 @@ type Behavior = "none" | "mild" | "significant";
 
 function ResidentCard({ resident }: { resident: Resident }) {
   const qc = useQueryClient();
-  const [open, setOpen] = useState<"mood" | "survey" | "photo" | null>(null);
+  const [open, setOpen] = useState<"mood" | "survey" | "photo" | "key" | null>(null);
+  const [savedMood, setSavedMood] = useState<"good" | "mixed" | "hard" | null>(null);
 
   const mood = useMutation({
     mutationFn: (m: "good" | "mixed" | "hard") =>
       logTodayMood({ data: { resident_id: resident.id, mood: m } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["resident", resident.id] }),
+    onSuccess: (_d, m) => {
+      setSavedMood(m);
+      qc.invalidateQueries({ queryKey: ["resident", resident.id] });
+    },
   });
 
   return (
     <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <Link
           to="/resident/$residentId"
           params={{ residentId: resident.id }}
@@ -136,14 +138,33 @@ function ResidentCard({ resident }: { resident: Resident }) {
           {resident.name}
         </Link>
         <div className="flex flex-wrap justify-end gap-2 text-xs">
-          <button onClick={() => setOpen(open === "mood" ? null : "mood")} className="rounded-full border border-border px-3 py-1.5">
+          <button
+            type="button"
+            onClick={() => setOpen(open === "mood" ? null : "mood")}
+            className="rounded-full border border-border px-3 py-1.5 hover:bg-surface"
+          >
             Today's mood
           </button>
-          <button onClick={() => setOpen(open === "survey" ? null : "survey")} className="rounded-full border border-border px-3 py-1.5">
+          <button
+            type="button"
+            onClick={() => setOpen(open === "survey" ? null : "survey")}
+            className="rounded-full border border-border px-3 py-1.5 hover:bg-surface"
+          >
             Weekly survey
           </button>
-          <button onClick={() => setOpen(open === "photo" ? null : "photo")} className="rounded-full border border-border px-3 py-1.5">
+          <button
+            type="button"
+            onClick={() => setOpen(open === "photo" ? null : "photo")}
+            className="rounded-full border border-border px-3 py-1.5 hover:bg-surface"
+          >
             Post photo
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpen(open === "key" ? null : "key")}
+            className="rounded-full border border-border px-3 py-1.5 hover:bg-surface"
+          >
+            Family key
           </button>
           <Link
             to="/resident/$residentId"
@@ -156,25 +177,48 @@ function ResidentCard({ resident }: { resident: Resident }) {
       </div>
 
       {open === "mood" && (
-        <div className="mt-4 flex gap-2">
-          {(["good", "mixed", "hard"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => mood.mutate(m)}
-              className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm capitalize hover:bg-surface"
-            >
-              {m}
-            </button>
-          ))}
+        <div className="mt-4">
+          <div className="flex gap-2">
+            {(["good", "mixed", "hard"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => mood.mutate(m)}
+                disabled={mood.isPending}
+                className={`flex-1 rounded-xl border px-3 py-2 text-sm capitalize transition-colors ${
+                  savedMood === m
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background hover:bg-surface"
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+          {savedMood && (
+            <p className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <Check className="h-3.5 w-3.5 text-primary" /> Saved
+            </p>
+          )}
         </div>
       )}
 
       {open === "survey" && <SurveyForm residentId={resident.id} onDone={() => setOpen(null)} />}
       {open === "photo" && <PhotoForm residentId={resident.id} onDone={() => setOpen(null)} />}
+      {open === "key" && (
+        <div className="mt-4">
+          <p className="mb-2 text-xs text-muted-foreground">
+            Share with this resident's family. Refreshes daily at midnight UTC.
+          </p>
+          <KeyCard
+            queryKey={["family-key", resident.id]}
+            fetch={() => getResidentDailyKey({ data: { resident_id: resident.id } })}
+          />
+        </div>
+      )}
     </div>
   );
 }
-
 
 function SurveyForm({ residentId, onDone }: { residentId: string; onDone: () => void }) {
   const qc = useQueryClient();
@@ -204,7 +248,6 @@ function SurveyForm({ residentId, onDone }: { residentId: string; onDone: () => 
       onDone();
     },
   });
-
 
   return (
     <form
@@ -276,7 +319,6 @@ function PhotoForm({ residentId, onDone }: { residentId: string; onDone: () => v
       await createPhotoPost({
         data: { resident_id: residentId, photo_path: url || path, caption: caption || undefined },
       });
-
       qc.invalidateQueries({ queryKey: ["resident", residentId] });
       onDone();
     } catch (err) {
@@ -286,15 +328,9 @@ function PhotoForm({ residentId, onDone }: { residentId: string; onDone: () => v
     }
   }
 
-
   return (
     <form onSubmit={onSubmit} className="mt-4 grid gap-3">
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-        className="text-sm"
-      />
+      <FilePicker file={file} onChange={setFile} />
       <input
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
