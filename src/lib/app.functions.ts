@@ -164,6 +164,31 @@ export const getMyRole = createServerFn({ method: "GET" })
     };
   });
 
+async function getPrimaryAccess(
+  context: { supabase: import("@supabase/supabase-js").SupabaseClient; userId: string; claims: { email?: unknown } },
+): Promise<{
+  role: "super_admin" | "admin" | "staff" | "family" | null;
+  facilityIds: string[];
+}> {
+  if (await isSuperAdmin(context)) return { role: "super_admin", facilityIds: [] };
+  const { data, error } = await context.supabase
+    .from("user_roles")
+    .select("role, facility_id")
+    .eq("user_id", context.userId);
+  if (error) throw new Error(error.message);
+  const roles = data ?? [];
+  const adminFacilities = roles
+    .filter((r) => r.role === "admin" && r.facility_id)
+    .map((r) => r.facility_id as string);
+  if (adminFacilities.length) return { role: "admin", facilityIds: adminFacilities };
+  const staffFacilities = roles
+    .filter((r) => r.role === "staff" && r.facility_id)
+    .map((r) => r.facility_id as string);
+  if (staffFacilities.length) return { role: "staff", facilityIds: staffFacilities };
+  if (roles.some((r) => r.role === "family")) return { role: "family", facilityIds: [] };
+  return { role: null, facilityIds: [] };
+}
+
 // ---------- Daily Keys (display) ----------
 
 async function assertFacilityMember(
