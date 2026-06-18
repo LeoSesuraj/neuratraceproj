@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { listResidentsForMe, redeemKey } from "@/lib/app.functions";
+import { listResidentsForMe, redeemFamilyKey } from "@/lib/app.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus } from "lucide-react";
 
@@ -21,7 +21,7 @@ function ResidentSelector() {
   const [error, setError] = useState<string | null>(null);
 
   const add = useMutation({
-    mutationFn: () => redeemKey({ data: { code } }),
+    mutationFn: () => redeemFamilyKey({ data: { code } }),
     onSuccess: (r) => {
       setCode("");
       setAdding(false);
