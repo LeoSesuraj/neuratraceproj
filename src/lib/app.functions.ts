@@ -362,11 +362,13 @@ export const listResidentsForMe = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const access = await getPrimaryAccess(context);
 
+    const selectCols = "id, name, photo_url, facility_id, dementia_type, facilities(name)";
+
     // Super admin sees everything.
     if (access.role === "super_admin") {
       const { data, error } = await supabaseAdmin
         .from("residents")
-        .select("id, name, photo_url, facility_id, dementia_type")
+        .select(selectCols)
         .order("name");
       if (error) throw new Error(error.message);
       return data ?? [];
@@ -398,7 +400,7 @@ export const listResidentsForMe = createServerFn({ method: "GET" })
 
     const { data, error } = await supabaseAdmin
       .from("residents")
-      .select("id, name, photo_url, facility_id, dementia_type")
+      .select(selectCols)
       .in("id", Array.from(ids))
       .order("name");
     if (error) throw new Error(error.message);
@@ -418,12 +420,13 @@ export const listFamilyResidentsForMe = createServerFn({ method: "GET" })
     if (ids.length === 0) return [];
     const { data, error } = await supabaseAdmin
       .from("residents")
-      .select("id, name, photo_url, facility_id, dementia_type")
+      .select("id, name, photo_url, facility_id, dementia_type, facilities(name)")
       .in("id", ids)
       .order("name");
     if (error) throw new Error(error.message);
     return data ?? [];
   });
+
 
 export const createResident = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
