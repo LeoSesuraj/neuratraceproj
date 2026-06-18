@@ -28,11 +28,12 @@ export function dailyKey(
     .digest();
   let out = "";
   for (let i = 0; i < 8; i++) out += ALPH[buf[i] % 32];
-  return `${out.slice(0, 4)}-${out.slice(4)}`;
+  return out;
 }
 
 export function normalizeKey(input: string): string {
   const raw = input.toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (raw.length !== 8) return "";
-  return `${raw.slice(0, 4)}-${raw.slice(4)}`;
+  return raw;
 }
+
