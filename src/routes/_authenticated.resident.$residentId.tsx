@@ -61,16 +61,27 @@ function ResidentFeed() {
 
   const { resident, todayMood, posts, surveys, alerts } = data;
   const moodTone = todayMood ? MOOD_TONE[todayMood] : null;
-  const suggestions = todayMood ? VISIT_SUGGESTIONS[todayMood] : VISIT_SUGGESTIONS.mixed;
 
-  const chartData = surveys.map((s) => ({
-    week: s.week_of.slice(5),
-    Eating: RATING_TO_NUM[s.eating],
-    Mood: RATING_TO_NUM[s.mood],
-    Social: RATING_TO_NUM[s.social],
-    Mobility: RATING_TO_NUM[s.mobility],
-    Behaviors: RATING_TO_NUM[s.behaviors],
-  }));
+  // Derive a "trend mood" from the most recent weekly surveys so the
+  // visit suggestions reflect the graphical trend, not just today's note.
+  const trendMood: "good" | "mixed" | "hard" = (() => {
+    if (surveys.length === 0) return todayMood ?? "mixed";
+    const recent = surveys.slice(-2);
+    const scores = recent.flatMap((s) => [
+      RATING_TO_NUM[s.eating],
+      RATING_TO_NUM[s.mood],
+      RATING_TO_NUM[s.social],
+      RATING_TO_NUM[s.mobility],
+      RATING_TO_NUM[s.behaviors],
+    ]);
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    if (avg >= 2.5) return "good";
+    if (avg >= 1.75) return "mixed";
+    return "hard";
+  })();
+  const trendTone = MOOD_TONE[trendMood];
+  const suggestions = VISIT_SUGGESTIONS[trendMood];
+
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-6 pb-20">
