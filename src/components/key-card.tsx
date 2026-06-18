@@ -23,42 +23,41 @@ export function KeyCard({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="font-mono text-2xl tracking-widest">
-            {isLoading ? "••••-••••" : (data?.code ?? "—")}
-          </p>
-          {data?.valid_date && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              Valid for {data.valid_date} (UTC)
-            </p>
-          )}
-        </div>
-        <div className="flex gap-2">
+    <div className="rounded-2xl border border-border bg-card p-3 shadow-soft">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="font-mono text-lg font-semibold tracking-[0.2em]">
+          {isLoading ? "••••••••" : (data?.code ?? "—")}
+        </p>
+        <div className="flex gap-1.5">
           <button
             type="button"
             onClick={copy}
             disabled={!data}
-            className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs hover:bg-surface disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] hover:bg-surface disabled:opacity-50"
           >
-            <Copy className="h-3.5 w-3.5" />
+            <Copy className="h-3 w-3" />
             {copied ? "Copied" : "Copy"}
           </button>
           <button
             type="button"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs hover:bg-surface disabled:opacity-50"
+            className="inline-flex items-center rounded-full border border-border p-1.5 hover:bg-surface disabled:opacity-50"
             title="Refresh"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-3 w-3 ${isFetching ? "animate-spin" : ""}`} />
           </button>
         </div>
       </div>
+      {data?.valid_date && (
+        <p className="mt-1.5 text-[11px] text-muted-foreground">
+          Valid for {data.valid_date} (UTC)
+        </p>
+      )}
       {error && (
         <p className="mt-2 text-xs text-destructive">{(error as Error).message}</p>
       )}
     </div>
   );
 }
+
