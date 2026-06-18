@@ -6,6 +6,11 @@ import {
   getMyRole,
 } from "@/lib/app.functions";
 import { KeyCard } from "@/components/key-card";
+import {
+  groupByFacility,
+  FacilityHeader,
+  type ResidentWithFacility,
+} from "@/components/grouped-residents";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -14,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 function AdminPage() {
   const { data: residents = [] } = useQuery({
     queryKey: ["residents"],
-    queryFn: () => listResidentsForMe(),
+    queryFn: () => listResidentsForMe() as Promise<ResidentWithFacility[]>,
   });
   const { data: roleInfo } = useQuery({
     queryKey: ["my-role"],
@@ -22,6 +27,7 @@ function AdminPage() {
   });
 
   const facilityId = roleInfo?.facilityId ?? null;
+  const groups = groupByFacility(residents);
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8">
@@ -45,24 +51,32 @@ function AdminPage() {
         </section>
       )}
 
-      <section className="mt-10">
-        <h2 className="text-xl">Residents ({residents.length})</h2>
-        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-          {residents.map((r) => (
-            <li
-              key={r.id}
-              className="rounded-2xl border border-border bg-card p-4 shadow-soft"
-            >
-              <p className="font-medium">{r.name}</p>
-              {r.dementia_type && (
-                <p className="text-xs text-muted-foreground">{r.dementia_type}</p>
-              )}
-            </li>
-          ))}
-        </ul>
+      <section className="mt-10 grid gap-8">
+        <h2 className="text-xl">Residents</h2>
+        {groups.length === 0 && (
+          <p className="text-sm text-muted-foreground">No residents yet.</p>
+        )}
+        {groups.map((g) => (
+          <div key={g.facilityId ?? "none"} className="grid gap-3">
+            <FacilityHeader name={g.facilityName} count={g.residents.length} />
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {g.residents.map((r) => (
+                <li
+                  key={r.id}
+                  className="rounded-2xl border border-border bg-card p-4 shadow-soft"
+                >
+                  <p className="font-medium">{r.name}</p>
+                  {r.dementia_type && (
+                    <p className="text-xs text-muted-foreground">{r.dementia_type}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
         <Link
           to="/staff"
-          className="mt-4 inline-block text-sm font-medium text-primary hover:underline"
+          className="text-sm font-medium text-primary hover:underline"
         >
           Go to staff tools →
         </Link>

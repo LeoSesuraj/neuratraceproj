@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { Check } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, Search } from "lucide-react";
 import {
   listResidentsForMe,
   createResident,
@@ -14,6 +14,12 @@ import {
 } from "@/lib/app.functions";
 import { KeyCard } from "@/components/key-card";
 import { FilePicker } from "@/components/file-picker";
+import {
+  facilityName,
+  groupByFacility,
+  FacilityHeader,
+  type ResidentWithFacility,
+} from "@/components/grouped-residents";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   component: StaffPage,
@@ -35,13 +41,14 @@ function StaffPage() {
   const qc = useQueryClient();
   const { data: residents = [] } = useQuery({
     queryKey: ["residents"],
-    queryFn: () => listResidentsForMe(),
+    queryFn: () => listResidentsForMe() as Promise<ResidentWithFacility[]>,
   });
   const { data: roleInfo, isLoading: roleLoading } = useQuery({
     queryKey: ["my-role"],
     queryFn: () => getMyRole(),
   });
   const [name, setName] = useState("");
+  const [search, setSearch] = useState("");
 
   const create = useMutation({
     mutationFn: () => createResident({ data: { name } }),
@@ -50,6 +57,17 @@ function StaffPage() {
       qc.invalidateQueries({ queryKey: ["residents"] });
     },
   });
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return residents;
+    return residents.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        facilityName(r).toLowerCase().includes(q),
+    );
+  }, [residents, search]);
+  const groups = useMemo(() => groupByFacility(filtered), [filtered]);
 
   if (roleLoading) {
     return <div className="mx-auto max-w-3xl px-5 py-8 text-sm text-muted-foreground">Loading…</div>;
@@ -73,7 +91,6 @@ function StaffPage() {
         <h1 className="mt-1 text-3xl">Your residents</h1>
       </header>
 
-
       <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
         <h2 className="text-lg">Add a resident</h2>
         <form
@@ -95,16 +112,33 @@ function StaffPage() {
         </form>
       </section>
 
-      <section className="mt-6 grid gap-4">
-        {residents.map((r) => (
-          <ResidentCard key={r.id} resident={r} />
-        ))}
-        {residents.length === 0 && (
+      <div className="mt-6 relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search residents by name or nursing home…"
+          className="w-full rounded-xl border border-border bg-background pl-9 pr-3 py-2.5 text-sm"
+        />
+      </div>
+
+      <div className="mt-6 grid gap-8">
+        {groups.length === 0 && (
           <p className="text-center text-sm text-muted-foreground">
-            No residents yet — add your first above.
+            {residents.length === 0
+              ? "No residents yet — add your first above."
+              : "No residents match your search."}
           </p>
         )}
-      </section>
+        {groups.map((g) => (
+          <section key={g.facilityId ?? "none"} className="grid gap-3">
+            <FacilityHeader name={g.facilityName} count={g.residents.length} />
+            {g.residents.map((r) => (
+              <ResidentCard key={r.id} resident={r} />
+            ))}
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
