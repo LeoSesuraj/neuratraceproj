@@ -227,7 +227,7 @@ function ResidentFeed() {
               <h3 className="text-lg font-semibold">Visit suggestions</h3>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Ideas tuned to {resident.name}'s {moodTone?.label.toLowerCase() ?? "day"}.
+              Ideas tuned to {resident.name}'s recent trend ({trendTone.label.toLowerCase()}).
             </p>
             <ul className="mt-4 space-y-3">
               {suggestions.map((s) => (
