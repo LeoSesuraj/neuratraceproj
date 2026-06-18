@@ -576,6 +576,9 @@ export const logTodayMood = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
+      throw new Error("Forbidden");
+    }
     const today = new Date().toISOString().slice(0, 10);
     const { error } = await context.supabase.from("mood_logs").upsert(
       {
@@ -607,6 +610,9 @@ export const submitWeeklySurvey = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
+      throw new Error("Forbidden");
+    }
     const { error } = await context.supabase.from("weekly_surveys").upsert(
       { ...data, staff_id: context.userId },
       { onConflict: "resident_id,week_of" },
@@ -649,6 +655,9 @@ export const createPhotoPost = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
+      throw new Error("Forbidden");
+    }
     const { error } = await context.supabase.from("posts").insert({
       resident_id: data.resident_id,
       author_id: context.userId,
@@ -890,7 +899,10 @@ export const uploadResidentPhoto = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
+      throw new Error("Forbidden");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
     const ext = data.filename.split(".").pop() || "jpg";
