@@ -130,7 +130,7 @@ function LandingPage() {
           <div className="h-px flex-1 bg-border" />
         </div>
 
-        <ul className="mt-6 grid gap-3 sm:grid-cols-3">
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2">
           {secondaryCards.map((c) => {
             const Icon = c.icon;
             return (
