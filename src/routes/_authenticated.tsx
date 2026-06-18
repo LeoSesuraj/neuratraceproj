@@ -1,7 +1,12 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/neurotrace-logo.png";
 import { LogOut } from "lucide-react";
+
+const INACTIVITY_MS = 60 * 60 * 1000; // 60 minutes
+const ACTIVITY_EVENTS = ["mousedown", "keydown", "touchstart", "scroll"] as const;
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -15,6 +20,34 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthedLayout() {
   const navigate = useNavigate();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function signOutInactive() {
+    await supabase.auth.signOut();
+    toast.message("You were signed out due to inactivity.");
+    navigate({ to: "/" });
+  }
+
+  useEffect(() => {
+    function reset() {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        void signOutInactive();
+      }, INACTIVITY_MS);
+    }
+    reset();
+    for (const ev of ACTIVITY_EVENTS) {
+      window.addEventListener(ev, reset, { passive: true });
+    }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      for (const ev of ACTIVITY_EVENTS) {
+        window.removeEventListener(ev, reset);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function signOut() {
     await supabase.auth.signOut();
     navigate({ to: "/" });

@@ -14,32 +14,87 @@ export const listFacilities = createServerFn({ method: "GET" }).handler(async ()
   return data ?? [];
 });
 
-// Public: create an email-confirmed user so they can immediately sign in.
-// Avoids the "Email not confirmed" failure when project requires confirmation.
+// Public: validate the signup key, create an unconfirmed user, and assign their
+// role/facility link server-side. Email confirmation is required before sign-in.
 export const signupWithKey = createServerFn({ method: "POST" })
   .inputValidator((d) =>
     z
       .object({
         email: z.string().email(),
         password: z.string().min(8),
+        code: z
+          .string()
+          .transform((s) => s.toUpperCase().replace(/[^A-Z0-9]/g, ""))
+          .pipe(z.string().regex(/^[A-Z0-9]{8}$/, "Key must be 8 alphanumeric characters")),
       })
       .parse(d),
   )
   .handler(async ({ data }) => {
+    const { normalizeKey, dailyKey } = await import("./keys.server");
+    const code = normalizeKey(data.code);
+    const INVALID = "This key is invalid or has expired. Ask your facility administrator for today's key.";
+    if (!code) throw new Error(INVALID);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.auth.admin.createUser({
+
+    type Match =
+      | { kind: "family"; resident_id: string; facility_id: string }
+      | { kind: "staff"; facility_id: string }
+      | { kind: "admin"; facility_id: string };
+    let match: Match | null = null;
+
+    const { data: residents } = await supabaseAdmin
+      .from("residents")
+      .select("id, facility_id");
+    for (const r of residents ?? []) {
+      if (dailyKey("family", r.id) === code) {
+        match = { kind: "family", resident_id: r.id, facility_id: r.facility_id };
+        break;
+      }
+    }
+    if (!match) {
+      const { data: facs } = await supabaseAdmin.from("facilities").select("id");
+      for (const f of facs ?? []) {
+        if (dailyKey("staff", f.id) === code) {
+          match = { kind: "staff", facility_id: f.id };
+          break;
+        }
+        if (dailyKey("admin", f.id) === code) {
+          match = { kind: "admin", facility_id: f.id };
+          break;
+        }
+      }
+    }
+    if (!match) throw new Error(INVALID);
+
+    const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       password: data.password,
-      email_confirm: true,
+      email_confirm: false,
     });
     if (error) {
-      // If user already exists, let the client try signing in.
       if (/already|exists|registered/i.test(error.message)) {
-        return { ok: true, existed: true };
+        throw new Error("An account with this email already exists. Sign in instead.");
       }
       throw new Error(error.message);
     }
-    return { ok: true, existed: false };
+    const userId = created.user!.id;
+
+    if (match.kind === "family") {
+      await supabaseAdmin.from("resident_family").upsert(
+        { resident_id: match.resident_id, user_id: userId },
+        { onConflict: "resident_id,user_id" },
+      );
+      await supabaseAdmin.from("user_roles").upsert(
+        { user_id: userId, role: "family", facility_id: match.facility_id },
+        { onConflict: "user_id,role,facility_id" },
+      );
+    } else {
+      await supabaseAdmin.from("user_roles").upsert(
+        { user_id: userId, role: match.kind, facility_id: match.facility_id },
+        { onConflict: "user_id,role,facility_id" },
+      );
+    }
+    return { ok: true, kind: match.kind };
   });
 
 // Public: identify a signup key without revealing what each scope's key is.

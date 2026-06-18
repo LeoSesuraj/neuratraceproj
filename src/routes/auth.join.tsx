@@ -1,10 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
-import { lookupKey, redeemKey, signupWithKey } from "@/lib/app.functions";
+import { lookupKey, signupWithKey } from "@/lib/app.functions";
 
 const searchSchema = z.object({ code: z.string().optional() });
+
+const KEY_RE = /^[A-Z0-9]{8}$/;
 
 export const Route = createFileRoute("/auth/join")({
   validateSearch: (s) => searchSchema.parse(s),
@@ -23,7 +24,6 @@ type Lookup =
     };
 
 function JoinPage() {
-  const navigate = useNavigate();
   const { code: initialCode } = Route.useSearch();
   const [code, setCode] = useState(initialCode ?? "");
   const [info, setInfo] = useState<Lookup | null>(null);
@@ -31,9 +31,15 @@ function JoinPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const keyFormatError =
+    code.length > 0 && !KEY_RE.test(code)
+      ? "Key must be exactly 8 characters, letters and numbers only."
+      : null;
 
   useEffect(() => {
-    if (initialCode) verify(initialCode);
+    if (initialCode && KEY_RE.test(initialCode)) verify(initialCode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -42,7 +48,9 @@ function JoinPage() {
     try {
       const r = (await lookupKey({ data: { code: c } })) as Lookup;
       if (!r.found) {
-        setError("Key not recognized. Keys refresh every day at midnight UTC.");
+        setError(
+          "This key is invalid or has expired. Ask your facility administrator for today's key.",
+        );
         return;
       }
       setInfo(r);
@@ -53,6 +61,10 @@ function JoinPage() {
 
   async function onSubmitKey(e: React.FormEvent) {
     e.preventDefault();
+    if (!KEY_RE.test(code)) {
+      setError("Key must be exactly 8 characters, letters and numbers only.");
+      return;
+    }
     await verify(code);
   }
 
@@ -61,22 +73,30 @@ function JoinPage() {
     setError(null);
     setLoading(true);
     try {
-      const { data: sess } = await supabase.auth.getSession();
-      if (sess.session) await supabase.auth.signOut();
-      await signupWithKey({ data: { email, password } });
-      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-      if (signInErr) throw signInErr;
-      const r = await redeemKey({ data: { code } });
-      if (r.kind === "family" && r.resident_id) {
-        navigate({ to: "/resident/$residentId", params: { residentId: r.resident_id } });
-      }
-      else if (r.kind === "staff") navigate({ to: "/staff" });
-      else navigate({ to: "/admin" });
+      await signupWithKey({ data: { email, password, code } });
+      setDone(true);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Sign up failed");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (done) {
+    return (
+      <div>
+        <h1 className="text-3xl">Almost there</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Check your email to verify your account before signing in.
+        </p>
+        <Link
+          to="/auth/login"
+          className="mt-6 inline-block rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft"
+        >
+          Go to sign in
+        </Link>
+      </div>
+    );
   }
 
   if (!info) {
@@ -91,10 +111,16 @@ function JoinPage() {
           <input
             required
             value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="ABCD-EFGH"
+            onChange={(e) =>
+              setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8))
+            }
+            placeholder="ABCD1234"
+            maxLength={8}
             className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-center font-mono text-lg tracking-widest shadow-soft"
           />
+          {keyFormatError && (
+            <p className="text-xs text-destructive">{keyFormatError}</p>
+          )}
           {error && (
             <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error}
@@ -102,7 +128,8 @@ function JoinPage() {
           )}
           <button
             type="submit"
-            className="w-full rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft"
+            disabled={!KEY_RE.test(code)}
+            className="w-full rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft disabled:opacity-50"
           >
             Continue
           </button>
