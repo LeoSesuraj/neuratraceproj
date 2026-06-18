@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import logo from "@/assets/neurotrace-logo.png";
-import { BookOpen, UserPlus, Users } from "lucide-react";
+import { BookOpen, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, seedDemoAccounts } from "@/lib/app.functions";
 
