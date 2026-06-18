@@ -326,6 +326,8 @@ function ResidentFeed() {
         </section>
       )}
 
+      {canEdit && <InlinePhotoUploader residentId={residentId} />}
+
       <section className="mt-4 space-y-3">
         {posts.length === 0 && (
           <p className="rounded-3xl border border-dashed border-border bg-surface p-8 text-center text-sm text-muted-foreground">
