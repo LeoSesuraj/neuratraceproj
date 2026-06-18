@@ -21,8 +21,6 @@ import { Route as LearnConnectRouteImport } from './routes/learn.connect'
 import { Route as LearnCoachRouteImport } from './routes/learn.coach'
 import { Route as AuthSetPasswordRouteImport } from './routes/auth.set-password'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
-import { Route as AuthJoinStaffRouteImport } from './routes/auth.join-staff'
-import { Route as AuthJoinFamilyRouteImport } from './routes/auth.join-family'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated.staff'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
@@ -95,16 +93,6 @@ const AuthSetPasswordRoute = AuthSetPasswordRouteImport.update({
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthJoinStaffRoute = AuthJoinStaffRouteImport.update({
-  id: '/join-staff',
-  path: '/join-staff',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthJoinFamilyRoute = AuthJoinFamilyRouteImport.update({
-  id: '/join-family',
-  path: '/join-family',
   getParentRoute: () => AuthRoute,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -187,8 +175,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
-  '/auth/join-family': typeof AuthJoinFamilyRoute
-  '/auth/join-staff': typeof AuthJoinStaffRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/set-password': typeof AuthSetPasswordRoute
   '/learn/coach': typeof LearnCoachRouteWithChildren
@@ -216,8 +202,6 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
-  '/auth/join-family': typeof AuthJoinFamilyRoute
-  '/auth/join-staff': typeof AuthJoinStaffRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/set-password': typeof AuthSetPasswordRoute
   '/learn/journey': typeof LearnJourneyRoute
@@ -243,8 +227,6 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
-  '/auth/join-family': typeof AuthJoinFamilyRoute
-  '/auth/join-staff': typeof AuthJoinStaffRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/set-password': typeof AuthSetPasswordRoute
   '/learn/coach': typeof LearnCoachRouteWithChildren
@@ -274,8 +256,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/staff'
     | '/api/chat'
-    | '/auth/join-family'
-    | '/auth/join-staff'
     | '/auth/login'
     | '/auth/set-password'
     | '/learn/coach'
@@ -303,8 +283,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/staff'
     | '/api/chat'
-    | '/auth/join-family'
-    | '/auth/join-staff'
     | '/auth/login'
     | '/auth/set-password'
     | '/learn/journey'
@@ -329,8 +307,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/staff'
     | '/api/chat'
-    | '/auth/join-family'
-    | '/auth/join-staff'
     | '/auth/login'
     | '/auth/set-password'
     | '/learn/coach'
@@ -450,20 +426,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/auth/join-staff': {
-      id: '/auth/join-staff'
-      path: '/join-staff'
-      fullPath: '/auth/join-staff'
-      preLoaderRoute: typeof AuthJoinStaffRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/auth/join-family': {
-      id: '/auth/join-family'
-      path: '/join-family'
-      fullPath: '/auth/join-family'
-      preLoaderRoute: typeof AuthJoinFamilyRouteImport
       parentRoute: typeof AuthRoute
     }
     '/api/chat': {
@@ -597,15 +559,11 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface AuthRouteChildren {
-  AuthJoinFamilyRoute: typeof AuthJoinFamilyRoute
-  AuthJoinStaffRoute: typeof AuthJoinStaffRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSetPasswordRoute: typeof AuthSetPasswordRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
-  AuthJoinFamilyRoute: AuthJoinFamilyRoute,
-  AuthJoinStaffRoute: AuthJoinStaffRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSetPasswordRoute: AuthSetPasswordRoute,
 }
