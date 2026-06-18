@@ -24,12 +24,12 @@ import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthJoinRouteImport } from './routes/auth.join'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated.staff'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as LearnUnderstandIndexRouteImport } from './routes/learn.understand.index'
 import { Route as LearnSupportIndexRouteImport } from './routes/learn.support.index'
 import { Route as LearnConnectIndexRouteImport } from './routes/learn.connect.index'
 import { Route as LearnCoachIndexRouteImport } from './routes/learn.coach.index'
 import { Route as AuthenticatedResidentIndexRouteImport } from './routes/_authenticated.resident.index'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as LearnUnderstandTopicRouteImport } from './routes/learn.understand.$topic'
 import { Route as LearnSupportResourceRouteImport } from './routes/learn.support.$resource'
 import { Route as LearnConnectSituationRouteImport } from './routes/learn.connect.$situation'
@@ -111,11 +111,6 @@ const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const LearnUnderstandIndexRoute = LearnUnderstandIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -142,6 +137,11 @@ const AuthenticatedResidentIndexRoute =
     path: '/resident/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const LearnUnderstandTopicRoute = LearnUnderstandTopicRouteImport.update({
   id: '/$topic',
   path: '/$topic',
@@ -169,16 +169,15 @@ const AuthenticatedResidentResidentIdRoute =
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminSuperRoute = AuthenticatedAdminSuperRouteImport.update({
-  id: '/super',
-  path: '/super',
-  getParentRoute: () => AuthenticatedAdminRoute,
+  id: '/admin/super',
+  path: '/admin/super',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/auth/join': typeof AuthJoinRoute
@@ -196,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
   '/learn/support/$resource': typeof LearnSupportResourceRoute
   '/learn/understand/$topic': typeof LearnUnderstandTopicRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/resident/': typeof AuthenticatedResidentIndexRoute
   '/learn/coach/': typeof LearnCoachIndexRoute
   '/learn/connect/': typeof LearnConnectIndexRoute
@@ -206,7 +206,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/auth/join': typeof AuthJoinRoute
@@ -220,6 +219,7 @@ export interface FileRoutesByTo {
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
   '/learn/support/$resource': typeof LearnSupportResourceRoute
   '/learn/understand/$topic': typeof LearnUnderstandTopicRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/resident': typeof AuthenticatedResidentIndexRoute
   '/learn/coach': typeof LearnCoachIndexRoute
   '/learn/connect': typeof LearnConnectIndexRoute
@@ -232,7 +232,6 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/auth/join': typeof AuthJoinRoute
@@ -250,6 +249,7 @@ export interface FileRoutesById {
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
   '/learn/support/$resource': typeof LearnSupportResourceRoute
   '/learn/understand/$topic': typeof LearnUnderstandTopicRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/resident/': typeof AuthenticatedResidentIndexRoute
   '/learn/coach/': typeof LearnCoachIndexRoute
   '/learn/connect/': typeof LearnConnectIndexRoute
@@ -262,7 +262,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/sitemap.xml'
-    | '/admin'
     | '/staff'
     | '/api/chat'
     | '/auth/join'
@@ -280,6 +279,7 @@ export interface FileRouteTypes {
     | '/learn/connect/$situation'
     | '/learn/support/$resource'
     | '/learn/understand/$topic'
+    | '/admin/'
     | '/resident/'
     | '/learn/coach/'
     | '/learn/connect/'
@@ -290,7 +290,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/sitemap.xml'
-    | '/admin'
     | '/staff'
     | '/api/chat'
     | '/auth/join'
@@ -304,6 +303,7 @@ export interface FileRouteTypes {
     | '/learn/connect/$situation'
     | '/learn/support/$resource'
     | '/learn/understand/$topic'
+    | '/admin'
     | '/resident'
     | '/learn/coach'
     | '/learn/connect'
@@ -315,7 +315,6 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/sitemap.xml'
-    | '/_authenticated/admin'
     | '/_authenticated/staff'
     | '/api/chat'
     | '/auth/join'
@@ -333,6 +332,7 @@ export interface FileRouteTypes {
     | '/learn/connect/$situation'
     | '/learn/support/$resource'
     | '/learn/understand/$topic'
+    | '/_authenticated/admin/'
     | '/_authenticated/resident/'
     | '/learn/coach/'
     | '/learn/connect/'
@@ -461,13 +461,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/learn/understand/': {
       id: '/learn/understand/'
       path: '/'
@@ -501,6 +494,13 @@ declare module '@tanstack/react-router' {
       path: '/resident'
       fullPath: '/resident/'
       preLoaderRoute: typeof AuthenticatedResidentIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/learn/understand/$topic': {
@@ -540,36 +540,27 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/admin/super': {
       id: '/_authenticated/admin/super'
-      path: '/super'
+      path: '/admin/super'
       fullPath: '/admin/super'
       preLoaderRoute: typeof AuthenticatedAdminSuperRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
-interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminSuperRoute: typeof AuthenticatedAdminSuperRoute
-}
-
-const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminSuperRoute: AuthenticatedAdminSuperRoute,
-}
-
-const AuthenticatedAdminRouteWithChildren =
-  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
-
 interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
+  AuthenticatedAdminSuperRoute: typeof AuthenticatedAdminSuperRoute
   AuthenticatedResidentResidentIdRoute: typeof AuthenticatedResidentResidentIdRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedResidentIndexRoute: typeof AuthenticatedResidentIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
+  AuthenticatedAdminSuperRoute: AuthenticatedAdminSuperRoute,
   AuthenticatedResidentResidentIdRoute: AuthenticatedResidentResidentIdRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedResidentIndexRoute: AuthenticatedResidentIndexRoute,
 }
 
