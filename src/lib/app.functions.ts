@@ -153,13 +153,16 @@ export const getMyRole = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("user_roles")
       .select("role, facility_id")
-      .order("role")
-      .limit(1)
-      .maybeSingle();
+      .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
+    const roles = data ?? [];
+    const family = roles.find((r) => r.role === "family");
+    const admin = roles.find((r) => r.role === "admin");
+    const staff = roles.find((r) => r.role === "staff");
+    const primary = family ?? admin ?? staff ?? null;
     return {
-      role: (data?.role as string | null) ?? null,
-      facilityId: data?.facility_id ?? null,
+      role: (primary?.role as string | null) ?? null,
+      facilityId: primary?.facility_id ?? null,
       email,
     };
   });
@@ -177,6 +180,7 @@ async function getPrimaryAccess(
     .eq("user_id", context.userId);
   if (error) throw new Error(error.message);
   const roles = data ?? [];
+  if (roles.some((r) => r.role === "family")) return { role: "family", facilityIds: [] };
   const adminFacilities = roles
     .filter((r) => r.role === "admin" && r.facility_id)
     .map((r) => r.facility_id as string);
@@ -185,7 +189,6 @@ async function getPrimaryAccess(
     .filter((r) => r.role === "staff" && r.facility_id)
     .map((r) => r.facility_id as string);
   if (staffFacilities.length) return { role: "staff", facilityIds: staffFacilities };
-  if (roles.some((r) => r.role === "family")) return { role: "family", facilityIds: [] };
   return { role: null, facilityIds: [] };
 }
 
