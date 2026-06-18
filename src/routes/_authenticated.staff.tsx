@@ -128,8 +128,14 @@ function ResidentCard({ resident }: { resident: Resident }) {
   return (
     <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">{resident.name}</h3>
-        <div className="flex gap-2 text-xs">
+        <Link
+          to="/resident/$residentId"
+          params={{ residentId: resident.id }}
+          className="text-lg font-medium hover:underline"
+        >
+          {resident.name}
+        </Link>
+        <div className="flex flex-wrap justify-end gap-2 text-xs">
           <button onClick={() => setOpen(open === "mood" ? null : "mood")} className="rounded-full border border-border px-3 py-1.5">
             Today's mood
           </button>
@@ -139,6 +145,13 @@ function ResidentCard({ resident }: { resident: Resident }) {
           <button onClick={() => setOpen(open === "photo" ? null : "photo")} className="rounded-full border border-border px-3 py-1.5">
             Post photo
           </button>
+          <Link
+            to="/resident/$residentId"
+            params={{ residentId: resident.id }}
+            className="rounded-full bg-primary px-3 py-1.5 font-semibold text-primary-foreground"
+          >
+            Open page
+          </Link>
         </div>
       </div>
 
@@ -161,6 +174,7 @@ function ResidentCard({ resident }: { resident: Resident }) {
     </div>
   );
 }
+
 
 function SurveyForm({ residentId, onDone }: { residentId: string; onDone: () => void }) {
   const qc = useQueryClient();
