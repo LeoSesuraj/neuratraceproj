@@ -191,22 +191,6 @@ async function getPrimaryAccess(
 
 // ---------- Daily Keys (display) ----------
 
-async function assertFacilityMember(
-  supabase: import("@supabase/supabase-js").SupabaseClient,
-  userId: string,
-  facilityId: string,
-) {
-  const { data } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .eq("facility_id", facilityId)
-    .in("role", ["staff", "admin"])
-    .limit(1)
-    .maybeSingle();
-  if (!data) throw new Error("Forbidden");
-}
-
 async function isSuperAdmin(context: { claims: { email?: unknown } }): Promise<boolean> {
   const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
   const email = (context.claims.email as string | undefined) ?? "";
