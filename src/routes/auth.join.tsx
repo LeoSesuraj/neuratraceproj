@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { lookupKey, redeemKey } from "@/lib/app.functions";
+import { lookupKey, redeemKey, signupWithKey } from "@/lib/app.functions";
 
 const searchSchema = z.object({ code: z.string().optional() });
 
@@ -63,12 +63,7 @@ function JoinPage() {
     try {
       const { data: sess } = await supabase.auth.getSession();
       if (sess.session) await supabase.auth.signOut();
-      const { error: sErr } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (sErr) throw sErr;
+      await signupWithKey({ data: { email, password } });
       const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
       if (signInErr) throw signInErr;
       const r = await redeemKey({ data: { code } });

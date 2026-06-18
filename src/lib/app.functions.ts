@@ -14,6 +14,34 @@ export const listFacilities = createServerFn({ method: "GET" }).handler(async ()
   return data ?? [];
 });
 
+// Public: create an email-confirmed user so they can immediately sign in.
+// Avoids the "Email not confirmed" failure when project requires confirmation.
+export const signupWithKey = createServerFn({ method: "POST" })
+  .inputValidator((d) =>
+    z
+      .object({
+        email: z.string().email(),
+        password: z.string().min(8),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+    });
+    if (error) {
+      // If user already exists, let the client try signing in.
+      if (/already|exists|registered/i.test(error.message)) {
+        return { ok: true, existed: true };
+      }
+      throw new Error(error.message);
+    }
+    return { ok: true, existed: false };
+  });
+
 // Public: identify a signup key without revealing what each scope's key is.
 // Iterates current-day keys for each kind and finds a match.
 export const lookupKey = createServerFn({ method: "POST" })
