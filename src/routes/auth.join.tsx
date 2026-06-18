@@ -61,19 +61,20 @@ function JoinPage() {
     setError(null);
     setLoading(true);
     try {
-      // If a session is already present (user has account), redeem directly.
       const { data: sess } = await supabase.auth.getSession();
-      if (!sess.session) {
-        const { error: sErr } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        });
-        if (sErr) throw sErr;
-        await supabase.auth.signInWithPassword({ email, password });
-      }
+      if (sess.session) await supabase.auth.signOut();
+      const { error: sErr } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      if (sErr) throw sErr;
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInErr) throw signInErr;
       const r = await redeemKey({ data: { code } });
-      if (r.kind === "family") navigate({ to: "/resident" });
+      if (r.kind === "family" && r.resident_id) {
+        navigate({ to: "/resident/$residentId", params: { residentId: r.resident_id } });
+      }
       else if (r.kind === "staff") navigate({ to: "/staff" });
       else navigate({ to: "/admin" });
     } catch (e: unknown) {

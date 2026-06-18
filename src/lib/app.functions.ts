@@ -68,40 +68,71 @@ export const lookupKey = createServerFn({ method: "POST" })
     return { found: false as const };
   });
 
+async function redeemFamilyResidentKeyForUser(codeInput: string, userId: string) {
+  const { normalizeKey, dailyKey } = await import("./keys.server");
+  const code = normalizeKey(codeInput);
+  if (!code) throw new Error("Invalid key.");
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: residents } = await supabaseAdmin
+    .from("residents")
+    .select("id, facility_id");
+
+  for (const r of residents ?? []) {
+    if (dailyKey("family", r.id) === code) {
+      await supabaseAdmin.from("resident_family").upsert(
+        { resident_id: r.id, user_id: userId },
+        { onConflict: "resident_id,user_id" },
+      );
+      await supabaseAdmin.from("user_roles").upsert(
+        { user_id: userId, role: "family", facility_id: r.facility_id },
+        { onConflict: "user_id,role,facility_id" },
+      );
+      return { ok: true, kind: "family" as const, resident_id: r.id };
+    }
+  }
+
+  return null;
+}
+
+async function assertCanRedeemFamilyKeyForUser(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: elevatedRoles } = await supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .in("role", ["staff", "admin"])
+    .limit(1);
+  if ((elevatedRoles ?? []).length > 0) {
+    throw new Error("Resident keys create family access only. Sign out and create a family account to use this key.");
+  }
+}
+
+export const redeemFamilyKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ code: z.string().min(1) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertCanRedeemFamilyKeyForUser(context.userId);
+    const family = await redeemFamilyResidentKeyForUser(data.code, context.userId);
+    if (!family) throw new Error("That is not a resident family key.");
+    return family;
+  });
+
 // Authed: after sign-up, link the new user to the resident/facility by key.
 export const redeemKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ code: z.string().min(1) }).parse(d))
   .handler(async ({ data, context }) => {
+    await assertCanRedeemFamilyKeyForUser(context.userId);
+    const family = await redeemFamilyResidentKeyForUser(data.code, context.userId);
+    if (family) return family;
+
     const { normalizeKey, dailyKey } = await import("./keys.server");
     const code = normalizeKey(data.code);
     if (!code) throw new Error("Invalid key.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Family
-    const { data: residents } = await supabaseAdmin
-      .from("residents")
-      .select("id, facility_id");
-    for (const r of residents ?? []) {
-      if (dailyKey("family", r.id) === code) {
-        await supabaseAdmin
-          .from("resident_family")
-          .upsert(
-            { resident_id: r.id, user_id: context.userId },
-            { onConflict: "resident_id,user_id" },
-          );
-        await supabaseAdmin.from("user_roles").upsert(
-          { user_id: context.userId, role: "family", facility_id: r.facility_id },
-          { onConflict: "user_id,role,facility_id" },
-        );
-        return { ok: true, kind: "family" as const, resident_id: r.id };
-      }
-    }
-
     // Staff / Admin
-    const { data: facilities } = await supabaseAdmin
-      .from("facilities")
-      .select("id");
+    const { data: facilities } = await supabaseAdmin.from("facilities").select("id");
     for (const f of facilities ?? []) {
       if (dailyKey("staff", f.id) === code) {
         await supabaseAdmin.from("user_roles").upsert(
@@ -137,34 +168,46 @@ export const getMyRole = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("user_roles")
       .select("role, facility_id")
-      .order("role")
-      .limit(1)
-      .maybeSingle();
+      .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
+    const roles = data ?? [];
+    const admin = roles.find((r) => r.role === "admin");
+    const staff = roles.find((r) => r.role === "staff");
+    const family = roles.find((r) => r.role === "family");
+    const primary = admin ?? staff ?? family ?? null;
     return {
-      role: (data?.role as string | null) ?? null,
-      facilityId: data?.facility_id ?? null,
+      role: (primary?.role as string | null) ?? null,
+      facilityId: primary?.facility_id ?? null,
       email,
     };
   });
 
-// ---------- Daily Keys (display) ----------
-
-async function assertFacilityMember(
-  supabase: import("@supabase/supabase-js").SupabaseClient,
-  userId: string,
-  facilityId: string,
-) {
-  const { data } = await supabase
+async function getPrimaryAccess(
+  context: { supabase: import("@supabase/supabase-js").SupabaseClient; userId: string; claims: { email?: unknown } },
+): Promise<{
+  role: "super_admin" | "admin" | "staff" | "family" | null;
+  facilityIds: string[];
+}> {
+  if (await isSuperAdmin(context)) return { role: "super_admin", facilityIds: [] };
+  const { data, error } = await context.supabase
     .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .eq("facility_id", facilityId)
-    .in("role", ["staff", "admin"])
-    .limit(1)
-    .maybeSingle();
-  if (!data) throw new Error("Forbidden");
+    .select("role, facility_id")
+    .eq("user_id", context.userId);
+  if (error) throw new Error(error.message);
+  const roles = data ?? [];
+  const adminFacilities = roles
+    .filter((r) => r.role === "admin" && r.facility_id)
+    .map((r) => r.facility_id as string);
+  if (adminFacilities.length) return { role: "admin", facilityIds: adminFacilities };
+  const staffFacilities = roles
+    .filter((r) => r.role === "staff" && r.facility_id)
+    .map((r) => r.facility_id as string);
+  if (staffFacilities.length) return { role: "staff", facilityIds: staffFacilities };
+  if (roles.some((r) => r.role === "family")) return { role: "family", facilityIds: [] };
+  return { role: null, facilityIds: [] };
 }
+
+// ---------- Daily Keys (display) ----------
 
 async function isSuperAdmin(context: { claims: { email?: unknown } }): Promise<boolean> {
   const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
@@ -201,7 +244,14 @@ export const getFacilityStaffKey = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ facility_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     if (!(await isSuperAdmin(context))) {
-      await assertFacilityMember(context.supabase, context.userId, data.facility_id);
+      const { data: row } = await context.supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", context.userId)
+        .eq("facility_id", data.facility_id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!row) throw new Error("Forbidden: admin only");
     }
     const { dailyKey, utcDateString } = await import("./keys.server");
     return { code: dailyKey("staff", data.facility_id), valid_date: utcDateString() };
@@ -276,149 +326,16 @@ export const listAllResidents = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
-// ---------- Public seed for demo accounts (idempotent) ----------
-
-export const seedDemoAccounts = createServerFn({ method: "POST" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-  async function ensureUser(email: string, password: string): Promise<string> {
-    const { data: list } = await supabaseAdmin.auth.admin.listUsers();
-    const existing = list?.users.find((u) => u.email === email);
-    if (existing) {
-      await supabaseAdmin.auth.admin.updateUserById(existing.id, {
-        password,
-        email_confirm: true,
-      });
-      return existing.id;
-    }
-    const { data, error } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-    });
-    if (error || !data.user) throw new Error(error?.message ?? "createUser failed");
-    return data.user.id;
-  }
-
-  const superUid = await ensureUser("leonelbaskin@gmail.com", "SuperAdmin123!");
-  const adminUid = await ensureUser("admin@demo.test", "Admin123!");
-  const staffUid = await ensureUser("staff@demo.test", "Staff123!");
-  const familyUid = await ensureUser("family@demo.test", "Family123!");
-
-  async function ensureFacility(name: string): Promise<string> {
-    const { data: existing } = await supabaseAdmin
-      .from("facilities")
-      .select("id")
-      .eq("name", name)
-      .maybeSingle();
-    if (existing) return existing.id;
-    const { data, error } = await supabaseAdmin
-      .from("facilities")
-      .insert({ name })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    return data.id;
-  }
-
-  const sunrise = await ensureFacility("Sunrise Care");
-  const maple = await ensureFacility("Maple Grove");
-
-  await supabaseAdmin.from("user_roles").upsert(
-    [
-      { user_id: adminUid, role: "admin", facility_id: sunrise },
-      { user_id: staffUid, role: "staff", facility_id: sunrise },
-      { user_id: familyUid, role: "family", facility_id: sunrise },
-    ],
-    { onConflict: "user_id,role,facility_id" },
-  );
-
-  async function ensureResident(name: string, type: string): Promise<string> {
-    const { data: existing } = await supabaseAdmin
-      .from("residents")
-      .select("id")
-      .eq("name", name)
-      .eq("facility_id", sunrise)
-      .maybeSingle();
-    if (existing) return existing.id;
-    const { data, error } = await supabaseAdmin
-      .from("residents")
-      .insert({ name, facility_id: sunrise, dementia_type: type })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    return data.id;
-  }
-
-  const eleanor = await ensureResident("Eleanor Hayes", "Alzheimer's");
-  const walter = await ensureResident("Walter Chen", "Vascular dementia");
-
-  await supabaseAdmin.from("resident_staff").upsert(
-    [
-      { resident_id: eleanor, user_id: staffUid, facility_id: sunrise },
-      { resident_id: walter, user_id: staffUid, facility_id: sunrise },
-    ],
-    { onConflict: "resident_id,user_id" },
-  );
-
-  await supabaseAdmin
-    .from("resident_family")
-    .upsert([{ resident_id: eleanor, user_id: familyUid }], {
-      onConflict: "resident_id,user_id",
-    });
-
-  const today = new Date().toISOString().slice(0, 10);
-  await supabaseAdmin.from("mood_logs").upsert(
-    { resident_id: eleanor, mood: "good", log_date: today, logged_by: staffUid },
-    { onConflict: "resident_id,log_date" },
-  );
-
-  type R = "improved" | "stable" | "declined";
-  const ratings: readonly R[] = ["improved", "stable", "declined"];
-  const surveys: Array<{
-    resident_id: string;
-    staff_id: string;
-    week_of: string;
-    eating: R;
-    mood: R;
-    social: R;
-    mobility: R;
-    behaviors: "none" | "mild" | "significant";
-  }> = [];
-  for (let i = 0; i < 8; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() - i * 7);
-    surveys.push({
-      resident_id: eleanor,
-      staff_id: staffUid,
-      week_of: d.toISOString().slice(0, 10),
-      eating: ratings[i % 3],
-      mood: i % 2 === 0 ? "stable" : "improved",
-      social: "stable",
-      mobility: "stable",
-      behaviors: i === 0 ? "mild" : "none",
-    });
-  }
-  await supabaseAdmin
-    .from("weekly_surveys")
-    .upsert(surveys, { onConflict: "resident_id,week_of" });
-
-  return {
-    ok: true,
-    facilities: { sunrise, maple },
-    users: { superUid, adminUid, staffUid, familyUid },
-  };
-});
-
 // ---------- Staff / Resident management ----------
 
 export const listResidentsForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const access = await getPrimaryAccess(context);
 
     // Super admin sees everything.
-    if (await isSuperAdmin(context)) {
+    if (access.role === "super_admin") {
       const { data, error } = await supabaseAdmin
         .from("residents")
         .select("id, name, photo_url, facility_id, dementia_type")
@@ -427,38 +344,21 @@ export const listResidentsForMe = createServerFn({ method: "GET" })
       return data ?? [];
     }
 
-    // Gather user's role memberships.
-    const { data: roles } = await supabaseAdmin
-      .from("user_roles")
-      .select("role, facility_id")
-      .eq("user_id", context.userId);
-    const roleSet = new Set((roles ?? []).map((r) => r.role));
-    const adminFacilities = (roles ?? [])
-      .filter((r) => r.role === "admin" && r.facility_id)
-      .map((r) => r.facility_id as string);
-
     const ids = new Set<string>();
 
-    // Admin: all residents in their facilities.
-    if (adminFacilities.length) {
+    if (access.role === "admin") {
       const { data } = await supabaseAdmin
         .from("residents")
         .select("id")
-        .in("facility_id", adminFacilities);
+        .in("facility_id", access.facilityIds);
       (data ?? []).forEach((r) => ids.add(r.id));
-    }
-
-    // Staff: residents assigned to them.
-    if (roleSet.has("staff")) {
+    } else if (access.role === "staff") {
       const { data } = await supabaseAdmin
         .from("resident_staff")
         .select("resident_id")
         .eq("user_id", context.userId);
       (data ?? []).forEach((r) => ids.add(r.resident_id as string));
-    }
-
-    // Family: only residents linked by key.
-    if (roleSet.has("family")) {
+    } else if (access.role === "family") {
       const { data } = await supabaseAdmin
         .from("resident_family")
         .select("resident_id")
@@ -472,6 +372,26 @@ export const listResidentsForMe = createServerFn({ method: "GET" })
       .from("residents")
       .select("id, name, photo_url, facility_id, dementia_type")
       .in("id", Array.from(ids))
+      .order("name");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const listFamilyResidentsForMe = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: links, error: linkError } = await supabaseAdmin
+      .from("resident_family")
+      .select("resident_id")
+      .eq("user_id", context.userId);
+    if (linkError) throw new Error(linkError.message);
+    const ids = (links ?? []).map((r) => r.resident_id as string);
+    if (ids.length === 0) return [];
+    const { data, error } = await supabaseAdmin
+      .from("residents")
+      .select("id, name, photo_url, facility_id, dementia_type")
+      .in("id", ids)
       .order("name");
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -531,6 +451,9 @@ export const logTodayMood = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
+      throw new Error("Forbidden");
+    }
     const today = new Date().toISOString().slice(0, 10);
     const { error } = await context.supabase.from("mood_logs").upsert(
       {
@@ -562,6 +485,9 @@ export const submitWeeklySurvey = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
+      throw new Error("Forbidden");
+    }
     const { error } = await context.supabase.from("weekly_surveys").upsert(
       { ...data, staff_id: context.userId },
       { onConflict: "resident_id,week_of" },
@@ -604,6 +530,9 @@ export const createPhotoPost = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
+      throw new Error("Forbidden");
+    }
     const { error } = await context.supabase.from("posts").insert({
       resident_id: data.resident_id,
       author_id: context.userId,
@@ -818,6 +747,14 @@ export const dismissAlert = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    const { data: alert } = await context.supabase
+      .from("decline_alerts")
+      .select("resident_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!alert || !(await canEditResident(context.supabase, context.userId, alert.resident_id))) {
+      throw new Error("Forbidden");
+    }
     const { error } = await context.supabase
       .from("decline_alerts")
       .update({ dismissed_at: new Date().toISOString() })
@@ -838,7 +775,10 @@ export const uploadResidentPhoto = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
+      throw new Error("Forbidden");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
     const ext = data.filename.split(".").pop() || "jpg";
