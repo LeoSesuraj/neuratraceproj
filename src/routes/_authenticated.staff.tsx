@@ -291,6 +291,7 @@ function PhotoForm({ residentId, onDone }: { residentId: string; onDone: () => v
       >
         {loading ? "Uploading…" : "Post"}
       </button>
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </form>
   );
 }
