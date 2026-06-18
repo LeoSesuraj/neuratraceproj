@@ -502,6 +502,26 @@ export const listResidentsForMe = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+export const listFamilyResidentsForMe = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: links, error: linkError } = await supabaseAdmin
+      .from("resident_family")
+      .select("resident_id")
+      .eq("user_id", context.userId);
+    if (linkError) throw new Error(linkError.message);
+    const ids = (links ?? []).map((r) => r.resident_id as string);
+    if (ids.length === 0) return [];
+    const { data, error } = await supabaseAdmin
+      .from("residents")
+      .select("id, name, photo_url, facility_id, dementia_type")
+      .in("id", ids)
+      .order("name");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
 export const createResident = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
