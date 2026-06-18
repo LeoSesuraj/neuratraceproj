@@ -72,7 +72,9 @@ function JoinPage() {
       const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
       if (signInErr) throw signInErr;
       const r = await redeemKey({ data: { code } });
-      if (r.kind === "family") navigate({ to: "/resident" });
+      if (r.kind === "family" && r.resident_id) {
+        navigate({ to: "/resident/$residentId", params: { residentId: r.resident_id } });
+      }
       else if (r.kind === "staff") navigate({ to: "/staff" });
       else navigate({ to: "/admin" });
     } catch (e: unknown) {
