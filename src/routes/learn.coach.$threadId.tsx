@@ -23,8 +23,13 @@ import {
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, ShieldAlert, Sparkles } from "lucide-react";
 import logo from "@/assets/neurotrace-logo.png";
+import {
+  fetchCoachConversation,
+  getCurrentUserId,
+  upsertCoachConversation,
+} from "@/lib/coach-sync";
 
 export const Route = createFileRoute("/learn/coach/$threadId")({
   component: ThreadPage,
@@ -45,13 +50,35 @@ function ThreadPage() {
 function ThreadChat({ threadId }: { threadId: string }) {
   const navigate = useNavigate();
   const { getThread, createThread, updateThread } = useThreads();
-  const [initialMessages] = useState<UIMessage[]>(() => {
+  const [initialMessages, setInitialMessages] = useState<UIMessage[]>(() => {
     const existing = getThread(threadId);
     if (existing) return existing.messages;
-    // Idempotent bootstrap: ensure thread exists for this URL
     const t = createThread(threadId);
     return t.messages;
   });
+  const [userId, setUserId] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Discover auth + hydrate from Supabase if signed in.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const uid = await getCurrentUserId();
+      if (cancelled) return;
+      setUserId(uid);
+      if (uid) {
+        const remote = await fetchCoachConversation(threadId);
+        if (!cancelled && remote && remote.messages.length > 0) {
+          setInitialMessages(remote.messages);
+          updateThread(threadId, { messages: remote.messages, title: remote.title });
+        }
+      }
+      if (!cancelled) setHydrated(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [threadId, updateThread]);
 
   const transport = useMemo(
     () => new DefaultChatTransport({ api: "/api/chat" }),
@@ -64,9 +91,10 @@ function ThreadChat({ threadId }: { threadId: string }) {
     transport,
   });
 
-  // Persist on every message change.
+  // Persist on every message change (localStorage + Supabase if signed in).
   const lastSavedRef = useRef<string>("");
   useEffect(() => {
+    if (!hydrated) return;
     const serialized = JSON.stringify(messages);
     if (serialized === lastSavedRef.current) return;
     lastSavedRef.current = serialized;
@@ -74,7 +102,10 @@ function ThreadChat({ threadId }: { threadId: string }) {
       messages,
       title: deriveTitle(messages),
     });
-  }, [messages, threadId, updateThread]);
+    if (userId && messages.length > 0) {
+      void upsertCoachConversation(userId, { id: threadId, messages });
+    }
+  }, [messages, threadId, updateThread, userId, hydrated]);
 
   const [input, setInput] = useState("");
   const isLoading = status === "submitted" || status === "streaming";
