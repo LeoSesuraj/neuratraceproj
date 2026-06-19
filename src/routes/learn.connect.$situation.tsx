@@ -1,13 +1,18 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { getSituation, situations } from "@/lib/situations";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import {
   ArrowLeft,
+  Check,
   Heart,
   HeartHandshake,
   Lightbulb,
   ShieldAlert,
   Sparkles,
+  Star,
+  X,
 } from "lucide-react";
 
 export const Route = createFileRoute("/learn/connect/$situation")({
@@ -65,7 +70,9 @@ function Section({
   return (
     <section className="rounded-3xl border border-border/70 bg-card p-6 shadow-soft">
       <div className="flex items-center gap-3">
-        <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${toneClass}`}>
+        <div
+          className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${toneClass}`}
+        >
           <Icon className="h-5 w-5 text-foreground" />
         </div>
         <h2 className="text-xl">{title}</h2>
@@ -80,6 +87,17 @@ function Section({
 function SituationPage() {
   const s = Route.useLoaderData() as ReturnType<typeof getSituation> & {};
   const others = situations.filter((o) => o.slug !== s.slug).slice(0, 3);
+  const [favorites, setFavorites] = useLocalStorage<string[]>(
+    "nt.connect.favorites",
+    [],
+  );
+  const isFav = favorites.includes(s.slug);
+  const toggleFav = () =>
+    setFavorites((cur) =>
+      cur.includes(s.slug) ? cur.filter((x) => x !== s.slug) : [...cur, s.slug],
+    );
+
+  const [reveal, setReveal] = useState<"none" | "good" | "poor">("none");
 
   return (
     <AppShell>
@@ -91,9 +109,33 @@ function SituationPage() {
         All situations
       </Link>
 
-      <header className="mt-4">
-        <h1 className="text-3xl sm:text-4xl">{s.title}</h1>
-        <p className="mt-2 max-w-xl text-muted-foreground">{s.blurb}</p>
+      <header className="mt-4 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl sm:text-4xl">{s.title}</h1>
+          <p className="mt-2 max-w-xl text-muted-foreground">{s.blurb}</p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {s.tags.map((t) => (
+              <span
+                key={t}
+                className="rounded-full bg-surface px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+        <button
+          onClick={toggleFav}
+          aria-pressed={isFav}
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+            isFav
+              ? "border-amber-300 bg-amber-100 text-amber-700 dark:border-amber-700 dark:bg-amber-900/40 dark:text-amber-200"
+              : "border-border bg-card text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Star className="h-3.5 w-3.5" fill={isFav ? "currentColor" : "none"} />
+          {isFav ? "Saved" : "Save"}
+        </button>
       </header>
 
       <div className="mt-8 grid gap-4">
@@ -133,6 +175,64 @@ function SituationPage() {
             ))}
           </ul>
         </Section>
+
+        {s.practice && (
+          <section className="rounded-3xl border border-border/70 bg-card p-6 shadow-soft">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-primary/15">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <h2 className="text-xl">Practice a response</h2>
+            </div>
+            <p className="mt-4 rounded-2xl bg-surface p-4 text-[15px] italic leading-relaxed text-foreground/90">
+              {s.practice.prompt}
+            </p>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Think about what you'd say. Then peek at one or both responses.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                onClick={() =>
+                  setReveal(reveal === "good" ? "none" : "good")
+                }
+                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
+              >
+                <Check className="h-3.5 w-3.5" />
+                {reveal === "good" ? "Hide" : "Show"} a kind response
+              </button>
+              <button
+                onClick={() =>
+                  setReveal(reveal === "poor" ? "none" : "poor")
+                }
+                className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3.5 py-1.5 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+              >
+                <X className="h-3.5 w-3.5" />
+                {reveal === "poor" ? "Hide" : "Show"} what to avoid
+              </button>
+            </div>
+
+            {reveal === "good" && (
+              <div className="mt-4 animate-fade-in rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
+                <p className="text-[15px] text-emerald-900 dark:text-emerald-100">
+                  {s.practice.good}
+                </p>
+                <p className="mt-2 text-xs text-emerald-800/80 dark:text-emerald-200/80">
+                  Why it works: {s.practice.goodWhy}
+                </p>
+              </div>
+            )}
+            {reveal === "poor" && (
+              <div className="mt-4 animate-fade-in rounded-2xl border border-rose-200 bg-rose-50 p-4 dark:border-rose-900 dark:bg-rose-950/30">
+                <p className="text-[15px] text-rose-900 dark:text-rose-100">
+                  {s.practice.poor}
+                </p>
+                <p className="mt-2 text-xs text-rose-800/80 dark:text-rose-200/80">
+                  Why it stings: {s.practice.poorWhy}
+                </p>
+              </div>
+            )}
+          </section>
+        )}
       </div>
 
       <div className="mt-10 rounded-3xl border border-border/70 bg-surface p-6">
@@ -141,7 +241,8 @@ function SituationPage() {
           <div>
             <h3 className="text-base font-semibold">Want to talk it through?</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              The NeuroTrace Coach can help you think through your specific situation.
+              The NeuroTrace Coach can help you think through your specific
+              situation.
             </p>
             <Link
               to="/learn/coach"
