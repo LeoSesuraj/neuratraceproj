@@ -2,6 +2,11 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useThreads, newThreadId } from "@/lib/chat-threads";
+import {
+  deleteCoachConversation,
+  fetchAllCoachConversations,
+  getCurrentUserId,
+} from "@/lib/coach-sync";
 import { MessageCircle, Plus, Sparkles, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/learn/coach/")({
@@ -10,7 +15,24 @@ export const Route = createFileRoute("/learn/coach/")({
 
 function CoachIndex() {
   const navigate = useNavigate();
-  const { threads, createThread, deleteThread } = useThreads();
+  const { threads, createThread, deleteThread, updateThread } = useThreads();
+
+  // Hydrate from Supabase when signed in.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const uid = await getCurrentUserId();
+      if (!uid || cancelled) return;
+      const remote = await fetchAllCoachConversations();
+      if (cancelled) return;
+      for (const t of remote) {
+        updateThread(t.id, { messages: t.messages, title: t.title });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [updateThread]);
 
   useEffect(() => {
     if (threads.length === 0) {
