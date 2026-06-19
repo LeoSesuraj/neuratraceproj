@@ -49,8 +49,8 @@ let staff: SupabaseClient<Database>;
 let family: SupabaseClient<Database>;
 let anon: SupabaseClient<Database>;
 
-let sunriseId: string;
-let mapleId: string;
+let sunriseId: string; // "Sunrise Care" — primary facility for staff/admin
+let cumberlandId: string; // "Cumberland Pointe" — cross-facility target
 let eleanorId: string; // family-linked
 let walterId: string; // not family-linked
 
