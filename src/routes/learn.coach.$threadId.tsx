@@ -23,8 +23,13 @@ import {
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, ShieldAlert, Sparkles } from "lucide-react";
 import logo from "@/assets/neurotrace-logo.png";
+import {
+  fetchCoachConversation,
+  getCurrentUserId,
+  upsertCoachConversation,
+} from "@/lib/coach-sync";
 
 export const Route = createFileRoute("/learn/coach/$threadId")({
   component: ThreadPage,
@@ -45,13 +50,35 @@ function ThreadPage() {
 function ThreadChat({ threadId }: { threadId: string }) {
   const navigate = useNavigate();
   const { getThread, createThread, updateThread } = useThreads();
-  const [initialMessages] = useState<UIMessage[]>(() => {
+  const [initialMessages, setInitialMessages] = useState<UIMessage[]>(() => {
     const existing = getThread(threadId);
     if (existing) return existing.messages;
-    // Idempotent bootstrap: ensure thread exists for this URL
     const t = createThread(threadId);
     return t.messages;
   });
+  const [userId, setUserId] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Discover auth + hydrate from Supabase if signed in.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const uid = await getCurrentUserId();
+      if (cancelled) return;
+      setUserId(uid);
+      if (uid) {
+        const remote = await fetchCoachConversation(threadId);
+        if (!cancelled && remote && remote.messages.length > 0) {
+          setInitialMessages(remote.messages);
+          updateThread(threadId, { messages: remote.messages, title: remote.title });
+        }
+      }
+      if (!cancelled) setHydrated(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [threadId, updateThread]);
 
   const transport = useMemo(
     () => new DefaultChatTransport({ api: "/api/chat" }),
@@ -64,9 +91,10 @@ function ThreadChat({ threadId }: { threadId: string }) {
     transport,
   });
 
-  // Persist on every message change.
+  // Persist on every message change (localStorage + Supabase if signed in).
   const lastSavedRef = useRef<string>("");
   useEffect(() => {
+    if (!hydrated) return;
     const serialized = JSON.stringify(messages);
     if (serialized === lastSavedRef.current) return;
     lastSavedRef.current = serialized;
@@ -74,7 +102,10 @@ function ThreadChat({ threadId }: { threadId: string }) {
       messages,
       title: deriveTitle(messages),
     });
-  }, [messages, threadId, updateThread]);
+    if (userId && messages.length > 0) {
+      void upsertCoachConversation(userId, { id: threadId, messages });
+    }
+  }, [messages, threadId, updateThread, userId, hydrated]);
 
   const [input, setInput] = useState("");
   const isLoading = status === "submitted" || status === "streaming";
@@ -180,6 +211,15 @@ function ThreadChat({ threadId }: { threadId: string }) {
         </Conversation>
 
         <div className="border-t border-border/70 bg-card px-3 py-3 sm:px-4">
+          <div className="mb-3 flex items-start gap-2.5 rounded-2xl border border-sky-200/70 bg-sky-50 px-3 py-2.5 text-[12px] leading-snug text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/40 dark:text-sky-100">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-sky-600 dark:text-sky-300" aria-hidden />
+            <p>
+              <span className="font-semibold">For your privacy and safety,</span>{" "}
+              do not enter names, room numbers, diagnoses, or any personal
+              medical details. Describe situations generally — for example,
+              &ldquo;my family member&rdquo; instead of a name.
+            </p>
+          </div>
           <PromptInput onSubmit={handleSubmit}>
             <PromptInputTextarea
               value={input}
