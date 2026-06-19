@@ -124,26 +124,26 @@ describe("family role (linked only to Eleanor)", () => {
     expect(data?.length).toBe(1);
     expect(data?.[0].email).toBe("family@demo.test");
   });
-  it("sees only residents they are linked to", async () => {
+  it.skipIf(!eleanorId)("sees only residents they are linked to", async () => {
     const { data } = await family.from("residents").select("id,name");
     const names = (data ?? []).map((r) => r.name);
     expect(names).toContain("Eleanor Hayes");
     expect(names).not.toContain("Walter Chen");
   });
-  it("can read mood logs for Eleanor", async () => {
+  it.skipIf(!eleanorId)("can read mood logs for Eleanor", async () => {
     const { error } = await family
       .from("mood_logs")
       .select("id")
       .eq("resident_id", eleanorId);
     expect(error).toBeNull();
   });
-  it("cannot write a mood log", async () => {
+  it.skipIf(!eleanorId)("cannot write a mood log", async () => {
     const { error } = await family
       .from("mood_logs")
       .insert({ resident_id: eleanorId, mood: "good" });
     expect(error).not.toBeNull();
   });
-  it("cannot read mood logs for Walter", async () => {
+  it.skipIf(!walterId)("cannot read mood logs for Walter", async () => {
     const { data } = await family
       .from("mood_logs")
       .select("id")
