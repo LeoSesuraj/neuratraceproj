@@ -16,9 +16,10 @@
  *       admin         admin@demo.test       / Admin123!
  *       staff         staff@demo.test       / Staff123!
  *       family        family@demo.test      / Family123!
- *   - At least two seeded facilities (current seed: "Sunrise Manor",
- *     "Willow Creek Care Home", "Lakeside Memory Center"). Resident-specific
- *     tests skip if "Eleanor Hayes" / "Walter Chen" are not seeded.
+ *   - Seeded facilities "Sunrise Care" (primary, used by staff/admin) and
+ *     "Cumberland Pointe" (used for cross-facility negative tests).
+ *     Resident-specific tests skip if "Eleanor Hayes" / "Walter Chen" are
+ *     not seeded.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
