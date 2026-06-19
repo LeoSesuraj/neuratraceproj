@@ -139,7 +139,7 @@ function ThreadChat({ threadId }: { threadId: string }) {
               Math.random().toString(36).slice(2, 10) +
               Date.now().toString(36).slice(-4);
             createThread(id);
-            navigate({ to: "/coach/$threadId", params: { threadId: id } });
+            navigate({ to: "/learn/coach/$threadId", params: { threadId: id } });
           }}
           className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface"
         >
