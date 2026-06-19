@@ -93,7 +93,10 @@ function CoachIndex() {
             </Link>
             <button
               aria-label="Delete conversation"
-              onClick={() => deleteThread(t.id)}
+              onClick={() => {
+                deleteThread(t.id);
+                void deleteCoachConversation(t.id);
+              }}
               className="rounded-full p-2 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
             >
               <Trash2 className="h-4 w-4" />
