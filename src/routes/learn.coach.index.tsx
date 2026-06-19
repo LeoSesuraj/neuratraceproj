@@ -26,13 +26,15 @@ function CoachIndex() {
       const remote = await fetchAllCoachConversations();
       if (cancelled) return;
       for (const t of remote) {
+        // Ensure the thread exists locally, then patch with remote content.
+        createThread(t.id);
         updateThread(t.id, { messages: t.messages, title: t.title });
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [updateThread]);
+  }, [createThread, updateThread]);
 
   useEffect(() => {
     if (threads.length === 0) {
