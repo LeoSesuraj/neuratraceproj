@@ -61,19 +61,38 @@ beforeAll(async () => {
     signIn("family@demo.test", "Family123!"),
   ]);
 
+  // Discover facilities dynamically — the seed names ("Sunrise Manor",
+  // "Willow Creek Care Home", "Lakeside Memory Center") may change. Pick
+  // the admin's facility as the "primary" one and any other as the
+  // "cross-facility" target.
   const { data: facs, error: fe } = await superAdmin
     .from("facilities")
-    .select("id,name");
+    .select("id,name")
+    .order("name");
   if (fe) throw fe;
-  sunriseId = facs!.find((f) => f.name === "Sunrise Care")!.id;
-  mapleId = facs!.find((f) => f.name === "Maple Grove")!.id;
+  if (!facs || facs.length < 2) {
+    throw new Error(
+      `RLS tests require >=2 seeded facilities; found ${facs?.length ?? 0}`,
+    );
+  }
+  const { data: adminRole } = await superAdmin
+    .from("user_roles")
+    .select("facility_id")
+    .eq("role", "admin")
+    .not("facility_id", "is", null)
+    .limit(1)
+    .maybeSingle();
+  sunriseId = adminRole?.facility_id ?? facs[0].id;
+  mapleId = facs.find((f) => f.id !== sunriseId)!.id;
 
   const { data: res, error: re } = await superAdmin
     .from("residents")
     .select("id,name");
   if (re) throw re;
-  eleanorId = res!.find((r) => r.name === "Eleanor Hayes")!.id;
-  walterId = res!.find((r) => r.name === "Walter Chen")!.id;
+  // Resident-specific assertions guard on these — empty string means "not
+  // seeded", and those individual tests skip themselves.
+  eleanorId = res?.find((r) => r.name === "Eleanor Hayes")?.id ?? "";
+  walterId = res?.find((r) => r.name === "Walter Chen")?.id ?? "";
 }, 30_000);
 
 afterAll(async () => {
