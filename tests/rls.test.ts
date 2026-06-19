@@ -175,7 +175,7 @@ describe("staff role (primary facility)", () => {
   });
 });
 
-describe("admin role (Sunrise Care)", () => {
+describe("admin role (primary facility)", () => {
   it("reads staff_requests for their facility only", async () => {
     const { data, error } = await admin
       .from("staff_requests")
