@@ -63,29 +63,24 @@ beforeAll(async () => {
     signIn("family@demo.test", "Family123!"),
   ]);
 
-  // Discover facilities dynamically — the seed names ("Sunrise Manor",
-  // "Willow Creek Care Home", "Lakeside Memory Center") may change. Pick
-  // the admin's facility as the "primary" one and any other as the
-  // "cross-facility" target.
+  // Look up the two facilities by name. Staff/admin are scoped to
+  // "Sunrise Care"; "Cumberland Pointe" is the cross-facility target used
+  // for negative tests.
   const { data: facs, error: fe } = await superAdmin
     .from("facilities")
     .select("id,name")
-    .order("name");
+    .in("name", ["Sunrise Care", "Cumberland Pointe"]);
   if (fe) throw fe;
-  if (!facs || facs.length < 2) {
+  const sunrise = facs?.find((f) => f.name === "Sunrise Care");
+  const cumberland = facs?.find((f) => f.name === "Cumberland Pointe");
+  if (!sunrise || !cumberland) {
     throw new Error(
-      `RLS tests require >=2 seeded facilities; found ${facs?.length ?? 0}`,
+      `RLS tests require seeded facilities "Sunrise Care" and "Cumberland Pointe"; ` +
+        `found: ${(facs ?? []).map((f) => f.name).join(", ") || "none"}`,
     );
   }
-  const { data: adminRole } = await superAdmin
-    .from("user_roles")
-    .select("facility_id")
-    .eq("role", "admin")
-    .not("facility_id", "is", null)
-    .limit(1)
-    .maybeSingle();
-  sunriseId = adminRole?.facility_id ?? facs[0].id;
-  mapleId = facs.find((f) => f.id !== sunriseId)!.id;
+  sunriseId = sunrise.id;
+  cumberlandId = cumberland.id;
 
   const { data: res, error: re } = await superAdmin
     .from("residents")
