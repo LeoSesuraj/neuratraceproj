@@ -163,7 +163,7 @@ describe("staff role (primary facility)", () => {
   it("cannot create a resident in a different facility", async () => {
     const { error } = await staff
       .from("residents")
-      .insert({ name: "Hacker", facility_id: mapleId });
+      .insert({ name: "Hacker", facility_id: cumberlandId });
     expect(error).not.toBeNull();
   });
   it("cannot read staff_requests", async () => {
@@ -192,7 +192,7 @@ describe("admin role (primary facility)", () => {
   it("cannot create a resident in a different facility", async () => {
     const { error } = await admin
       .from("residents")
-      .insert({ name: "Cross-facility", facility_id: mapleId });
+      .insert({ name: "Cross-facility", facility_id: cumberlandId });
     expect(error).not.toBeNull();
   });
   it("cannot create a facility", async () => {
