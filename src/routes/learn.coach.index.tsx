@@ -39,13 +39,13 @@ function CoachIndex() {
   useEffect(() => {
     if (threads.length === 0) {
       const t = createThread();
-      navigate({ to: "/coach/$threadId", params: { threadId: t.id }, replace: true });
+      navigate({ to: "/learn/coach/$threadId", params: { threadId: t.id }, replace: true });
     }
   }, [threads.length, createThread, navigate]);
 
   const handleNew = () => {
     const t = createThread(newThreadId());
-    navigate({ to: "/coach/$threadId", params: { threadId: t.id } });
+    navigate({ to: "/learn/coach/$threadId", params: { threadId: t.id } });
   };
 
   return (
