@@ -192,7 +192,7 @@ describe("admin role (primary facility)", () => {
     expect(error).toBeNull();
     if (data) await admin.from("residents").delete().eq("id", data.id);
   });
-  it("cannot create a resident in Maple Grove", async () => {
+  it("cannot create a resident in a different facility", async () => {
     const { error } = await admin
       .from("residents")
       .insert({ name: "Cross-facility", facility_id: mapleId });
