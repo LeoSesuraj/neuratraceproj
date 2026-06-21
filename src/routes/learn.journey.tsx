@@ -92,7 +92,7 @@ function JourneyPage() {
             </ul>
           </div>
         </div>
-      </article>
+      </div>
 
       <SelfCareChecklist stage={current} />
       <ReflectionNote stage={current} />
