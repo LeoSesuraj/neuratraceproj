@@ -44,7 +44,7 @@ function JourneyPage() {
 
       <StageProgress active={active} onChange={setActive} />
 
-      <article
+      <div
         id={`stage-panel-${current.slug}`}
         role="tabpanel"
         aria-labelledby={`stage-tab-${current.slug}`}
