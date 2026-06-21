@@ -230,6 +230,7 @@ function ThreadChat({ threadId }: { threadId: string }) {
               value={input}
               onChange={(e) => setInput(e.currentTarget.value)}
               placeholder="Tell me what's happening…"
+              aria-label="Message the NeuroTrace Coach"
               autoFocus
             />
             <PromptInputFooter className="justify-end">
