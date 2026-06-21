@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole } from "@/lib/app.functions";
+import { recordLoginEvent } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/auth/login")({
   component: LoginPage,
@@ -79,6 +80,8 @@ function LoginPage() {
         return;
       }
       clearAttempts(email);
+      // Fire-and-forget audit log; never block sign-in on it.
+      void recordLoginEvent().catch(() => {});
       const { role } = await getMyRole();
       if (role === "super_admin") navigate({ to: "/admin/super" });
       else if (role === "admin") navigate({ to: "/admin" });
