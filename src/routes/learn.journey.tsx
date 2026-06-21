@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { stages, type Stage } from "@/lib/journey";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -44,7 +44,12 @@ function JourneyPage() {
 
       <StageProgress active={active} onChange={setActive} />
 
-      <article className="mt-6 rounded-3xl border border-border/70 bg-card p-6 shadow-soft sm:p-8">
+      <article
+        id={`stage-panel-${current.slug}`}
+        role="tabpanel"
+        aria-labelledby={`stage-tab-${current.slug}`}
+        className="mt-6 rounded-3xl border border-border/70 bg-card p-6 shadow-soft sm:p-8"
+      >
         <div className="flex items-center gap-3">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-sky-soft">
             <Compass className="h-5 w-5 text-foreground" />
@@ -114,6 +119,18 @@ function StageProgress({
 }) {
   const idx = stages.findIndex((s) => s.slug === active);
   const pct = ((idx + 1) / stages.length) * 100;
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, i: number) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft" && e.key !== "Home" && e.key !== "End") return;
+    e.preventDefault();
+    let next = i;
+    if (e.key === "ArrowRight") next = (i + 1) % stages.length;
+    else if (e.key === "ArrowLeft") next = (i - 1 + stages.length) % stages.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = stages.length - 1;
+    onChange(stages[next].slug);
+    tabRefs.current[next]?.focus();
+  };
   return (
     <div className="mt-8">
       <div
@@ -121,15 +138,23 @@ function StageProgress({
         aria-label="Stages of dementia"
         className="grid grid-cols-3 gap-2 rounded-2xl border border-border/70 bg-card p-1.5 shadow-soft"
       >
-        {stages.map((s) => {
+        {stages.map((s, i) => {
           const isActive = s.slug === active;
           return (
             <button
               key={s.slug}
+              ref={(el) => {
+                tabRefs.current[i] = el;
+              }}
+              id={`stage-tab-${s.slug}`}
               role="tab"
+              type="button"
               aria-selected={isActive}
+              aria-controls={`stage-panel-${s.slug}`}
+              tabIndex={isActive ? 0 : -1}
+              onKeyDown={(e) => onKeyDown(e, i)}
               onClick={() => onChange(s.slug)}
-              className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+              className={`min-h-11 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                 isActive
                   ? "bg-primary text-primary-foreground shadow-soft"
                   : "text-muted-foreground hover:text-foreground"

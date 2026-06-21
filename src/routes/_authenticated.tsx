@@ -54,22 +54,28 @@ function AuthedLayout() {
   }
   return (
     <div className="min-h-dvh bg-background text-foreground">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground focus:shadow-soft"
+      >
+        Skip to main content
+      </a>
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src={logo} alt="" className="h-11 w-11" />
+          <Link to="/" aria-label="NeuroTrace home" className="flex items-center gap-2.5">
+            <img src={logo} alt="NeuroTrace logo" className="h-11 w-11" />
             <span className="font-display text-xl tracking-tight">NeuroTrace</span>
           </Link>
           <button
             onClick={signOut}
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
             Sign out
           </button>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-5 py-6">
+      <main id="main-content" className="mx-auto max-w-3xl px-5 py-6">
         <Outlet />
       </main>
     </div>

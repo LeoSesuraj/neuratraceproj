@@ -17,7 +17,7 @@ import logo from "@/assets/neurotrace-logo.png";
 function BrandMark() {
   return (
     <div className="flex flex-col items-center">
-      <img src={logo} alt="NeuroTrace" width={72} height={72} className="h-18 w-18" style={{ height: 72, width: 72 }} />
+      <img src={logo} alt="NeuroTrace logo" width={72} height={72} className="h-18 w-18" style={{ height: 72, width: 72 }} />
       <p className="mt-3 font-serif text-lg text-foreground">NeuroTrace</p>
     </div>
   );

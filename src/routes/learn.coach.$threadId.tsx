@@ -149,7 +149,12 @@ function ThreadChat({ threadId }: { threadId: string }) {
 
       <div className="mt-4 flex h-[calc(100dvh-13rem)] min-h-[520px] flex-col overflow-hidden rounded-3xl border border-border/70 bg-card shadow-soft sm:h-[calc(100dvh-11rem)]">
         <Conversation className="flex-1">
-          <ConversationContent className="px-4 py-6 sm:px-6">
+          <ConversationContent
+            aria-live="polite"
+            aria-relevant="additions"
+            aria-label="Coach conversation"
+            className="px-4 py-6 sm:px-6"
+          >
             {messages.length === 0 ? (
               <ConversationEmptyState
                 className="h-full"
@@ -225,6 +230,7 @@ function ThreadChat({ threadId }: { threadId: string }) {
               value={input}
               onChange={(e) => setInput(e.currentTarget.value)}
               placeholder="Tell me what's happening…"
+              aria-label="Message the NeuroTrace Coach"
               autoFocus
             />
             <PromptInputFooter className="justify-end">

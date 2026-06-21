@@ -138,9 +138,15 @@ function LandingPage() {
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      <main className="mx-auto max-w-2xl px-5 py-10 sm:py-16">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground focus:shadow-soft"
+      >
+        Skip to main content
+      </a>
+      <main id="main-content" className="mx-auto max-w-2xl px-5 py-10 sm:py-16">
         <header className="flex flex-col items-center text-center">
-          <img src={logo} alt="" width={88} height={88} className="h-22 w-22" style={{ height: 88, width: 88 }} />
+          <img src={logo} alt="NeuroTrace logo" width={88} height={88} className="h-22 w-22" style={{ height: 88, width: 88 }} />
           <h1 className="mt-5 text-4xl leading-[1.05] sm:text-6xl">
             Welcome to <span className="text-primary">NeuroTrace</span>
           </h1>
