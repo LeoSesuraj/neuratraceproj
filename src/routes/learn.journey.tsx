@@ -44,7 +44,12 @@ function JourneyPage() {
 
       <StageProgress active={active} onChange={setActive} />
 
-      <article className="mt-6 rounded-3xl border border-border/70 bg-card p-6 shadow-soft sm:p-8">
+      <article
+        id={`stage-panel-${current.slug}`}
+        role="tabpanel"
+        aria-labelledby={`stage-tab-${current.slug}`}
+        className="mt-6 rounded-3xl border border-border/70 bg-card p-6 shadow-soft sm:p-8"
+      >
         <div className="flex items-center gap-3">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-sky-soft">
             <Compass className="h-5 w-5 text-foreground" />
