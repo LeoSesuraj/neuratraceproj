@@ -44,7 +44,7 @@ function JourneyPage() {
 
       <StageProgress active={active} onChange={setActive} />
 
-      <article
+      <div
         id={`stage-panel-${current.slug}`}
         role="tabpanel"
         aria-labelledby={`stage-tab-${current.slug}`}
@@ -92,7 +92,7 @@ function JourneyPage() {
             </ul>
           </div>
         </div>
-      </article>
+      </div>
 
       <SelfCareChecklist stage={current} />
       <ReflectionNote stage={current} />
