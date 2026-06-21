@@ -1,6 +1,7 @@
 import { Outlet, createFileRoute, Link } from "@tanstack/react-router";
 import logo from "@/assets/neurotrace-logo.png";
 import { ArrowLeft } from "lucide-react";
+import { LegalFooter } from "@/components/legal-footer";
 
 export const Route = createFileRoute("/auth")({
   component: AuthLayout,
@@ -34,6 +35,7 @@ function AuthLayout() {
       <main id="main-content" className="mx-auto max-w-md px-5 py-10">
         <Outlet />
       </main>
+      <LegalFooter />
     </div>
   );
 }
