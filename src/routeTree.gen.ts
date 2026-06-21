@@ -10,10 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as LegalRouteImport } from './routes/legal'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LearnIndexRouteImport } from './routes/learn.index'
+import { Route as LegalTermsRouteImport } from './routes/legal.terms'
+import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LearnUnderstandRouteImport } from './routes/learn.understand'
 import { Route as LearnSupportRouteImport } from './routes/learn.support'
 import { Route as LearnJourneyRouteImport } from './routes/learn.journey'
@@ -43,6 +46,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -61,6 +69,16 @@ const LearnIndexRoute = LearnIndexRouteImport.update({
   id: '/learn/',
   path: '/learn/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LegalRoute,
 } as any)
 const LearnUnderstandRoute = LearnUnderstandRouteImport.update({
   id: '/learn/understand',
@@ -183,6 +201,7 @@ const AuthenticatedAdminSuperRoute = AuthenticatedAdminSuperRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/legal': typeof LegalRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
@@ -195,6 +214,8 @@ export interface FileRoutesByFullPath {
   '/learn/journey': typeof LearnJourneyRoute
   '/learn/support': typeof LearnSupportRouteWithChildren
   '/learn/understand': typeof LearnUnderstandRouteWithChildren
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/learn/': typeof LearnIndexRoute
   '/admin/super': typeof AuthenticatedAdminSuperRoute
   '/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
@@ -212,6 +233,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/legal': typeof LegalRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
@@ -220,6 +242,8 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/set-password': typeof AuthSetPasswordRoute
   '/learn/journey': typeof LearnJourneyRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/learn': typeof LearnIndexRoute
   '/admin/super': typeof AuthenticatedAdminSuperRoute
   '/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
@@ -239,6 +263,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/legal': typeof LegalRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
@@ -251,6 +276,8 @@ export interface FileRoutesById {
   '/learn/journey': typeof LearnJourneyRoute
   '/learn/support': typeof LearnSupportRouteWithChildren
   '/learn/understand': typeof LearnUnderstandRouteWithChildren
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/learn/': typeof LearnIndexRoute
   '/_authenticated/admin/super': typeof AuthenticatedAdminSuperRoute
   '/_authenticated/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
@@ -270,6 +297,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/legal'
     | '/sitemap.xml'
     | '/staff'
     | '/api/chat'
@@ -282,6 +310,8 @@ export interface FileRouteTypes {
     | '/learn/journey'
     | '/learn/support'
     | '/learn/understand'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/learn/'
     | '/admin/super'
     | '/resident/$residentId'
@@ -299,6 +329,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/legal'
     | '/sitemap.xml'
     | '/staff'
     | '/api/chat'
@@ -307,6 +338,8 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/set-password'
     | '/learn/journey'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/learn'
     | '/admin/super'
     | '/resident/$residentId'
@@ -325,6 +358,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/legal'
     | '/sitemap.xml'
     | '/_authenticated/staff'
     | '/api/chat'
@@ -337,6 +371,8 @@ export interface FileRouteTypes {
     | '/learn/journey'
     | '/learn/support'
     | '/learn/understand'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/learn/'
     | '/_authenticated/admin/super'
     | '/_authenticated/resident/$residentId'
@@ -356,6 +392,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  LegalRoute: typeof LegalRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiChatRoute: typeof ApiChatRoute
   LearnCoachRoute: typeof LearnCoachRouteWithChildren
@@ -373,6 +410,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -402,6 +446,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/learn/'
       preLoaderRoute: typeof LearnIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof LegalRoute
     }
     '/learn/understand': {
       id: '/learn/understand'
@@ -603,6 +661,18 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface LegalRouteChildren {
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
+}
+
+const LegalRouteChildren: LegalRouteChildren = {
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
+}
+
+const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
+
 interface LearnCoachRouteChildren {
   LearnCoachThreadIdRoute: typeof LearnCoachThreadIdRoute
   LearnCoachIndexRoute: typeof LearnCoachIndexRoute
@@ -663,6 +733,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  LegalRoute: LegalRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiChatRoute: ApiChatRoute,
   LearnCoachRoute: LearnCoachRouteWithChildren,

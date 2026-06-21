@@ -3,11 +3,11 @@ import logo from "@/assets/neurotrace-logo.png";
 import { ArrowLeft } from "lucide-react";
 import { LegalFooter } from "@/components/legal-footer";
 
-export const Route = createFileRoute("/auth")({
-  component: AuthLayout,
+export const Route = createFileRoute("/legal")({
+  component: LegalLayout,
 });
 
-function AuthLayout() {
+function LegalLayout() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <a
@@ -32,7 +32,7 @@ function AuthLayout() {
           </Link>
         </div>
       </header>
-      <main id="main-content" className="mx-auto max-w-md px-5 py-10">
+      <main id="main-content" className="mx-auto max-w-3xl px-5 py-10">
         <Outlet />
       </main>
       <LegalFooter />

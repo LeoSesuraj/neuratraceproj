@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/neurotrace-logo.png";
 import { LogOut } from "lucide-react";
+import { LegalFooter } from "@/components/legal-footer";
 
 const INACTIVITY_MS = 60 * 60 * 1000; // 60 minutes
 const ACTIVITY_EVENTS = ["mousedown", "keydown", "touchstart", "scroll"] as const;
@@ -78,6 +79,7 @@ function AuthedLayout() {
       <main id="main-content" className="mx-auto max-w-3xl px-5 py-6">
         <Outlet />
       </main>
+      <LegalFooter />
     </div>
   );
 }

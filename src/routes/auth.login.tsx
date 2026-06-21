@@ -158,6 +158,17 @@ function LoginPage() {
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>
+        <p className="text-center text-xs text-muted-foreground">
+          By signing in you agree to our{" "}
+          <Link to="/legal/terms" className="text-primary hover:underline">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link to="/legal/privacy" className="text-primary hover:underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
         <button
           type="button"
           onClick={onForgotPassword}

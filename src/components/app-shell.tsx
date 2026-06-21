@@ -9,6 +9,7 @@ import {
   Sparkles,
   Compass,
 } from "lucide-react";
+import { LegalFooter } from "@/components/legal-footer";
 
 type Tab = {
   to:
@@ -102,6 +103,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main id="main-content" className="mx-auto max-w-3xl px-5 pb-28 pt-6 md:pb-12">
         {children}
       </main>
+
+      <LegalFooter className="hidden pb-6 md:block" />
 
       <nav aria-label="Mobile primary" className="fixed inset-x-0 bottom-0 z-30 border-t border-border/60 bg-background/95 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-3xl items-stretch justify-around px-1">
