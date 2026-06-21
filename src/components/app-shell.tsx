@@ -103,7 +103,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/60 bg-background/95 backdrop-blur md:hidden">
+      <nav aria-label="Mobile primary" className="fixed inset-x-0 bottom-0 z-30 border-t border-border/60 bg-background/95 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-3xl items-stretch justify-around px-1">
           {tabs.map((t) => {
             const Icon = t.icon;
@@ -114,11 +114,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={t.to}
                 to={t.to}
-                className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors ${
+                aria-current={active ? "page" : undefined}
+                aria-label={t.label}
+                className={`flex min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-colors ${
                   active ? "text-primary" : "text-muted-foreground"
                 }`}
               >
-                <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 1.8} />
+                <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 1.8} aria-hidden="true" />
                 {t.shortLabel ?? t.label}
               </Link>
             );
