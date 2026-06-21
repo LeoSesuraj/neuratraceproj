@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { stages, type Stage } from "@/lib/journey";
 import { useLocalStorage } from "@/hooks/use-local-storage";
