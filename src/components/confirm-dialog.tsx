@@ -26,7 +26,7 @@ export function ConfirmDialog({
   confirmLabel?: string;
   cancelLabel?: string;
   destructive?: boolean;
-  onConfirm: () => void | Promise<void>;
+  onConfirm: () => void | Promise<unknown>;
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
