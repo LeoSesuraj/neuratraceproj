@@ -4,6 +4,7 @@ import logo from "@/assets/neurotrace-logo.png";
 import { BookOpen, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole } from "@/lib/app.functions";
+import { LegalFooter } from "@/components/legal-footer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -196,6 +197,17 @@ function LandingPage() {
           >
             {loading ? "Signing in…" : "Sign in"}
           </button>
+          <p className="text-center text-xs text-muted-foreground">
+            By signing in you agree to our{" "}
+            <Link to="/legal/terms" className="text-primary hover:underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link to="/legal/privacy" className="text-primary hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </p>
           <button
             type="button"
             onClick={onForgotPassword}
@@ -238,6 +250,7 @@ function LandingPage() {
           diagnostic tool or a substitute for medical care.
         </p>
       </main>
+      <LegalFooter />
     </div>
   );
 }
