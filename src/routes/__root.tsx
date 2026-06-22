@@ -145,6 +145,31 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    void (async () => {
+      const { initSentry, setSentryUser, assertRequiredEnv } = await import(
+        "@/lib/sentry"
+      );
+      assertRequiredEnv();
+      initSentry();
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        const userId = data.session.user.id;
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .limit(1)
+          .maybeSingle();
+        setSentryUser(userId, roles?.role ?? null);
+      }
+      supabase.auth.onAuthStateChange((_event, session) => {
+        setSentryUser(session?.user?.id ?? null);
+      });
+    })();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
