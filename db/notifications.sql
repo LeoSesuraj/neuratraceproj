@@ -64,14 +64,20 @@ BEGIN
   v_preview := substring(NEW.content FROM 1 FOR 200);
 
   IF v_sender_is_family THEN
-    -- Family sent → notify staff and admin at that facility (skip the sender).
+    -- Family sent → notify staff at that facility (skip the sender, exclude admins).
     INSERT INTO public.notifications (user_id, resident_id, type, message)
-    SELECT ur.user_id, NEW.resident_id, 'new_message', v_preview
+    SELECT DISTINCT ur.user_id, NEW.resident_id, 'new_message', v_preview
     FROM public.user_roles ur
     WHERE ur.facility_id = v_facility
-      AND ur.role IN ('staff', 'admin')
+      AND ur.role = 'staff'
       AND ur.deactivated_at IS NULL
-      AND ur.user_id <> NEW.sender_id;
+      AND ur.user_id <> NEW.sender_id
+      AND NOT EXISTS (
+        SELECT 1 FROM public.user_roles ur2
+        WHERE ur2.user_id = ur.user_id
+          AND ur2.role = 'admin'
+          AND ur2.deactivated_at IS NULL
+      );
   ELSE
     -- Staff or admin sent → notify family linked to that resident.
     -- Drive from active family roles first, then confirm the user is linked
