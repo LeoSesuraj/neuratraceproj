@@ -242,7 +242,7 @@ function ThreadChat({ threadId }: { threadId: string }) {
               <PromptInputSubmit status={status} onStop={stop} />
             </PromptInputFooter>
           </PromptInput>
-          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+          <p className="mt-2 text-center text-xs text-muted-foreground">
             NeuroTrace provides educational support, not medical advice. For
             medical concerns, consult a healthcare professional.
           </p>
