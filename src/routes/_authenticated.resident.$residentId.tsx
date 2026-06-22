@@ -94,6 +94,20 @@ function ResidentFeed() {
     };
   }, []);
 
+  // Mark notifications for this resident read when the thread is being viewed.
+  useEffect(() => {
+    const viewing = tab === "messages" || familyChatOpen;
+    if (!viewing) return;
+    markResidentNotificationsRead({ data: { resident_id: residentId } })
+      .then(() => {
+        qc.invalidateQueries({ queryKey: UNREAD_NOTIFICATIONS_KEY });
+        qc.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });
+      })
+      .catch(() => {
+        /* ignore */
+      });
+  }, [tab, familyChatOpen, residentId, qc]);
+
   const { data, isLoading } = useQuery({
     queryKey: ["resident", residentId],
     queryFn: () => getResidentOverview({ data: { resident_id: residentId } }),
