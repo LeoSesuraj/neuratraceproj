@@ -84,11 +84,6 @@ export function assertRequiredEnv() {
       (import.meta.env.VITE_SUPABASE_ANON_KEY ??
         import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) as string | undefined,
     ],
-    [
-      "VITE_ANTHROPIC_API_KEY",
-      (import.meta.env.VITE_ANTHROPIC_API_KEY ??
-        import.meta.env.VITE_LOVABLE_API_KEY) as string | undefined,
-    ],
   ];
   for (const [name, value] of required) {
     if (!value) {
