@@ -154,7 +154,7 @@ function StageProgress({
               tabIndex={isActive ? 0 : -1}
               onKeyDown={(e) => onKeyDown(e, i)}
               onClick={() => onChange(s.slug)}
-              className={`min-h-11 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+              className={`min-h-[44px] w-full rounded-xl px-2 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                 isActive
                   ? "bg-primary text-primary-foreground shadow-soft"
                   : "text-muted-foreground hover:text-foreground"
