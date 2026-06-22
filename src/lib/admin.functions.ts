@@ -46,7 +46,7 @@ async function assertSuperOrAdmin(
 }
 
 async function getMyAdminFacilityId(
-  context: { userId: string },
+  context: { userId: string; claims: { email?: unknown } },
 ): Promise<string | null> {
   const db = await loose();
   const { data } = await db
@@ -58,7 +58,21 @@ async function getMyAdminFacilityId(
     .not("facility_id", "is", null)
     .limit(1)
     .maybeSingle();
-  return (data?.facility_id as string | undefined) ?? null;
+  const fid = (data?.facility_id as string | undefined) ?? null;
+  if (fid) return fid;
+  // Super admin: fall back to the first facility in the system.
+  const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
+  const email = (context.claims.email as string | undefined) ?? "";
+  if (SUPER_ADMIN_EMAILS.includes(email.toLowerCase().trim())) {
+    const { data: f } = await db
+      .from("facilities")
+      .select("id")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    return (f?.id as string | undefined) ?? null;
+  }
+  return null;
 }
 
 // ---------- Login event capture ----------
