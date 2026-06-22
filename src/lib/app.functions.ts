@@ -762,14 +762,22 @@ export const getResidentOverview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ resident_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: resident, error } = await context.supabase
+    const { data: residentRaw, error } = await context.supabase
       .from("residents")
-      .select("id, name, photo_url, dementia_type, facility_id, behaviors")
+      .select("id, name, photo_url, dementia_type, facility_id, behaviors" as "*")
       .eq("id", data.resident_id)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!resident) throw new Error("Not found");
-    const residentRow = resident as typeof resident & { behaviors: string[] | null };
+    if (!residentRaw) throw new Error("Not found");
+    const resident = residentRaw as unknown as {
+      id: string;
+      name: string;
+      photo_url: string | null;
+      dementia_type: string | null;
+      facility_id: string;
+      behaviors: string[] | null;
+    };
+    const residentRow = resident;
 
     const today = new Date().toISOString().slice(0, 10);
     const { data: mood } = await context.supabase
