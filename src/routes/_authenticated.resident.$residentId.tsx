@@ -482,12 +482,6 @@ function ResidentFeed() {
           </Sheet>
         </>
       )}
-        <BehaviorsEditor
-          residentId={residentId}
-          initial={resident.behaviors ?? []}
-          onClose={() => setEditingBehaviors(false)}
-        />
-      )}
 
       {visiting && (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-foreground/40 p-4 sm:items-center">
