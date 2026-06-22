@@ -777,7 +777,6 @@ export const getResidentOverview = createServerFn({ method: "POST" })
       facility_id: string;
       behaviors: string[] | null;
     };
-    const residentRow = resident;
 
     const today = new Date().toISOString().slice(0, 10);
     const { data: mood } = await context.supabase
