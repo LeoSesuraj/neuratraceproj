@@ -1069,3 +1069,93 @@ function BehaviorsEditor({
     </div>
   );
 }
+
+function lastSeenKey(residentId: string) {
+  return `nt.resident-messages.lastSeen.${residentId}`;
+}
+
+function useMessagesQuery(residentId: string) {
+  return useQuery({
+    queryKey: ["resident-messages", residentId] as const,
+    queryFn: () => listResidentMessages({ data: { resident_id: residentId } }),
+    refetchOnWindowFocus: false,
+  });
+}
+
+function StaffMessagesTabLabel({
+  residentId,
+  active,
+}: {
+  residentId: string;
+  active: boolean;
+}) {
+  const { data: messages = [] } = useMessagesQuery(residentId);
+  const latestIso = messages.length > 0 ? messages[messages.length - 1].created_at : null;
+
+  useEffect(() => {
+    if (active && latestIso) {
+      try {
+        localStorage.setItem(lastSeenKey(residentId), latestIso);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [active, latestIso, residentId]);
+
+  const lastSeen = (() => {
+    try {
+      return localStorage.getItem(lastSeenKey(residentId));
+    } catch {
+      return null;
+    }
+  })();
+
+  const unread =
+    !active && latestIso && (!lastSeen || latestIso > lastSeen)
+      ? messages.filter((m) => !lastSeen || m.created_at > lastSeen).length
+      : 0;
+
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <MessageCircle className="h-4 w-4" aria-hidden /> Messages
+      {unread > 0 && (
+        <span className="ml-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold text-destructive-foreground">
+          {unread > 9 ? "9+" : unread}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function FamilyUnreadDot({ residentId, open }: { residentId: string; open: boolean }) {
+  const { data: messages = [] } = useMessagesQuery(residentId);
+  const latestIso = messages.length > 0 ? messages[messages.length - 1].created_at : null;
+
+  useEffect(() => {
+    if (open && latestIso) {
+      try {
+        localStorage.setItem(lastSeenKey(residentId), latestIso);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [open, latestIso, residentId]);
+
+  const lastSeen = (() => {
+    try {
+      return localStorage.getItem(lastSeenKey(residentId));
+    } catch {
+      return null;
+    }
+  })();
+
+  const hasUnread = !open && latestIso && (!lastSeen || latestIso > lastSeen);
+  if (!hasUnread) return null;
+  return (
+    <span
+      aria-label="New messages"
+      className="ml-0.5 inline-block h-2.5 w-2.5 rounded-full bg-warm ring-2 ring-primary"
+    />
+  );
+}
+
