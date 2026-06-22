@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FilePicker } from "@/components/file-picker";
 import { BehaviorChecklist } from "@/components/behavior-checklist";
 import { BEHAVIOR_OPTIONS, suggestedGuidesFor } from "@/lib/behaviors";
+import { GuideSheet, BrowseGuidesSheet } from "@/components/guide-sheet";
 
 export const Route = createFileRoute("/_authenticated/resident/$residentId")({
   component: ResidentFeed,
@@ -812,6 +813,9 @@ function LearnPanel({
     .map((id) => BEHAVIOR_OPTIONS.find((b) => b.id === id)?.label)
     .filter(Boolean) as string[];
 
+  const [openSlug, setOpenSlug] = useState<string | null>(null);
+  const [browseOpen, setBrowseOpen] = useState(false);
+
   return (
     <section className="mt-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -856,10 +860,10 @@ function LearnPanel({
         <ul className="mt-5 grid gap-3 sm:grid-cols-2">
           {guides.map((g) => (
             <li key={g.slug}>
-              <Link
-                to="/learn/connect/$situation"
-                params={{ situation: g.slug }}
-                className="group flex h-full items-start gap-3 rounded-3xl border border-border/70 bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+              <button
+                type="button"
+                onClick={() => setOpenSlug(g.slug)}
+                className="group flex h-full w-full items-start gap-3 rounded-3xl border border-border/70 bg-card p-5 text-left shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
               >
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-sky-soft">
                   <MessageCircleHeart className="h-5 w-5 text-primary" />
@@ -885,7 +889,7 @@ function LearnPanel({
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </div>
                 </div>
-              </Link>
+              </button>
             </li>
           ))}
         </ul>
@@ -898,14 +902,30 @@ function LearnPanel({
       )}
 
       <div className="mt-6">
-        <Link
-          to="/learn/connect"
+        <button
+          type="button"
+          onClick={() => setBrowseOpen(true)}
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
         >
           Browse all guides
           <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+        </button>
       </div>
+
+      <GuideSheet
+        slug={openSlug}
+        open={openSlug !== null}
+        onOpenChange={(o) => !o && setOpenSlug(null)}
+        onSelectSlug={(s) => setOpenSlug(s)}
+      />
+      <BrowseGuidesSheet
+        open={browseOpen}
+        onOpenChange={setBrowseOpen}
+        onSelectSlug={(s) => {
+          setBrowseOpen(false);
+          setOpenSlug(s);
+        }}
+      />
     </section>
   );
 }
