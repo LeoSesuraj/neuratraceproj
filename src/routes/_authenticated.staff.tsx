@@ -49,12 +49,14 @@ function StaffPage() {
     queryFn: () => getMyRole(),
   });
   const [name, setName] = useState("");
+  const [behaviors, setBehaviors] = useState<string[]>([]);
   const [search, setSearch] = useState("");
 
   const create = useMutation({
-    mutationFn: () => createResident({ data: { name } }),
+    mutationFn: () => createResident({ data: { name, behaviors } }),
     onSuccess: () => {
       setName("");
+      setBehaviors([]);
       qc.invalidateQueries({ queryKey: ["residents"] });
     },
   });
