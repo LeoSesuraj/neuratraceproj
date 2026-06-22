@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, MessageCircleHeart, Pencil, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, MessageCircle, MessageCircleHeart, Pencil, Sparkles, Trash2, X } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -30,6 +30,9 @@ import { BehaviorChecklist } from "@/components/behavior-checklist";
 import { BEHAVIOR_OPTIONS, suggestedGuidesFor } from "@/lib/behaviors";
 import { GuideSheet, BrowseGuidesSheet } from "@/components/guide-sheet";
 import { AIComingSoon } from "@/components/ai-coming-soon";
+import { ResidentMessageThread } from "@/components/resident-message-thread";
+import { listResidentMessages } from "@/lib/messages.functions";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/_authenticated/resident/$residentId")({
   component: ResidentFeed,
@@ -71,8 +74,20 @@ function ResidentFeed() {
   const qc = useQueryClient();
   const [visiting, setVisiting] = useState(false);
   const [editing, setEditing] = useState<"note" | "mood" | "survey" | null>(null);
-  const [tab, setTab] = useState<"activity" | "learn">("activity");
+  const [tab, setTab] = useState<"activity" | "learn" | "messages">("activity");
   const [editingBehaviors, setEditingBehaviors] = useState(false);
+  const [familyChatOpen, setFamilyChatOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled) setCurrentUserId(data.user?.id ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const { data, isLoading } = useQuery({
     queryKey: ["resident", residentId],
