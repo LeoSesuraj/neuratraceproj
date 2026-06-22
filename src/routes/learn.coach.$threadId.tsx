@@ -217,7 +217,10 @@ function ThreadChat({ threadId }: { threadId: string }) {
           <ConversationScrollButton />
         </Conversation>
 
-        <div className="border-t border-border/70 bg-card px-3 py-3 sm:px-4">
+        <div
+          className="border-t border-border/70 bg-card px-3 py-3 sm:px-4"
+          style={keyboardOffset > 0 ? { paddingBottom: `calc(0.75rem + ${keyboardOffset}px)` } : undefined}
+        >
           <div className="mb-3 flex items-start gap-2.5 rounded-2xl border border-sky-200/70 bg-sky-50 px-3 py-2.5 text-[12px] leading-snug text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/40 dark:text-sky-100">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-sky-600 dark:text-sky-300" aria-hidden />
             <p>
