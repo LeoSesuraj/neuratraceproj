@@ -491,6 +491,7 @@ export const createResident = createServerFn({ method: "POST" })
         name: z.string().min(1).max(120),
         date_of_birth: z.string().optional(),
         dementia_type: z.string().max(120).optional(),
+        behaviors: z.array(z.string().max(64)).max(50).optional(),
       })
       .parse(d),
   )
@@ -512,7 +513,8 @@ export const createResident = createServerFn({ method: "POST" })
         facility_id: role.facility_id,
         date_of_birth: data.date_of_birth || null,
         dementia_type: data.dementia_type || null,
-      })
+        behaviors: data.behaviors ?? [],
+      } as never)
       .select()
       .single();
     if (error) throw new Error(error.message);
@@ -524,6 +526,29 @@ export const createResident = createServerFn({ method: "POST" })
     });
 
     return { resident };
+  });
+
+export const updateResidentBehaviors = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        resident_id: z.string().uuid(),
+        behaviors: z.array(z.string().max(64)).max(50),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
+      throw new Error("Forbidden");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("residents")
+      .update({ behaviors: data.behaviors } as never)
+      .eq("id", data.resident_id);
+    if (error) throw new Error(error.message);
+    return { ok: true, behaviors: data.behaviors };
   });
 
 export const logTodayMood = createServerFn({ method: "POST" })
