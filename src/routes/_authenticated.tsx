@@ -102,3 +102,22 @@ function AuthedLayout() {
     </div>
   );
 }
+
+function NotificationsBellLink() {
+  const { data } = useUnreadNotificationsCount();
+  const count = data?.count ?? 0;
+  return (
+    <Link
+      to="/notifications"
+      aria-label={count > 0 ? `Notifications, ${count} unread` : "Notifications"}
+      className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-2 py-2 text-muted-foreground hover:text-foreground"
+    >
+      <Bell className="h-5 w-5" aria-hidden="true" />
+      {count > 0 && (
+        <span className="absolute right-1 top-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold text-destructive-foreground">
+          {count > 9 ? "9+" : count}
+        </span>
+      )}
+    </Link>
+  );
+}
