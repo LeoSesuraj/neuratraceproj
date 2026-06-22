@@ -29,6 +29,7 @@ import { Route as AuthJoinRouteImport } from './routes/auth.join'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated.staff'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
 import { Route as LearnUnderstandIndexRouteImport } from './routes/learn.understand.index'
 import { Route as LearnSupportIndexRouteImport } from './routes/learn.support.index'
 import { Route as LearnConnectIndexRouteImport } from './routes/learn.connect.index'
@@ -141,6 +142,12 @@ const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const LearnUnderstandIndexRoute = LearnUnderstandIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -209,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/legal': typeof LegalRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/api/health': typeof ApiHealthRoute
@@ -242,6 +250,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/legal': typeof LegalRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/api/health': typeof ApiHealthRoute
@@ -273,6 +282,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/legal': typeof LegalRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
   '/api/health': typeof ApiHealthRoute
@@ -308,6 +318,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/legal'
     | '/sitemap.xml'
+    | '/notifications'
     | '/staff'
     | '/api/chat'
     | '/api/health'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/legal'
     | '/sitemap.xml'
+    | '/notifications'
     | '/staff'
     | '/api/chat'
     | '/api/health'
@@ -371,6 +383,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/legal'
     | '/sitemap.xml'
+    | '/_authenticated/notifications'
     | '/_authenticated/staff'
     | '/api/chat'
     | '/api/health'
@@ -558,6 +571,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/learn/understand/': {
       id: '/learn/understand/'
       path: '/'
@@ -646,6 +666,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
   AuthenticatedAdminSuperRoute: typeof AuthenticatedAdminSuperRoute
   AuthenticatedResidentResidentIdRoute: typeof AuthenticatedResidentResidentIdRoute
@@ -654,6 +675,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
   AuthenticatedAdminSuperRoute: AuthenticatedAdminSuperRoute,
   AuthenticatedResidentResidentIdRoute: AuthenticatedResidentResidentIdRoute,
