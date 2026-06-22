@@ -179,6 +179,16 @@ function ResidentFeed() {
         </div>
       </header>
 
+      <div role="tablist" aria-label="Resident sections" className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
+        <TabButton active={tab === "activity"} onClick={() => setTab("activity")}>
+          Activity
+        </TabButton>
+        <TabButton active={tab === "learn"} onClick={() => setTab("learn")}>
+          <BookOpen className="h-4 w-4" aria-hidden /> Learn
+        </TabButton>
+      </div>
+
+      {tab === "activity" && (<>
       {alerts.map((a) => (
         <div
           key={a.id}
