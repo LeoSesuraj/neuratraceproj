@@ -16,7 +16,8 @@ async function assertThreadAccess(
   context: { supabase: import("@supabase/supabase-js").SupabaseClient; userId: string },
   resident_id: string,
 ) {
-  const { data, error } = await context.supabase.rpc("can_access_resident_thread", {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (context.supabase as any).rpc("can_access_resident_thread", {
     _user_id: context.userId,
     _resident_id: resident_id,
   });
@@ -70,7 +71,8 @@ export const listResidentMessages = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ resident_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }): Promise<ResidentMessage[]> => {
     await assertThreadAccess(context, data.resident_id);
-    const { data: rows, error } = await context.supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: rows, error } = await (context.supabase as any)
       .from("resident_messages")
       .select("id, resident_id, sender_id, content, created_at")
       .eq("resident_id", data.resident_id)
@@ -108,7 +110,8 @@ export const sendResidentMessage = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<ResidentMessage> => {
     await assertThreadAccess(context, data.resident_id);
-    const { data: inserted, error } = await context.supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: inserted, error } = await (context.supabase as any)
       .from("resident_messages")
       .insert({
         resident_id: data.resident_id,
