@@ -40,7 +40,15 @@ function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      <button
+        type="button"
+        onClick={() => router.history.back()}
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden />
+        Back
+      </button>
+      <header className="mt-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-primary">Notifications</p>
           <h1 className="mt-1 text-3xl">What's new</h1>
