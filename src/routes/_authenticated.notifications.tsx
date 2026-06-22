@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, MessageCircle } from "lucide-react";
+import { ArrowLeft, Bell, MessageCircle } from "lucide-react";
 import {
   useMyNotifications,
   NOTIFICATIONS_KEY,
