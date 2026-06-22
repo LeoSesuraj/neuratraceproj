@@ -146,12 +146,10 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
+    // Sentry.init() runs synchronously in src/router.tsx before render.
+    // Here we only attach user context once auth state is known.
     void (async () => {
-      const { initSentry, setSentryUser, assertRequiredEnv } = await import(
-        "@/lib/sentry"
-      );
-      assertRequiredEnv();
-      initSentry();
+      const { setSentryUser } = await import("@/lib/sentry");
       const { supabase } = await import("@/integrations/supabase/client");
       const { data } = await supabase.auth.getSession();
       if (data.session?.user) {
