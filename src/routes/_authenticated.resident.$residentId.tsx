@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, BookOpen, MessageCircle, MessageCircleHeart, Pencil, Sparkles, Trash2 } from "lucide-react";
 import {
   LineChart,
@@ -230,7 +230,11 @@ function ResidentFeed() {
         </TabButton>
         {canEdit && (
           <TabButton active={tab === "messages"} onClick={() => setTab("messages")}>
-            <StaffMessagesTabLabel residentId={residentId} active={tab === "messages"} />
+            <StaffMessagesTabLabel
+              residentId={residentId}
+              active={tab === "messages"}
+              currentUserId={currentUserId}
+            />
           </TabButton>
         )}
       </div>
@@ -479,7 +483,11 @@ function ResidentFeed() {
           >
             <MessageCircle className="h-5 w-5" />
             Message care team
-            <FamilyUnreadDot residentId={residentId} open={familyChatOpen} />
+            <FamilyUnreadDot
+              residentId={residentId}
+              open={familyChatOpen}
+              currentUserId={currentUserId}
+            />
           </button>
           <Sheet open={familyChatOpen} onOpenChange={setFamilyChatOpen}>
             <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-md">
@@ -1089,13 +1097,37 @@ function BehaviorsEditor({
   );
 }
 
-function lastSeenKey(residentId: string) {
-  return `nt.resident-messages.lastSeen.${residentId}`;
+function lastSeenKey(residentId: string, userId: string | null) {
+  return `nt.resident-messages.lastSeen.${userId ?? "anonymous"}.${residentId}`;
 }
 
 function useMessagesQuery(residentId: string) {
+  const qc = useQueryClient();
+  const queryKey = useMemo(() => ["resident-messages", residentId] as const, [residentId]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`resident-message-badge:${residentId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "resident_messages",
+          filter: `resident_id=eq.${residentId}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [residentId, qc, queryKey]);
+
   return useQuery({
-    queryKey: ["resident-messages", residentId] as const,
+    queryKey,
     queryFn: () => listResidentMessages({ data: { resident_id: residentId } }),
     refetchOnWindowFocus: false,
   });
@@ -1104,9 +1136,11 @@ function useMessagesQuery(residentId: string) {
 function StaffMessagesTabLabel({
   residentId,
   active,
+  currentUserId,
 }: {
   residentId: string;
   active: boolean;
+  currentUserId: string | null;
 }) {
   const { data: messages = [] } = useMessagesQuery(residentId);
   const latestIso = messages.length > 0 ? messages[messages.length - 1].created_at : null;
@@ -1114,16 +1148,16 @@ function StaffMessagesTabLabel({
   useEffect(() => {
     if (active && latestIso) {
       try {
-        localStorage.setItem(lastSeenKey(residentId), latestIso);
+        localStorage.setItem(lastSeenKey(residentId, currentUserId), latestIso);
       } catch {
         /* ignore */
       }
     }
-  }, [active, latestIso, residentId]);
+  }, [active, latestIso, residentId, currentUserId]);
 
   const lastSeen = (() => {
     try {
-      return localStorage.getItem(lastSeenKey(residentId));
+      return localStorage.getItem(lastSeenKey(residentId, currentUserId));
     } catch {
       return null;
     }
@@ -1146,23 +1180,31 @@ function StaffMessagesTabLabel({
   );
 }
 
-function FamilyUnreadDot({ residentId, open }: { residentId: string; open: boolean }) {
+function FamilyUnreadDot({
+  residentId,
+  open,
+  currentUserId,
+}: {
+  residentId: string;
+  open: boolean;
+  currentUserId: string | null;
+}) {
   const { data: messages = [] } = useMessagesQuery(residentId);
   const latestIso = messages.length > 0 ? messages[messages.length - 1].created_at : null;
 
   useEffect(() => {
     if (open && latestIso) {
       try {
-        localStorage.setItem(lastSeenKey(residentId), latestIso);
+        localStorage.setItem(lastSeenKey(residentId, currentUserId), latestIso);
       } catch {
         /* ignore */
       }
     }
-  }, [open, latestIso, residentId]);
+  }, [open, latestIso, residentId, currentUserId]);
 
   const lastSeen = (() => {
     try {
-      return localStorage.getItem(lastSeenKey(residentId));
+      return localStorage.getItem(lastSeenKey(residentId, currentUserId));
     } catch {
       return null;
     }
@@ -1173,7 +1215,7 @@ function FamilyUnreadDot({ residentId, open }: { residentId: string; open: boole
   return (
     <span
       aria-label="New messages"
-      className="ml-0.5 inline-block h-2.5 w-2.5 rounded-full bg-warm ring-2 ring-primary"
+      className="ml-0.5 inline-block h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-primary-foreground"
     />
   );
 }
