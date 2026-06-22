@@ -1089,8 +1089,8 @@ function BehaviorsEditor({
   );
 }
 
-function lastSeenKey(residentId: string) {
-  return `nt.resident-messages.lastSeen.${residentId}`;
+function lastSeenKey(residentId: string, userId: string | null) {
+  return `nt.resident-messages.lastSeen.${userId ?? "anonymous"}.${residentId}`;
 }
 
 function useMessagesQuery(residentId: string) {
@@ -1128,9 +1128,11 @@ function useMessagesQuery(residentId: string) {
 function StaffMessagesTabLabel({
   residentId,
   active,
+  currentUserId,
 }: {
   residentId: string;
   active: boolean;
+  currentUserId: string | null;
 }) {
   const { data: messages = [] } = useMessagesQuery(residentId);
   const latestIso = messages.length > 0 ? messages[messages.length - 1].created_at : null;
@@ -1138,16 +1140,16 @@ function StaffMessagesTabLabel({
   useEffect(() => {
     if (active && latestIso) {
       try {
-        localStorage.setItem(lastSeenKey(residentId), latestIso);
+        localStorage.setItem(lastSeenKey(residentId, currentUserId), latestIso);
       } catch {
         /* ignore */
       }
     }
-  }, [active, latestIso, residentId]);
+  }, [active, latestIso, residentId, currentUserId]);
 
   const lastSeen = (() => {
     try {
-      return localStorage.getItem(lastSeenKey(residentId));
+      return localStorage.getItem(lastSeenKey(residentId, currentUserId));
     } catch {
       return null;
     }
@@ -1170,23 +1172,31 @@ function StaffMessagesTabLabel({
   );
 }
 
-function FamilyUnreadDot({ residentId, open }: { residentId: string; open: boolean }) {
+function FamilyUnreadDot({
+  residentId,
+  open,
+  currentUserId,
+}: {
+  residentId: string;
+  open: boolean;
+  currentUserId: string | null;
+}) {
   const { data: messages = [] } = useMessagesQuery(residentId);
   const latestIso = messages.length > 0 ? messages[messages.length - 1].created_at : null;
 
   useEffect(() => {
     if (open && latestIso) {
       try {
-        localStorage.setItem(lastSeenKey(residentId), latestIso);
+        localStorage.setItem(lastSeenKey(residentId, currentUserId), latestIso);
       } catch {
         /* ignore */
       }
     }
-  }, [open, latestIso, residentId]);
+  }, [open, latestIso, residentId, currentUserId]);
 
   const lastSeen = (() => {
     try {
-      return localStorage.getItem(lastSeenKey(residentId));
+      return localStorage.getItem(lastSeenKey(residentId, currentUserId));
     } catch {
       return null;
     }
