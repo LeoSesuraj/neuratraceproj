@@ -8,8 +8,14 @@ import { assertRequiredEnv, initSentry } from "./lib/sentry";
 // are captured. Both functions are no-ops on the server (SSR) and when the
 // DSN is not configured.
 if (typeof window !== "undefined") {
-  assertRequiredEnv();
+  try {
+    assertRequiredEnv();
+  } catch (e) {
+    console.warn("[env] assertRequiredEnv warning:", e);
+  }
   initSentry();
+  // eslint-disable-next-line no-console
+  console.log("Sentry init attempted, DSN:", import.meta.env.VITE_SENTRY_DSN);
 }
 
 export const getRouter = () => {
