@@ -1,8 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, MessageCircleHeart, Sparkles, Trash2, Pencil } from "lucide-react";
-import { matchSituations } from "@/lib/situation-matcher";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Sparkles, Trash2, Pencil } from "lucide-react";
 import {
   LineChart,
   Line,
