@@ -3,7 +3,7 @@ import { getSituation } from "@/lib/situations";
 /**
  * Stable id stored in residents.behaviors. The label is what staff see
  * in the checklist. `slug` (when present) maps to a guide at
- * /learn/connect/[slug] — keep in sync with src/lib/situations.ts.
+ * /learn/connect/[slug], keep in sync with src/lib/situations.ts.
  */
 export type BehaviorOption = {
   id: string;

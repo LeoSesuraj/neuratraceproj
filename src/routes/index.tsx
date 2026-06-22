@@ -9,7 +9,7 @@ import { LegalFooter } from "@/components/legal-footer";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NeuroTrace — Sign in" },
+      { title: "NeuroTrace, Sign in" },
       {
         name: "description",
         content:
@@ -34,7 +34,7 @@ const secondaryCards: SecondaryCard[] = [
     to: "/auth/join",
     icon: UserPlus,
     label: "Join with a key",
-    description: "Family, staff, or admin — sign up with today's key.",
+    description: "Family, staff, or admin, sign up with today's key.",
     tone: "bg-warm/70",
     iconColor: "text-foreground",
   },

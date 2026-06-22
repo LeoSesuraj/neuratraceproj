@@ -97,11 +97,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#f6fafd" },
-      { title: "NeuroTrace — A gentle companion for dementia caregivers" },
+      { title: "NeuroTrace, A gentle companion for dementia caregivers" },
       {
         name: "description",
         content:
-          "NeuroTrace helps families understand dementia behaviors, communicate with loved ones, and feel less alone — with an AI coach trained for caregiving.",
+          "NeuroTrace helps families understand dementia behaviors, communicate with loved ones, and feel less alone, with an AI coach trained for caregiving.",
       },
       { property: "og:title", content: "NeuroTrace" },
       {

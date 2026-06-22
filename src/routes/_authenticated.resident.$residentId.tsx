@@ -243,7 +243,7 @@ function ResidentFeed() {
       <div className="mt-4">
         <AIComingSoon
           compact
-          heading="AI Insights — Coming Soon"
+          heading="AI Insights, Coming Soon"
           body={`Personalised AI summaries and gentle suggestions for ${resident.name.split(" ")[0]} are on the way.`}
         />
       </div>
@@ -277,7 +277,7 @@ function ResidentFeed() {
         </div>
       ))}
 
-      {/* Daily notes section — above graphs for the family view too */}
+      {/* Daily notes section, above graphs for the family view too */}
       <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-soft">
         <div className="flex items-center justify-between">
           <h2 className="text-lg">Daily notes from staff</h2>
@@ -964,7 +964,7 @@ function LearnPanel({
         </div>
       ) : guides.length === 0 ? (
         <p className="mt-5 rounded-2xl border border-dashed border-border bg-surface p-6 text-center text-sm text-muted-foreground">
-          No published guides for the current behaviors yet — browse all guides below.
+          No published guides for the current behaviors yet, browse all guides below.
         </p>
       ) : (
         <ul className="mt-5 grid gap-3 sm:grid-cols-2">

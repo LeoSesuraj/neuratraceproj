@@ -34,7 +34,7 @@ export function ResidentMessageThread({
   residentId: string;
   currentUserId: string | null;
   isFamily: boolean;
-  /** Called whenever a new message arrives or the thread loads — for unread tracking. */
+  /** Called whenever a new message arrives or the thread loads, for unread tracking. */
   onMessagesViewed?: (lastIso: string | null) => void;
   autoFocus?: boolean;
 }) {
@@ -119,8 +119,8 @@ export function ResidentMessageThread({
             <p>No messages yet.</p>
             <p className="mt-1">
               {isFamily
-                ? "Say hello to the care team — they'll see your message and reply here."
-                : "Start the conversation with the family — anything you write here is visible to them."}
+                ? "Say hello to the care team, they'll see your message and reply here."
+                : "Start the conversation with the family, anything you write here is visible to them."}
             </p>
           </div>
         ) : (

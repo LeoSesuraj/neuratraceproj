@@ -26,7 +26,7 @@ export function KeyCard({
     <div className="rounded-2xl border border-border bg-card p-3 shadow-soft">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-mono text-lg font-semibold tracking-[0.2em]">
-          {isLoading ? "••••••••" : (data?.code ?? "—")}
+          {isLoading ? "••••••••" : (data?.code ?? "-")}
         </p>
         <div className="flex gap-1.5">
           <button

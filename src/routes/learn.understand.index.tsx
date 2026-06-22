@@ -7,11 +7,11 @@ import { ArrowRight, BookOpen, Search, X } from "lucide-react";
 export const Route = createFileRoute("/learn/understand/")({
   head: () => ({
     meta: [
-      { title: "Understand — NeuroTrace" },
+      { title: "Understand, NeuroTrace" },
       {
         name: "description",
         content:
-          "Why dementia changes behavior, memory, sleep, and communication — explained without jargon.",
+          "Why dementia changes behavior, memory, sleep, and communication, explained without jargon.",
       },
     ],
   }),
@@ -40,7 +40,7 @@ function UnderstandIndex() {
         </h1>
         <p className="mt-3 max-w-xl text-muted-foreground">
           The behaviors that hurt the most often have a clear, biological
-          reason. Knowing why can soften the moment — and remind you who your
+          reason. Knowing why can soften the moment, and remind you who your
           loved one still is, underneath.
         </p>
       </header>

@@ -112,7 +112,7 @@ function StaffPage() {
           <div>
             <p className="text-sm font-medium">Current behaviors</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Optional — pick any that apply now. You can edit these later from the resident's page.
+              Optional, pick any that apply now. You can edit these later from the resident's page.
             </p>
             <div className="mt-3">
               <BehaviorChecklist value={behaviors} onChange={setBehaviors} />
@@ -141,7 +141,7 @@ function StaffPage() {
         {groups.length === 0 && (
           <p className="text-center text-sm text-muted-foreground">
             {residents.length === 0
-              ? "No residents yet — add your first above."
+              ? "No residents yet, add your first above."
               : "No residents match your search."}
           </p>
         )}

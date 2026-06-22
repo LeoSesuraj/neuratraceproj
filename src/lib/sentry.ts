@@ -61,7 +61,7 @@ export function initSentry() {
   initialized = true;
 }
 
-/** Set minimal user context — id and role only. No email or name. */
+/** Set minimal user context, id and role only. No email or name. */
 export function setSentryUser(userId: string | null, role?: string | null) {
   if (!initialized) return;
   if (!userId) {

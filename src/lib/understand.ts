@@ -22,7 +22,7 @@ export const understandTopics: UnderstandTopic[] = [
     blurb: "Why short-term memory fades first.",
     why: "Dementia damages the hippocampus early, the part of the brain that turns new experiences into lasting memories. Older memories often stay intact long after recent ones become hard to hold onto. That's why a loved one may recall a wedding from 50 years ago but not what they ate an hour ago.",
     howCommon:
-      "Memory loss that disrupts daily life is the most common early sign — present in nearly everyone with Alzheimer's disease.",
+      "Memory loss that disrupts daily life is the most common early sign, present in nearly everyone with Alzheimer's disease.",
     expect: [
       "Forgotten conversations and repeated questions.",
       "Misplaced objects in unusual places.",
@@ -52,12 +52,12 @@ export const understandTopics: UnderstandTopic[] = [
           text: "Each time, it genuinely feels like the first time they've asked.",
           correct: true,
           explain:
-            "Exactly — short-term memory can't hold the exchange, so the question (and the worry behind it) keeps surfacing fresh.",
+            "Exactly, short-term memory can't hold the exchange, so the question (and the worry behind it) keeps surfacing fresh.",
         },
         {
           text: "They're testing whether you're paying attention.",
           correct: false,
-          explain: "Repetition in dementia is not strategic — it's the brain looping for reassurance.",
+          explain: "Repetition in dementia is not strategic, it's the brain looping for reassurance.",
         },
       ],
     },
@@ -66,7 +66,7 @@ export const understandTopics: UnderstandTopic[] = [
     slug: "disease-progression",
     title: "How dementia progresses",
     blurb: "From early changes to needing full-time care.",
-    why: "Most dementias are progressive — the underlying brain changes slowly accumulate. Progression isn't linear: people often plateau for months, then shift. The pace and pattern differ for every person.",
+    why: "Most dementias are progressive, the underlying brain changes slowly accumulate. Progression isn't linear: people often plateau for months, then shift. The pace and pattern differ for every person.",
     howCommon:
       "Alzheimer's typically progresses over 8–12 years, though it ranges widely. Vascular dementia can change in stair-steps after small strokes.",
     expect: [
@@ -78,7 +78,7 @@ export const understandTopics: UnderstandTopic[] = [
       {
         myth: "Decline is steady and predictable.",
         reality:
-          "It's usually uneven — long stretches of stability, then a noticeable shift. Sudden drops often have a reversible cause (infection, dehydration, new medication).",
+          "It's usually uneven, long stretches of stability, then a noticeable shift. Sudden drops often have a reversible cause (infection, dehydration, new medication).",
       },
     ],
   },
@@ -86,7 +86,7 @@ export const understandTopics: UnderstandTopic[] = [
     slug: "behavioral-changes",
     title: "Behavioral changes",
     blurb: "Why a familiar personality can seem unfamiliar.",
-    why: "Damage to the frontal lobes can affect impulse control, judgment, and social filters. New behaviors — suspicion, restlessness, even aggression — are symptoms of the disease, not choices. The person you love is still in there.",
+    why: "Damage to the frontal lobes can affect impulse control, judgment, and social filters. New behaviors, suspicion, restlessness, even aggression, are symptoms of the disease, not choices. The person you love is still in there.",
     howCommon:
       "Around 90% of people with dementia experience behavioral or psychological symptoms at some point.",
     expect: [
@@ -98,12 +98,12 @@ export const understandTopics: UnderstandTopic[] = [
       {
         myth: "If they get angry, they mean it.",
         reality:
-          "Behavior is communication. Anger usually points to fear, pain, or overwhelm — not a real grievance with you.",
+          "Behavior is communication. Anger usually points to fear, pain, or overwhelm, not a real grievance with you.",
       },
       {
         myth: "Personality changes mean the person is gone.",
         reality:
-          "The core self often shines through in flashes — a laugh, a song, a tender look. The disease overlays the personality; it doesn't erase it.",
+          "The core self often shines through in flashes, a laugh, a song, a tender look. The disease overlays the personality; it doesn't erase it.",
       },
     ],
     quiz: {
@@ -127,7 +127,7 @@ export const understandTopics: UnderstandTopic[] = [
     slug: "cognitive-decline",
     title: "Cognitive decline",
     blurb: "Thinking, planning, and language become harder.",
-    why: "Beyond memory, dementia affects executive function — the brain's ability to plan, sequence steps, and shift attention. Familiar tasks like cooking a meal or following a conversation can become surprisingly complex.",
+    why: "Beyond memory, dementia affects executive function, the brain's ability to plan, sequence steps, and shift attention. Familiar tasks like cooking a meal or following a conversation can become surprisingly complex.",
     howCommon:
       "Universal in dementia, though the specific abilities affected depend on which regions of the brain are involved.",
     expect: [
@@ -140,20 +140,20 @@ export const understandTopics: UnderstandTopic[] = [
     slug: "emotional-changes",
     title: "Emotional changes",
     blurb: "Anxiety, sadness, and sensitivity to mood.",
-    why: "Awareness of one's own changing abilities can be deeply distressing — especially in early stages. People with dementia also become more attuned to the emotional tone around them, even when words are lost.",
+    why: "Awareness of one's own changing abilities can be deeply distressing, especially in early stages. People with dementia also become more attuned to the emotional tone around them, even when words are lost.",
     howCommon:
       "Depression affects about 40% of people with Alzheimer's, and anxiety is also very common.",
     expect: [
       "Withdrawal from social activities or hobbies.",
       "Tears or fear in unfamiliar settings.",
-      "Mirroring your mood — your calm becomes their calm.",
+      "Mirroring your mood, your calm becomes their calm.",
     ],
   },
   {
     slug: "daily-living",
     title: "Daily living",
     blurb: "Why dressing, cooking, and grooming get harder.",
-    why: "Activities we take for granted require dozens of small decisions. As the brain's planning systems decline, these tasks become overwhelming — not because the person doesn't want to, but because the steps no longer arrive in order.",
+    why: "Activities we take for granted require dozens of small decisions. As the brain's planning systems decline, these tasks become overwhelming, not because the person doesn't want to, but because the steps no longer arrive in order.",
     howCommon:
       "Difficulty with daily living is a defining marker of mid-stage dementia.",
     expect: [
@@ -165,7 +165,7 @@ export const understandTopics: UnderstandTopic[] = [
   {
     slug: "types-of-dementia",
     title: "Types of dementia",
-    blurb: "Alzheimer's, vascular, Lewy body, frontotemporal — and why it matters.",
+    blurb: "Alzheimer's, vascular, Lewy body, frontotemporal, and why it matters.",
     why: "Dementia is an umbrella term. The underlying disease shapes which symptoms appear first, how progression looks, and which treatments and approaches help. A clear diagnosis lets families plan instead of guess.",
     howCommon:
       "Alzheimer's accounts for 60–80% of dementia cases. Vascular is second; Lewy body and frontotemporal each affect smaller but significant populations.",
@@ -211,7 +211,7 @@ export const understandTopics: UnderstandTopic[] = [
           explain: "Sometimes helpful, often frustrating. Give space first.",
         },
         {
-          text: "Wait, smile, and let them try — offer a gentle guess only if they ask.",
+          text: "Wait, smile, and let them try, offer a gentle guess only if they ask.",
           correct: true,
           explain: "Preserves dignity and keeps the conversation theirs.",
         },
