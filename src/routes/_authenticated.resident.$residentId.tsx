@@ -29,6 +29,7 @@ import { FilePicker } from "@/components/file-picker";
 import { BehaviorChecklist } from "@/components/behavior-checklist";
 import { BEHAVIOR_OPTIONS, suggestedGuidesFor } from "@/lib/behaviors";
 import { GuideSheet, BrowseGuidesSheet } from "@/components/guide-sheet";
+import { AIComingSoon } from "@/components/ai-coming-soon";
 
 export const Route = createFileRoute("/_authenticated/resident/$residentId")({
   component: ResidentFeed,
@@ -190,6 +191,13 @@ function ResidentFeed() {
       </div>
 
       {tab === "activity" && (<>
+      <div className="mt-4">
+        <AIComingSoon
+          compact
+          heading="AI Insights — Coming Soon"
+          body={`Personalised AI summaries and gentle suggestions for ${resident.name.split(" ")[0]} are on the way.`}
+        />
+      </div>
       {alerts.map((a) => (
         <div
           key={a.id}
