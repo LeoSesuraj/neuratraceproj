@@ -30,6 +30,7 @@ import {
   getCurrentUserId,
   upsertCoachConversation,
 } from "@/lib/coach-sync";
+import { useVisualViewportOffset } from "@/hooks/use-visual-viewport-offset";
 
 export const Route = createFileRoute("/learn/coach/$threadId")({
   component: ThreadPage,
