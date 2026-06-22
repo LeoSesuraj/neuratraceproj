@@ -26,6 +26,7 @@ import { Route as AuthSetPasswordRouteImport } from './routes/auth.set-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthJoinRouteImport } from './routes/auth.join'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated.staff'
 import { Route as LearnUnderstandIndexRouteImport } from './routes/learn.understand.index'
@@ -125,6 +126,11 @@ const AuthJoinRoute = AuthJoinRouteImport.update({
   path: '/join',
   getParentRoute: () => AuthRoute,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/health': typeof ApiHealthRoute
   '/auth/join': typeof AuthJoinRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/health': typeof ApiHealthRoute
   '/auth/join': typeof AuthJoinRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -267,6 +275,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/health': typeof ApiHealthRoute
   '/auth/join': typeof AuthJoinRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -301,6 +310,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/staff'
     | '/api/chat'
+    | '/api/health'
     | '/auth/join'
     | '/auth/login'
     | '/auth/reset-password'
@@ -333,6 +343,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/staff'
     | '/api/chat'
+    | '/api/health'
     | '/auth/join'
     | '/auth/login'
     | '/auth/reset-password'
@@ -362,6 +373,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/staff'
     | '/api/chat'
+    | '/api/health'
     | '/auth/join'
     | '/auth/login'
     | '/auth/reset-password'
@@ -395,6 +407,7 @@ export interface RootRouteChildren {
   LegalRoute: typeof LegalRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   LearnCoachRoute: typeof LearnCoachRouteWithChildren
   LearnConnectRoute: typeof LearnConnectRouteWithChildren
   LearnJourneyRoute: typeof LearnJourneyRoute
@@ -523,6 +536,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/join'
       preLoaderRoute: typeof AuthJoinRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
       id: '/api/chat'
@@ -736,6 +756,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalRoute: LegalRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiHealthRoute: ApiHealthRoute,
   LearnCoachRoute: LearnCoachRouteWithChildren,
   LearnConnectRoute: LearnConnectRouteWithChildren,
   LearnJourneyRoute: LearnJourneyRoute,
