@@ -764,11 +764,12 @@ export const getResidentOverview = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: resident, error } = await context.supabase
       .from("residents")
-      .select("id, name, photo_url, dementia_type, facility_id")
+      .select("id, name, photo_url, dementia_type, facility_id, behaviors")
       .eq("id", data.resident_id)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!resident) throw new Error("Not found");
+    const residentRow = resident as typeof resident & { behaviors: string[] | null };
 
     const today = new Date().toISOString().slice(0, 10);
     const { data: mood } = await context.supabase
