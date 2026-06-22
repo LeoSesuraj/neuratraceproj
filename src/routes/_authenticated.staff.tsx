@@ -14,6 +14,7 @@ import {
 } from "@/lib/app.functions";
 import { KeyCard } from "@/components/key-card";
 import { FilePicker } from "@/components/file-picker";
+import { BehaviorChecklist } from "@/components/behavior-checklist";
 import {
   facilityName,
   groupByFacility,
@@ -48,12 +49,14 @@ function StaffPage() {
     queryFn: () => getMyRole(),
   });
   const [name, setName] = useState("");
+  const [behaviors, setBehaviors] = useState<string[]>([]);
   const [search, setSearch] = useState("");
 
   const create = useMutation({
-    mutationFn: () => createResident({ data: { name } }),
+    mutationFn: () => createResident({ data: { name, behaviors } }),
     onSuccess: () => {
       setName("");
+      setBehaviors([]);
       qc.invalidateQueries({ queryKey: ["residents"] });
     },
   });
@@ -98,16 +101,28 @@ function StaffPage() {
             e.preventDefault();
             if (name.trim()) create.mutate();
           }}
-          className="mt-3 flex gap-2"
+          className="mt-3 grid gap-4"
         >
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Resident's name"
-            className="flex-1 rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm"
+            className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm"
           />
-          <button className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
-            Add
+          <div>
+            <p className="text-sm font-medium">Current behaviors</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Optional — pick any that apply now. You can edit these later from the resident's page.
+            </p>
+            <div className="mt-3">
+              <BehaviorChecklist value={behaviors} onChange={setBehaviors} />
+            </div>
+          </div>
+          <button
+            disabled={create.isPending || !name.trim()}
+            className="justify-self-start rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            {create.isPending ? "Adding…" : "Add resident"}
           </button>
         </form>
       </section>

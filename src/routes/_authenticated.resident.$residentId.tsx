@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Sparkles, Trash2, Pencil } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, MessageCircleHeart, Pencil, Sparkles, Trash2 } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -21,10 +21,13 @@ import {
   submitWeeklySurvey,
   uploadResidentPhoto,
   createPhotoPost,
+  updateResidentBehaviors,
 } from "@/lib/app.functions";
 import { VISIT_SUGGESTIONS } from "@/lib/visit-mode";
 import { supabase } from "@/integrations/supabase/client";
 import { FilePicker } from "@/components/file-picker";
+import { BehaviorChecklist } from "@/components/behavior-checklist";
+import { BEHAVIOR_OPTIONS, suggestedGuidesFor } from "@/lib/behaviors";
 
 export const Route = createFileRoute("/_authenticated/resident/$residentId")({
   component: ResidentFeed,
@@ -66,6 +69,8 @@ function ResidentFeed() {
   const qc = useQueryClient();
   const [visiting, setVisiting] = useState(false);
   const [editing, setEditing] = useState<"note" | "mood" | "survey" | null>(null);
+  const [tab, setTab] = useState<"activity" | "learn">("activity");
+  const [editingBehaviors, setEditingBehaviors] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["resident", residentId],
@@ -174,6 +179,16 @@ function ResidentFeed() {
         </div>
       </header>
 
+      <div role="tablist" aria-label="Resident sections" className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
+        <TabButton active={tab === "activity"} onClick={() => setTab("activity")}>
+          Activity
+        </TabButton>
+        <TabButton active={tab === "learn"} onClick={() => setTab("learn")}>
+          <BookOpen className="h-4 w-4" aria-hidden /> Learn
+        </TabButton>
+      </div>
+
+      {tab === "activity" && (<>
       {alerts.map((a) => (
         <div
           key={a.id}
@@ -365,6 +380,24 @@ function ResidentFeed() {
           </article>
         ))}
       </section>
+      </>)}
+
+      {tab === "learn" && (
+        <LearnPanel
+          residentName={resident.name}
+          behaviors={resident.behaviors ?? []}
+          canEdit={canEdit}
+          onEdit={() => setEditingBehaviors(true)}
+        />
+      )}
+
+      {editingBehaviors && canEdit && (
+        <BehaviorsEditor
+          residentId={residentId}
+          initial={resident.behaviors ?? []}
+          onClose={() => setEditingBehaviors(false)}
+        />
+      )}
 
       {visiting && (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-foreground/40 p-4 sm:items-center">
@@ -732,5 +765,204 @@ function InlinePhotoUploader({ residentId }: { residentId: string }) {
         {error && <p className="text-xs text-destructive">{error}</p>}
       </form>
     </section>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+        active
+          ? "bg-primary text-primary-foreground shadow-soft"
+          : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function LearnPanel({
+  residentName,
+  behaviors,
+  canEdit,
+  onEdit,
+}: {
+  residentName: string;
+  behaviors: string[];
+  canEdit: boolean;
+  onEdit: () => void;
+}) {
+  const firstName = residentName.split(" ")[0];
+  const guides = suggestedGuidesFor(behaviors);
+  const unmapped = behaviors
+    .filter((id) => !guides.some((g) => g.behaviorId === id))
+    .map((id) => BEHAVIOR_OPTIONS.find((b) => b.id === id)?.label)
+    .filter(Boolean) as string[];
+
+  return (
+    <section className="mt-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-primary">Learn</p>
+          <h2 className="mt-1 text-2xl">Suggested guides for {firstName}</h2>
+        </div>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-soft"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Edit behaviors
+          </button>
+        )}
+      </div>
+
+      {behaviors.length === 0 ? (
+        <div className="mt-5 rounded-3xl border border-dashed border-border bg-surface p-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            No behaviors selected yet.
+            {canEdit ? " Use 'Edit behaviors' to add them." : " A staff member can add them on this page."}
+          </p>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit behaviors
+            </button>
+          )}
+        </div>
+      ) : guides.length === 0 ? (
+        <p className="mt-5 rounded-2xl border border-dashed border-border bg-surface p-6 text-center text-sm text-muted-foreground">
+          No published guides for the current behaviors yet — browse all guides below.
+        </p>
+      ) : (
+        <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+          {guides.map((g) => (
+            <li key={g.slug}>
+              <Link
+                to="/learn/connect/$situation"
+                params={{ situation: g.slug }}
+                className="group flex h-full items-start gap-3 rounded-3xl border border-border/70 bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+              >
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-sky-soft">
+                  <MessageCircleHeart className="h-5 w-5 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    For: {g.behaviorLabel}
+                  </p>
+                  <h3 className="mt-0.5 text-lg leading-snug">{g.title}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{g.blurb}</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                    {g.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-full bg-surface px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex items-center gap-1 text-sm font-medium text-primary">
+                    Open guide
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {unmapped.length > 0 && (
+        <p className="mt-4 text-xs text-muted-foreground">
+          No guide yet for: {unmapped.join(", ")}.
+        </p>
+      )}
+
+      <div className="mt-6">
+        <Link
+          to="/learn/connect"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+        >
+          Browse all guides
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function BehaviorsEditor({
+  residentId,
+  initial,
+  onClose,
+}: {
+  residentId: string;
+  initial: string[];
+  onClose: () => void;
+}) {
+  const qc = useQueryClient();
+  const [selected, setSelected] = useState<string[]>(initial);
+  const save = useMutation({
+    mutationFn: () =>
+      updateResidentBehaviors({ data: { resident_id: residentId, behaviors: selected } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["resident", residentId] });
+      onClose();
+    },
+  });
+  return (
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-foreground/40 p-4 sm:items-center">
+      <div className="w-full max-w-2xl rounded-3xl bg-card p-6 shadow-lift">
+        <h3 className="text-lg font-semibold">Edit current behaviors</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Select any behaviors that apply now. Learn guides for the selected behaviors will appear on the Learn tab.
+        </p>
+        <div className="mt-4 max-h-[60vh] overflow-y-auto pr-1">
+          <BehaviorChecklist value={selected} onChange={setSelected} disabled={save.isPending} />
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={save.isPending}
+            className="rounded-full border border-border px-4 py-2 text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => save.mutate()}
+            disabled={save.isPending}
+            className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            {save.isPending ? "Saving…" : "Save behaviors"}
+          </button>
+        </div>
+        {save.error && (
+          <p className="mt-2 text-xs text-destructive">
+            {(save.error as Error).message}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
