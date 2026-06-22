@@ -14,6 +14,7 @@ import {
 } from "@/lib/app.functions";
 import { KeyCard } from "@/components/key-card";
 import { FilePicker } from "@/components/file-picker";
+import { BehaviorChecklist } from "@/components/behavior-checklist";
 import {
   facilityName,
   groupByFacility,
