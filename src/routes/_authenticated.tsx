@@ -83,13 +83,16 @@ function AuthedLayout() {
             <img src={logo} alt="NeuroTrace logo" className="h-11 w-11" />
             <span className="font-display text-xl tracking-tight">NeuroTrace</span>
           </Link>
-          <button
-            onClick={signOut}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-            Sign out
-          </button>
+          <div className="flex items-center gap-1">
+            <NotificationsBellLink />
+            <button
+              onClick={signOut}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
       <main id="main-content" className="mx-auto max-w-3xl px-5 py-6">
