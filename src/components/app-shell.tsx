@@ -107,7 +107,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <LegalFooter className="hidden pb-6 md:block" />
 
       <nav aria-label="Mobile primary" className="fixed inset-x-0 bottom-0 z-30 border-t border-border/60 bg-background/95 backdrop-blur md:hidden">
-        <div className="mx-auto flex max-w-3xl items-stretch justify-around px-1">
+        <div className="mx-auto flex max-w-3xl items-stretch overflow-x-auto px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map((t) => {
             const Icon = t.icon;
             const active = t.exact
@@ -119,7 +119,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 to={t.to}
                 aria-current={active ? "page" : undefined}
                 aria-label={t.label}
-                className={`flex min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-colors ${
+                className={`flex min-h-[44px] min-w-[64px] flex-1 shrink-0 snap-start flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium transition-colors ${
                   active ? "text-primary" : "text-muted-foreground"
                 }`}
               >

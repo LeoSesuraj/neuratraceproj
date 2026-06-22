@@ -30,6 +30,7 @@ import {
   getCurrentUserId,
   upsertCoachConversation,
 } from "@/lib/coach-sync";
+import { useVisualViewportOffset } from "@/hooks/use-visual-viewport-offset";
 
 export const Route = createFileRoute("/learn/coach/$threadId")({
   component: ThreadPage,
@@ -109,6 +110,7 @@ function ThreadChat({ threadId }: { threadId: string }) {
 
   const [input, setInput] = useState("");
   const isLoading = status === "submitted" || status === "streaming";
+  const keyboardOffset = useVisualViewportOffset();
 
   const handleSubmit = (msg: PromptInputMessage) => {
     const text = (msg.text ?? input).trim();
@@ -215,8 +217,11 @@ function ThreadChat({ threadId }: { threadId: string }) {
           <ConversationScrollButton />
         </Conversation>
 
-        <div className="border-t border-border/70 bg-card px-3 py-3 sm:px-4">
-          <div className="mb-3 flex items-start gap-2.5 rounded-2xl border border-sky-200/70 bg-sky-50 px-3 py-2.5 text-[12px] leading-snug text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/40 dark:text-sky-100">
+        <div
+          className="border-t border-border/70 bg-card px-3 py-3 sm:px-4"
+          style={keyboardOffset > 0 ? { paddingBottom: `calc(0.75rem + ${keyboardOffset}px)` } : undefined}
+        >
+          <div className="mb-3 flex items-start gap-2.5 rounded-2xl border border-sky-200/70 bg-sky-50 px-3 py-2.5 text-sm leading-snug text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/40 dark:text-sky-100">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-sky-600 dark:text-sky-300" aria-hidden />
             <p>
               <span className="font-semibold">For your privacy and safety,</span>{" "}
@@ -237,7 +242,7 @@ function ThreadChat({ threadId }: { threadId: string }) {
               <PromptInputSubmit status={status} onStop={stop} />
             </PromptInputFooter>
           </PromptInput>
-          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+          <p className="mt-2 text-center text-xs text-muted-foreground">
             NeuroTrace provides educational support, not medical advice. For
             medical concerns, consult a healthcare professional.
           </p>

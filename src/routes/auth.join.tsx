@@ -116,7 +116,13 @@ function JoinPage() {
             }
             placeholder="ABCD1234"
             maxLength={8}
-            className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-center font-mono text-lg tracking-widest shadow-soft"
+            inputMode="text"
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
+            autoComplete="one-time-code"
+            aria-label="8-character access key"
+            className="w-full rounded-xl border border-border bg-card px-3.5 py-3 text-center font-mono text-xl tracking-widest shadow-soft min-h-[48px]"
           />
           {keyFormatError && (
             <p className="text-xs text-destructive">{keyFormatError}</p>
