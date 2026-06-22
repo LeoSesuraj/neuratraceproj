@@ -1094,8 +1094,32 @@ function lastSeenKey(residentId: string) {
 }
 
 function useMessagesQuery(residentId: string) {
+  const qc = useQueryClient();
+  const queryKey = useMemo(() => ["resident-messages", residentId] as const, [residentId]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`resident-message-badge:${residentId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "resident_messages",
+          filter: `resident_id=eq.${residentId}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [residentId, qc, queryKey]);
+
   return useQuery({
-    queryKey: ["resident-messages", residentId] as const,
+    queryKey,
     queryFn: () => listResidentMessages({ data: { resident_id: residentId } }),
     refetchOnWindowFocus: false,
   });
@@ -1173,7 +1197,7 @@ function FamilyUnreadDot({ residentId, open }: { residentId: string; open: boole
   return (
     <span
       aria-label="New messages"
-      className="ml-0.5 inline-block h-2.5 w-2.5 rounded-full bg-warm ring-2 ring-primary"
+      className="ml-0.5 inline-block h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-primary-foreground"
     />
   );
 }
