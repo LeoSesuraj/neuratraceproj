@@ -1,10 +1,14 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/neurotrace-logo.png";
-import { LogOut } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import { LegalFooter } from "@/components/legal-footer";
+import {
+  useNotificationsRealtime,
+  useUnreadNotificationsCount,
+} from "@/hooks/use-notifications";
 
 const INACTIVITY_MS = 60 * 60 * 1000; // 60 minutes
 const ACTIVITY_EVENTS = ["mousedown", "keydown", "touchstart", "scroll"] as const;
@@ -22,6 +26,18 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthedLayout() {
   const navigate = useNavigate();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled) setUserId(data.user?.id ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  useNotificationsRealtime(userId);
 
   async function signOutInactive() {
     await supabase.auth.signOut();
@@ -67,13 +83,16 @@ function AuthedLayout() {
             <img src={logo} alt="NeuroTrace logo" className="h-11 w-11" />
             <span className="font-display text-xl tracking-tight">NeuroTrace</span>
           </Link>
-          <button
-            onClick={signOut}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-            Sign out
-          </button>
+          <div className="flex items-center gap-1">
+            <NotificationsBellLink />
+            <button
+              onClick={signOut}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
       <main id="main-content" className="mx-auto max-w-3xl px-5 py-6">
@@ -81,5 +100,24 @@ function AuthedLayout() {
       </main>
       <LegalFooter />
     </div>
+  );
+}
+
+function NotificationsBellLink() {
+  const { data } = useUnreadNotificationsCount();
+  const count = data?.count ?? 0;
+  return (
+    <Link
+      to="/notifications"
+      aria-label={count > 0 ? `Notifications, ${count} unread` : "Notifications"}
+      className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-2 py-2 text-muted-foreground hover:text-foreground"
+    >
+      <Bell className="h-5 w-5" aria-hidden="true" />
+      {count > 0 && (
+        <span className="absolute right-1 top-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold text-destructive-foreground">
+          {count > 9 ? "9+" : count}
+        </span>
+      )}
+    </Link>
   );
 }

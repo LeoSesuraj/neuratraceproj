@@ -32,6 +32,11 @@ import { GuideSheet, BrowseGuidesSheet } from "@/components/guide-sheet";
 import { AIComingSoon } from "@/components/ai-coming-soon";
 import { ResidentMessageThread } from "@/components/resident-message-thread";
 import { listResidentMessages } from "@/lib/messages.functions";
+import { markResidentNotificationsRead } from "@/lib/notifications.functions";
+import {
+  NOTIFICATIONS_KEY,
+  UNREAD_NOTIFICATIONS_KEY,
+} from "@/hooks/use-notifications";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/_authenticated/resident/$residentId")({
@@ -88,6 +93,20 @@ function ResidentFeed() {
       cancelled = true;
     };
   }, []);
+
+  // Mark notifications for this resident read when the thread is being viewed.
+  useEffect(() => {
+    const viewing = tab === "messages" || familyChatOpen;
+    if (!viewing) return;
+    markResidentNotificationsRead({ data: { resident_id: residentId } })
+      .then(() => {
+        qc.invalidateQueries({ queryKey: UNREAD_NOTIFICATIONS_KEY });
+        qc.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });
+      })
+      .catch(() => {
+        /* ignore */
+      });
+  }, [tab, familyChatOpen, residentId, qc]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["resident", residentId],
