@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/legal/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — NeuroTrace" },
+      { title: "Privacy Policy, NeuroTrace" },
       {
         name: "description",
         content:
@@ -34,16 +34,16 @@ function PrivacyPage() {
       <Section title="What data we collect">
         <ul className="list-disc space-y-1 pl-5">
           <li>
-            <strong>Account information</strong> — your email address and
+            <strong>Account information</strong>, your email address and
             authentication credentials when you create an account.
           </li>
           <li>
-            <strong>Usage data</strong> — basic information about how you
+            <strong>Usage data</strong>, basic information about how you
             interact with the service (pages visited, features used) used to
             keep the product working reliably.
           </li>
           <li>
-            <strong>AI Coach conversations</strong> — for logged-in users, the
+            <strong>AI Coach conversations</strong>, for logged-in users, the
             content of Coach conversations is stored so you can return to them.
             Unauthenticated visitors' conversations stay only in their browser.
           </li>
@@ -63,13 +63,13 @@ function PrivacyPage() {
         <p>We rely on a small set of trusted vendors to run NeuroTrace:</p>
         <ul className="list-disc space-y-1 pl-5">
           <li>
-            <strong>Supabase</strong> — database and authentication.
+            <strong>Supabase</strong>, database and authentication.
           </li>
           <li>
-            <strong>Vercel</strong> — application hosting.
+            <strong>Vercel</strong>, application hosting.
           </li>
           <li>
-            <strong>Anthropic</strong> — AI model provider that powers the AI
+            <strong>Anthropic</strong>, AI model provider that powers the AI
             Coach.
           </li>
         </ul>
@@ -88,8 +88,8 @@ function PrivacyPage() {
         <p>
           You may request access to, correction of, or deletion of your
           personal data at any time. Email{" "}
-          <a href="mailto:privacy@neurotrace.app" className="text-primary hover:underline">
-            privacy@neurotrace.app
+          <a href="mailto:neurotraceadmin@gmail.com" className="text-primary hover:underline">
+            neurotraceadmin@gmail.com
           </a>{" "}
           and we'll respond within a reasonable timeframe.
         </p>

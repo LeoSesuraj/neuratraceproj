@@ -15,7 +15,7 @@ import {
 export const Route = createFileRoute("/learn/journey")({
   head: () => ({
     meta: [
-      { title: "Journey — NeuroTrace" },
+      { title: "Journey, NeuroTrace" },
       {
         name: "description",
         content:
@@ -37,7 +37,7 @@ function JourneyPage() {
         <h1 className="mt-2 text-3xl sm:text-4xl">A road map, not a forecast.</h1>
         <p className="mt-3 max-w-xl text-muted-foreground">
           Dementia unfolds differently for every person. This timeline helps you
-          understand the broad shape of what's ahead — so the changes feel a
+          understand the broad shape of what's ahead, so the changes feel a
           little less unexpected.
         </p>
       </header>

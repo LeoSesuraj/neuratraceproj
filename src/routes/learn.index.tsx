@@ -13,7 +13,7 @@ import {
 export const Route = createFileRoute("/learn/")({
   head: () => ({
     meta: [
-      { title: "NeuroTrace — A gentle companion for dementia caregivers" },
+      { title: "NeuroTrace, A gentle companion for dementia caregivers" },
       {
         name: "description",
         content:
@@ -69,7 +69,7 @@ function HomePage() {
         </h1>
         <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
           NeuroTrace helps families of people living with Alzheimer's and dementia
-          understand the behaviors, find the right words, and feel less alone — one
+          understand the behaviors, find the right words, and feel less alone, one
           gentle moment at a time.
         </p>
 
@@ -169,8 +169,8 @@ function HomePage() {
             <h2 className="text-2xl">Ask anything, anytime.</h2>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
               The NeuroTrace Coach is trained to help you navigate hard caregiving
-              moments — "My mom keeps asking for her mother," "My dad doesn't
-              recognize me anymore" — with calm, practical guidance.
+              moments, "My mom keeps asking for her mother," "My dad doesn't
+              recognize me anymore", with calm, practical guidance.
             </p>
             <Link
               to="/learn/coach"

@@ -8,7 +8,7 @@ import { ArrowRight, MessageCircleHeart, Search, Star, X } from "lucide-react";
 export const Route = createFileRoute("/learn/connect/")({
   head: () => ({
     meta: [
-      { title: "Connect — NeuroTrace" },
+      { title: "Connect, NeuroTrace" },
       {
         name: "description",
         content:

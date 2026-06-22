@@ -124,7 +124,7 @@ function OverviewTab({ facilityId }: { facilityId: string | null }) {
 }
 
 function relTime(iso: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const ms = Date.now() - new Date(iso).getTime();
   if (ms < 60_000) return "just now";
   const m = Math.floor(ms / 60_000);
@@ -200,8 +200,8 @@ function UsersTab() {
                 return (
                   <tr key={u.user_id} className="border-t border-border align-top">
                     <td className="px-4 py-3">
-                      <div className="font-medium">{u.name ?? "—"}</div>
-                      <div className="text-xs text-muted-foreground">{u.email ?? "—"}</div>
+                      <div className="font-medium">{u.name ?? "-"}</div>
+                      <div className="text-xs text-muted-foreground">{u.email ?? "-"}</div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
@@ -224,7 +224,7 @@ function UsersTab() {
                     </td>
                     <td className="px-4 py-3 text-xs">
                       {u.family_residents.length === 0
-                        ? "—"
+                        ? "-"
                         : u.family_residents.map((r) => r.name).join(", ")}
                     </td>
                     <td className="px-4 py-3">
@@ -313,17 +313,17 @@ function AccessLogTab() {
             <tbody>
               {events.map((e) => (
                 <tr key={e.id} className="border-t border-border">
-                  <td className="px-4 py-2">{e.email ?? "—"}</td>
+                  <td className="px-4 py-2">{e.email ?? "-"}</td>
                   <td className="px-4 py-2 text-xs">
                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-primary">
-                      {e.role ?? "—"}
+                      {e.role ?? "-"}
                     </span>
                   </td>
                   <td className="px-4 py-2 text-xs text-muted-foreground">
                     {new Date(e.created_at).toLocaleString()}
                   </td>
                   <td className="px-4 py-2 font-mono text-xs text-muted-foreground">
-                    {e.ip ?? "—"}
+                    {e.ip ?? "-"}
                   </td>
                 </tr>
               ))}
@@ -455,7 +455,7 @@ function ResidentsTab() {
                 onChange={(e) => setStage(e.target.value as typeof stage)}
                 className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
               >
-                <option value="">—</option>
+                <option value="">-</option>
                 <option value="early">Early</option>
                 <option value="middle">Middle</option>
                 <option value="late">Late</option>
@@ -555,7 +555,7 @@ function ResidentCard({
           </p>
           <p className="text-xs text-muted-foreground">
             {resident.room_number ? `Room ${resident.room_number}` : "No room"} ·{" "}
-            {resident.care_stage ? `${resident.care_stage} stage` : "Stage —"}
+            {resident.care_stage ? `${resident.care_stage} stage` : "Stage -"}
             {resident.dementia_type && ` · ${resident.dementia_type}`}
           </p>
         </div>
@@ -647,7 +647,7 @@ function ResidentCard({
               >
                 <span>
                   {f.name && <span className="font-medium">{f.name} · </span>}
-                  <span className="text-muted-foreground">{f.email ?? "—"}</span>
+                  <span className="text-muted-foreground">{f.email ?? "-"}</span>
                 </span>
                 <ConfirmDialog
                   title="Remove this family link?"

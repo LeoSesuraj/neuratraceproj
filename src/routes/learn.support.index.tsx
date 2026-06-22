@@ -15,7 +15,7 @@ function SupportIndex() {
         <h1 className="mt-2 text-3xl sm:text-4xl">You matter too.</h1>
         <p className="mt-3 max-w-xl text-muted-foreground">
           Caring for someone with dementia is one of the hardest things a person
-          can do. These resources are for you — your health, your sanity, your
+          can do. These resources are for you, your health, your sanity, your
           permission to set down the weight for a moment.
         </p>
       </header>

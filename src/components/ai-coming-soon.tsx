@@ -1,7 +1,7 @@
 import { MessageCircleHeart, Sparkles } from "lucide-react";
 
 export function AIComingSoon({
-  heading = "AI Coach — Coming Soon",
+  heading = "AI Coach, Coming Soon",
   body = "Personalised AI coaching for caregivers is on its way. Check back soon.",
   compact = false,
 }: {

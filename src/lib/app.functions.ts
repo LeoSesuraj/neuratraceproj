@@ -233,7 +233,7 @@ export const redeemKey = createServerFn({ method: "POST" })
       }
     }
 
-    throw new Error("Key not recognized. Ask for today's key — they refresh at midnight UTC.");
+    throw new Error("Key not recognized. Ask for today's key, they refresh at midnight UTC.");
   });
 
 // ---------- Authenticated ----------

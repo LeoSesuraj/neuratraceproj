@@ -16,7 +16,7 @@ export const VISIT_SUGGESTIONS: Record<"good" | "mixed" | "hard", VisitSuggestio
     },
     {
       title: "Play a simple card game",
-      description: "Choose something easy with short rounds — Go Fish, matching pairs.",
+      description: "Choose something easy with short rounds, Go Fish, matching pairs.",
     },
     {
       title: "Talk about a favorite memory",
@@ -32,7 +32,7 @@ export const VISIT_SUGGESTIONS: Record<"good" | "mixed" | "hard", VisitSuggestio
     },
     {
       title: "Do a simple craft together",
-      description: "Folding, sorting, coloring — gentle hands-on activities.",
+      description: "Folding, sorting, coloring, gentle hands-on activities.",
     },
     {
       title: "Sit outside together",
@@ -44,7 +44,7 @@ export const VISIT_SUGGESTIONS: Record<"good" | "mixed" | "hard", VisitSuggestio
     {
       title: "Sit quietly together",
       description:
-        "Your presence is the gift today — no agenda, no expectations.",
+        "Your presence is the gift today, no agenda, no expectations.",
     },
     {
       title: "Hold their hand",

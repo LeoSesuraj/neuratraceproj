@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/legal/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Service — NeuroTrace" },
+      { title: "Terms of Service, NeuroTrace" },
       {
         name: "description",
         content:
@@ -97,7 +97,7 @@ function TermsPage() {
           To the maximum extent permitted by law, NeuroTrace and its operators
           shall not be liable for any indirect, incidental, special,
           consequential, or punitive damages, or any loss of profits, data, or
-          goodwill, arising from your use of or inability to use the service —
+          goodwill, arising from your use of or inability to use the service -
           even if we have been advised of the possibility of such damages.
         </p>
       </Section>
@@ -113,8 +113,8 @@ function TermsPage() {
       <Section title="Contact">
         <p>
           Questions about these Terms? Email{" "}
-          <a href="mailto:legal@neurotrace.app" className="text-primary hover:underline">
-            legal@neurotrace.app
+          <a href="mailto:neurotraceadmin@gmail.com" className="text-primary hover:underline">
+            neurotraceadmin@gmail.com
           </a>
           .
         </p>

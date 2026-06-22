@@ -3,7 +3,7 @@ import type { UIMessage } from "ai";
 import type { ChatThread } from "./chat-threads";
 import { deriveTitle } from "./chat-threads";
 
-// coach_conversations table — typed access via untyped client cast since the
+// coach_conversations table, typed access via untyped client cast since the
 // table may be added via migration after types.ts was last generated.
 // Columns: id (text, client-generated thread id), user_id, messages jsonb,
 //          created_at, updated_at.
