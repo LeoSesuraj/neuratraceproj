@@ -1,10 +1,14 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/neurotrace-logo.png";
-import { LogOut } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import { LegalFooter } from "@/components/legal-footer";
+import {
+  useNotificationsRealtime,
+  useUnreadNotificationsCount,
+} from "@/hooks/use-notifications";
 
 const INACTIVITY_MS = 60 * 60 * 1000; // 60 minutes
 const ACTIVITY_EVENTS = ["mousedown", "keydown", "touchstart", "scroll"] as const;
