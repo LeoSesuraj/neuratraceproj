@@ -21,6 +21,7 @@ export const listMyNotifications = createServerFn({ method: "GET" })
     const { data, error } = await supabase
       .from("notifications")
       .select("id, user_id, resident_id, type, message, read, created_at")
+      .eq("user_id", context.userId)
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
@@ -53,6 +54,7 @@ export const countUnreadNotifications = createServerFn({ method: "GET" })
     const { count, error } = await supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
+      .eq("user_id", context.userId)
       .eq("read", false);
     if (error) throw new Error(error.message);
     return { count: count ?? 0 };
