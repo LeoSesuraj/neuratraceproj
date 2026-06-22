@@ -110,6 +110,7 @@ function ThreadChat({ threadId }: { threadId: string }) {
 
   const [input, setInput] = useState("");
   const isLoading = status === "submitted" || status === "streaming";
+  const keyboardOffset = useVisualViewportOffset();
 
   const handleSubmit = (msg: PromptInputMessage) => {
     const text = (msg.text ?? input).trim();
