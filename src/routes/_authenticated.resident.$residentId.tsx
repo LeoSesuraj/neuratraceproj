@@ -196,13 +196,24 @@ function ResidentFeed() {
         </div>
       </header>
 
-      <div role="tablist" aria-label="Resident sections" className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
+      <div
+        role="tablist"
+        aria-label="Resident sections"
+        className={`mt-5 grid gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft ${
+          canEdit ? "grid-cols-3" : "grid-cols-2"
+        }`}
+      >
         <TabButton active={tab === "activity"} onClick={() => setTab("activity")}>
           Activity
         </TabButton>
         <TabButton active={tab === "learn"} onClick={() => setTab("learn")}>
           <BookOpen className="h-4 w-4" aria-hidden /> Learn
         </TabButton>
+        {canEdit && (
+          <TabButton active={tab === "messages"} onClick={() => setTab("messages")}>
+            <StaffMessagesTabLabel residentId={residentId} active={tab === "messages"} />
+          </TabButton>
+        )}
       </div>
 
       {tab === "activity" && (<>
@@ -415,7 +426,62 @@ function ResidentFeed() {
         />
       )}
 
+      {tab === "messages" && canEdit && (
+        <section className="mt-5 flex h-[70vh] min-h-[480px] flex-col rounded-3xl border border-border bg-card p-4 shadow-soft">
+          <div className="mb-3">
+            <h2 className="text-lg">Messages with family</h2>
+            <p className="text-sm text-muted-foreground">
+              Visible to {resident.name.split(" ")[0]}'s family and to staff at this facility.
+            </p>
+          </div>
+          <ResidentMessageThread
+            residentId={residentId}
+            currentUserId={currentUserId}
+            isFamily={false}
+          />
+        </section>
+      )}
+
       {editingBehaviors && canEdit && (
+        <BehaviorsEditor
+          residentId={residentId}
+          initial={resident.behaviors ?? []}
+          onClose={() => setEditingBehaviors(false)}
+        />
+      )}
+
+      {!canEdit && (
+        <>
+          <button
+            type="button"
+            onClick={() => setFamilyChatOpen(true)}
+            aria-label="Message the care team"
+            className="fixed bottom-20 right-5 z-30 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground shadow-lift transition-transform hover:-translate-y-0.5 sm:bottom-6"
+          >
+            <MessageCircle className="h-5 w-5" />
+            Message care team
+            <FamilyUnreadDot residentId={residentId} open={familyChatOpen} />
+          </button>
+          <Sheet open={familyChatOpen} onOpenChange={setFamilyChatOpen}>
+            <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-md">
+              <SheetHeader className="border-b border-border px-5 py-4 text-left">
+                <SheetTitle className="text-xl">Care team chat</SheetTitle>
+                <SheetDescription>
+                  Messages with {resident.name.split(" ")[0]}'s care team. Replies appear live.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="flex-1 min-h-0 px-5 py-4">
+                <ResidentMessageThread
+                  residentId={residentId}
+                  currentUserId={currentUserId}
+                  isFamily={true}
+                  autoFocus
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </>
+      )}
         <BehaviorsEditor
           residentId={residentId}
           initial={resident.behaviors ?? []}
