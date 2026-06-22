@@ -74,18 +74,21 @@ BEGIN
       AND ur.user_id <> NEW.sender_id;
   ELSE
     -- Staff or admin sent → notify family linked to that resident.
-    -- Require the recipient to actually hold the 'family' role in user_roles
-    -- so dual-role staff accounts that also appear in resident_family
-    -- aren't notified as if they were the family.
+    -- Drive from active family roles first, then confirm the user is linked
+    -- to this resident. This prevents admin/staff accounts that appear in
+    -- resident_family from being notified as family recipients.
     INSERT INTO public.notifications (user_id, resident_id, type, message)
-    SELECT DISTINCT rf.user_id, NEW.resident_id, 'new_message', v_preview
-    FROM public.resident_family rf
-    JOIN public.user_roles ur
-      ON ur.user_id = rf.user_id
-     AND ur.role = 'family'
-     AND ur.deactivated_at IS NULL
-    WHERE rf.resident_id = NEW.resident_id
-      AND rf.user_id <> NEW.sender_id;
+    SELECT DISTINCT ur.user_id, NEW.resident_id, 'new_message', v_preview
+    FROM public.user_roles ur
+    WHERE ur.role = 'family'
+      AND ur.facility_id = v_facility
+      AND ur.deactivated_at IS NULL
+      AND ur.user_id <> NEW.sender_id
+      AND EXISTS (
+        SELECT 1 FROM public.resident_family rf
+        WHERE rf.resident_id = NEW.resident_id
+          AND rf.user_id = ur.user_id
+      );
   END IF;
 
   RETURN NEW;
