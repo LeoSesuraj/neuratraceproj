@@ -1,0 +1,106 @@
+-- Run this in Supabase SQL editor (Lovable Cloud > SQL).
+-- Adds per-user notifications, with a trigger that fans out new
+-- resident_messages to the appropriate staff/admin/family recipients.
+
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  resident_id UUID REFERENCES public.residents(id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  message TEXT,
+  read BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS notifications_user_read_created_idx
+  ON public.notifications (user_id, read, created_at DESC);
+
+-- Users can read and update (mark read) their own notifications only.
+-- Inserts are performed by the trigger function below (SECURITY DEFINER).
+GRANT SELECT, UPDATE ON public.notifications TO authenticated;
+GRANT ALL ON public.notifications TO service_role;
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users read own notifications" ON public.notifications;
+CREATE POLICY "Users read own notifications"
+  ON public.notifications
+  FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users update own notifications" ON public.notifications;
+CREATE POLICY "Users update own notifications"
+  ON public.notifications
+  FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- No INSERT or DELETE policies — only the trigger (security definer) writes here.
+
+-- Trigger: on every resident_messages insert, fan out notifications.
+CREATE OR REPLACE FUNCTION public.notify_on_resident_message()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_facility UUID;
+  v_sender_is_family BOOLEAN;
+  v_preview TEXT;
+BEGIN
+  SELECT facility_id INTO v_facility
+  FROM public.residents
+  WHERE id = NEW.resident_id;
+
+  SELECT EXISTS(
+    SELECT 1 FROM public.resident_family
+    WHERE resident_id = NEW.resident_id
+      AND user_id = NEW.sender_id
+  ) INTO v_sender_is_family;
+
+  v_preview := substring(NEW.content FROM 1 FOR 200);
+
+  IF v_sender_is_family THEN
+    -- Family sent → notify staff and admin at that facility (skip the sender).
+    INSERT INTO public.notifications (user_id, resident_id, type, message)
+    SELECT ur.user_id, NEW.resident_id, 'new_message', v_preview
+    FROM public.user_roles ur
+    WHERE ur.facility_id = v_facility
+      AND ur.role IN ('staff', 'admin')
+      AND ur.deactivated_at IS NULL
+      AND ur.user_id <> NEW.sender_id;
+  ELSE
+    -- Staff or admin sent → notify all family linked to that resident.
+    INSERT INTO public.notifications (user_id, resident_id, type, message)
+    SELECT rf.user_id, NEW.resident_id, 'new_message', v_preview
+    FROM public.resident_family rf
+    WHERE rf.resident_id = NEW.resident_id
+      AND rf.user_id <> NEW.sender_id;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS resident_messages_notify ON public.resident_messages;
+CREATE TRIGGER resident_messages_notify
+  AFTER INSERT ON public.resident_messages
+  FOR EACH ROW
+  EXECUTE FUNCTION public.notify_on_resident_message();
+
+-- Enable Supabase Realtime so the bell badge updates live.
+ALTER TABLE public.notifications REPLICA IDENTITY FULL;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'notifications'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+  END IF;
+END $$;
