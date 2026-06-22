@@ -230,7 +230,11 @@ function ResidentFeed() {
         </TabButton>
         {canEdit && (
           <TabButton active={tab === "messages"} onClick={() => setTab("messages")}>
-            <StaffMessagesTabLabel residentId={residentId} active={tab === "messages"} />
+            <StaffMessagesTabLabel
+              residentId={residentId}
+              active={tab === "messages"}
+              currentUserId={currentUserId}
+            />
           </TabButton>
         )}
       </div>
@@ -479,7 +483,11 @@ function ResidentFeed() {
           >
             <MessageCircle className="h-5 w-5" />
             Message care team
-            <FamilyUnreadDot residentId={residentId} open={familyChatOpen} />
+            <FamilyUnreadDot
+              residentId={residentId}
+              open={familyChatOpen}
+              currentUserId={currentUserId}
+            />
           </button>
           <Sheet open={familyChatOpen} onOpenChange={setFamilyChatOpen}>
             <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-md">
