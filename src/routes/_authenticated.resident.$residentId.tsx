@@ -32,6 +32,11 @@ import { GuideSheet, BrowseGuidesSheet } from "@/components/guide-sheet";
 import { AIComingSoon } from "@/components/ai-coming-soon";
 import { ResidentMessageThread } from "@/components/resident-message-thread";
 import { listResidentMessages } from "@/lib/messages.functions";
+import { markResidentNotificationsRead } from "@/lib/notifications.functions";
+import {
+  NOTIFICATIONS_KEY,
+  UNREAD_NOTIFICATIONS_KEY,
+} from "@/hooks/use-notifications";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/_authenticated/resident/$residentId")({
