@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, MessageCircleHeart, Pencil, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, MessageCircle, MessageCircleHeart, Pencil, Sparkles, Trash2 } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -30,6 +30,9 @@ import { BehaviorChecklist } from "@/components/behavior-checklist";
 import { BEHAVIOR_OPTIONS, suggestedGuidesFor } from "@/lib/behaviors";
 import { GuideSheet, BrowseGuidesSheet } from "@/components/guide-sheet";
 import { AIComingSoon } from "@/components/ai-coming-soon";
+import { ResidentMessageThread } from "@/components/resident-message-thread";
+import { listResidentMessages } from "@/lib/messages.functions";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/_authenticated/resident/$residentId")({
   component: ResidentFeed,
@@ -71,8 +74,20 @@ function ResidentFeed() {
   const qc = useQueryClient();
   const [visiting, setVisiting] = useState(false);
   const [editing, setEditing] = useState<"note" | "mood" | "survey" | null>(null);
-  const [tab, setTab] = useState<"activity" | "learn">("activity");
+  const [tab, setTab] = useState<"activity" | "learn" | "messages">("activity");
   const [editingBehaviors, setEditingBehaviors] = useState(false);
+  const [familyChatOpen, setFamilyChatOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled) setCurrentUserId(data.user?.id ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const { data, isLoading } = useQuery({
     queryKey: ["resident", residentId],
@@ -181,13 +196,24 @@ function ResidentFeed() {
         </div>
       </header>
 
-      <div role="tablist" aria-label="Resident sections" className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
+      <div
+        role="tablist"
+        aria-label="Resident sections"
+        className={`mt-5 grid gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft ${
+          canEdit ? "grid-cols-3" : "grid-cols-2"
+        }`}
+      >
         <TabButton active={tab === "activity"} onClick={() => setTab("activity")}>
           Activity
         </TabButton>
         <TabButton active={tab === "learn"} onClick={() => setTab("learn")}>
           <BookOpen className="h-4 w-4" aria-hidden /> Learn
         </TabButton>
+        {canEdit && (
+          <TabButton active={tab === "messages"} onClick={() => setTab("messages")}>
+            <StaffMessagesTabLabel residentId={residentId} active={tab === "messages"} />
+          </TabButton>
+        )}
       </div>
 
       {tab === "activity" && (<>
@@ -400,12 +426,61 @@ function ResidentFeed() {
         />
       )}
 
+      {tab === "messages" && canEdit && (
+        <section className="mt-5 flex h-[70vh] min-h-[480px] flex-col rounded-3xl border border-border bg-card p-4 shadow-soft">
+          <div className="mb-3">
+            <h2 className="text-lg">Messages with family</h2>
+            <p className="text-sm text-muted-foreground">
+              Visible to {resident.name.split(" ")[0]}'s family and to staff at this facility.
+            </p>
+          </div>
+          <ResidentMessageThread
+            residentId={residentId}
+            currentUserId={currentUserId}
+            isFamily={false}
+          />
+        </section>
+      )}
+
       {editingBehaviors && canEdit && (
         <BehaviorsEditor
           residentId={residentId}
           initial={resident.behaviors ?? []}
           onClose={() => setEditingBehaviors(false)}
         />
+      )}
+
+      {!canEdit && (
+        <>
+          <button
+            type="button"
+            onClick={() => setFamilyChatOpen(true)}
+            aria-label="Message the care team"
+            className="fixed bottom-20 right-5 z-30 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground shadow-lift transition-transform hover:-translate-y-0.5 sm:bottom-6"
+          >
+            <MessageCircle className="h-5 w-5" />
+            Message care team
+            <FamilyUnreadDot residentId={residentId} open={familyChatOpen} />
+          </button>
+          <Sheet open={familyChatOpen} onOpenChange={setFamilyChatOpen}>
+            <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-md">
+              <SheetHeader className="border-b border-border px-5 py-4 text-left">
+                <SheetTitle className="text-xl">Care team chat</SheetTitle>
+                <SheetDescription>
+                  Messages with {resident.name.split(" ")[0]}'s care team. Replies appear live.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="flex-1 min-h-0 px-5 py-4">
+                <ResidentMessageThread
+                  residentId={residentId}
+                  currentUserId={currentUserId}
+                  isFamily={true}
+                  autoFocus
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </>
       )}
 
       {visiting && (
@@ -994,3 +1069,93 @@ function BehaviorsEditor({
     </div>
   );
 }
+
+function lastSeenKey(residentId: string) {
+  return `nt.resident-messages.lastSeen.${residentId}`;
+}
+
+function useMessagesQuery(residentId: string) {
+  return useQuery({
+    queryKey: ["resident-messages", residentId] as const,
+    queryFn: () => listResidentMessages({ data: { resident_id: residentId } }),
+    refetchOnWindowFocus: false,
+  });
+}
+
+function StaffMessagesTabLabel({
+  residentId,
+  active,
+}: {
+  residentId: string;
+  active: boolean;
+}) {
+  const { data: messages = [] } = useMessagesQuery(residentId);
+  const latestIso = messages.length > 0 ? messages[messages.length - 1].created_at : null;
+
+  useEffect(() => {
+    if (active && latestIso) {
+      try {
+        localStorage.setItem(lastSeenKey(residentId), latestIso);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [active, latestIso, residentId]);
+
+  const lastSeen = (() => {
+    try {
+      return localStorage.getItem(lastSeenKey(residentId));
+    } catch {
+      return null;
+    }
+  })();
+
+  const unread =
+    !active && latestIso && (!lastSeen || latestIso > lastSeen)
+      ? messages.filter((m) => !lastSeen || m.created_at > lastSeen).length
+      : 0;
+
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <MessageCircle className="h-4 w-4" aria-hidden /> Messages
+      {unread > 0 && (
+        <span className="ml-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold text-destructive-foreground">
+          {unread > 9 ? "9+" : unread}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function FamilyUnreadDot({ residentId, open }: { residentId: string; open: boolean }) {
+  const { data: messages = [] } = useMessagesQuery(residentId);
+  const latestIso = messages.length > 0 ? messages[messages.length - 1].created_at : null;
+
+  useEffect(() => {
+    if (open && latestIso) {
+      try {
+        localStorage.setItem(lastSeenKey(residentId), latestIso);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [open, latestIso, residentId]);
+
+  const lastSeen = (() => {
+    try {
+      return localStorage.getItem(lastSeenKey(residentId));
+    } catch {
+      return null;
+    }
+  })();
+
+  const hasUnread = !open && latestIso && (!lastSeen || latestIso > lastSeen);
+  if (!hasUnread) return null;
+  return (
+    <span
+      aria-label="New messages"
+      className="ml-0.5 inline-block h-2.5 w-2.5 rounded-full bg-warm ring-2 ring-primary"
+    />
+  );
+}
+
