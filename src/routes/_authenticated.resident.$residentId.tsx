@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Sparkles, Trash2, Pencil } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, MessageCircleHeart, Pencil, Sparkles, Trash2 } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -21,10 +21,13 @@ import {
   submitWeeklySurvey,
   uploadResidentPhoto,
   createPhotoPost,
+  updateResidentBehaviors,
 } from "@/lib/app.functions";
 import { VISIT_SUGGESTIONS } from "@/lib/visit-mode";
 import { supabase } from "@/integrations/supabase/client";
 import { FilePicker } from "@/components/file-picker";
+import { BehaviorChecklist } from "@/components/behavior-checklist";
+import { BEHAVIOR_OPTIONS, suggestedGuidesFor } from "@/lib/behaviors";
 
 export const Route = createFileRoute("/_authenticated/resident/$residentId")({
   component: ResidentFeed,
