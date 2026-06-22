@@ -1,6 +1,6 @@
 -- Run this in Supabase SQL editor (Lovable Cloud > SQL).
 -- Adds per-user notifications, with a trigger that fans out new
--- resident_messages to the appropriate staff/admin/family recipients.
+-- resident_messages only between staff and family recipients.
 
 CREATE TABLE IF NOT EXISTS public.notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -48,7 +48,9 @@ SET search_path = public
 AS $$
 DECLARE
   v_facility UUID;
+  v_sender_is_admin BOOLEAN;
   v_sender_is_family BOOLEAN;
+  v_sender_is_staff BOOLEAN;
   v_preview TEXT;
 BEGIN
   SELECT facility_id INTO v_facility
@@ -56,14 +58,38 @@ BEGIN
   WHERE id = NEW.resident_id;
 
   SELECT EXISTS(
-    SELECT 1 FROM public.resident_family
-    WHERE resident_id = NEW.resident_id
-      AND user_id = NEW.sender_id
+    SELECT 1 FROM public.user_roles ur
+    WHERE ur.user_id = NEW.sender_id
+      AND ur.facility_id = v_facility
+      AND ur.role = 'admin'
+      AND ur.deactivated_at IS NULL
+  ) INTO v_sender_is_admin;
+
+  SELECT EXISTS(
+    SELECT 1
+    FROM public.user_roles ur
+    WHERE ur.user_id = NEW.sender_id
+      AND ur.facility_id = v_facility
+      AND ur.role = 'family'
+      AND ur.deactivated_at IS NULL
+      AND EXISTS (
+        SELECT 1 FROM public.resident_family rf
+        WHERE rf.resident_id = NEW.resident_id
+          AND rf.user_id = ur.user_id
+      )
   ) INTO v_sender_is_family;
+
+  SELECT EXISTS(
+    SELECT 1 FROM public.user_roles ur
+    WHERE ur.user_id = NEW.sender_id
+      AND ur.facility_id = v_facility
+      AND ur.role = 'staff'
+      AND ur.deactivated_at IS NULL
+  ) INTO v_sender_is_staff;
 
   v_preview := substring(NEW.content FROM 1 FOR 200);
 
-  IF v_sender_is_family THEN
+  IF v_sender_is_family AND NOT v_sender_is_admin THEN
     -- Family sent → notify staff at that facility (skip the sender, exclude admins).
     INSERT INTO public.notifications (user_id, resident_id, type, message)
     SELECT DISTINCT ur.user_id, NEW.resident_id, 'new_message', v_preview
@@ -78,8 +104,8 @@ BEGIN
           AND ur2.role = 'admin'
           AND ur2.deactivated_at IS NULL
       );
-  ELSE
-    -- Staff or admin sent → notify family linked to that resident.
+  ELSIF v_sender_is_staff AND NOT v_sender_is_admin THEN
+    -- Staff sent → notify family linked to that resident (never admins).
     -- Drive from active family roles first, then confirm the user is linked
     -- to this resident. This prevents admin/staff accounts that appear in
     -- resident_family from being notified as family recipients.
@@ -90,6 +116,13 @@ BEGIN
       AND ur.facility_id = v_facility
       AND ur.deactivated_at IS NULL
       AND ur.user_id <> NEW.sender_id
+      AND NOT EXISTS (
+        SELECT 1 FROM public.user_roles admin_role
+        WHERE admin_role.user_id = ur.user_id
+          AND admin_role.facility_id = v_facility
+          AND admin_role.role = 'admin'
+          AND admin_role.deactivated_at IS NULL
+      )
       AND EXISTS (
         SELECT 1 FROM public.resident_family rf
         WHERE rf.resident_id = NEW.resident_id
@@ -106,6 +139,14 @@ CREATE TRIGGER resident_messages_notify
   AFTER INSERT ON public.resident_messages
   FOR EACH ROW
   EXECUTE FUNCTION public.notify_on_resident_message();
+
+-- Remove previously-created message notifications for admins so their UI is clean.
+DELETE FROM public.notifications n
+USING public.user_roles ur
+WHERE n.user_id = ur.user_id
+  AND n.type = 'new_message'
+  AND ur.role = 'admin'
+  AND ur.deactivated_at IS NULL;
 
 -- Enable Supabase Realtime so the bell badge updates live.
 ALTER TABLE public.notifications REPLICA IDENTITY FULL;
