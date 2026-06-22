@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FilePicker } from "@/components/file-picker";
 import { BehaviorChecklist } from "@/components/behavior-checklist";
 import { BEHAVIOR_OPTIONS, suggestedGuidesFor } from "@/lib/behaviors";
+import { GuideSheet, BrowseGuidesSheet } from "@/components/guide-sheet";
 
 export const Route = createFileRoute("/_authenticated/resident/$residentId")({
   component: ResidentFeed,
