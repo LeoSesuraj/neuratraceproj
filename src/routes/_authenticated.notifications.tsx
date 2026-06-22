@@ -25,6 +25,7 @@ function formatTime(iso: string) {
 
 function NotificationsPage() {
   const qc = useQueryClient();
+  const router = useRouter();
   const { data: notifications = [], isLoading } = useMyNotifications();
 
   const markAll = useMutation({
