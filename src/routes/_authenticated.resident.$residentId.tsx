@@ -69,6 +69,8 @@ function ResidentFeed() {
   const qc = useQueryClient();
   const [visiting, setVisiting] = useState(false);
   const [editing, setEditing] = useState<"note" | "mood" | "survey" | null>(null);
+  const [tab, setTab] = useState<"activity" | "learn">("activity");
+  const [editingBehaviors, setEditingBehaviors] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["resident", residentId],
