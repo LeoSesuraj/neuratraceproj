@@ -533,6 +533,8 @@ function ResidentsTab() {
             onUnlinkFamily={(user_id) =>
               unlinkFam.mutateAsync({ resident_id: r.id, user_id })
             }
+            onUpdate={(patch) => update.mutateAsync({ id: r.id, ...patch })}
+            updating={update.isPending}
           />
         ))}
       </ul>
@@ -546,6 +548,7 @@ type ResidentRow = {
   room_number: string | null;
   care_stage: string | null;
   dementia_type: string | null;
+  behaviors: string[] | null;
   deactivated_at: string | null;
   deactivated_reason: string | null;
   family: { user_id: string; email: string | null; name: string | null }[];
@@ -557,12 +560,20 @@ function ResidentCard({
   onReactivate,
   onLinkFamily,
   onUnlinkFamily,
+  onUpdate,
+  updating,
 }: {
   resident: ResidentRow;
   onDeactivate: () => Promise<unknown>;
   onReactivate: () => Promise<unknown>;
   onLinkFamily: (email: string) => Promise<unknown>;
   onUnlinkFamily: (user_id: string) => Promise<unknown>;
+  onUpdate: (patch: {
+    room_number?: string | null;
+    care_stage?: "early" | "middle" | "late" | null;
+    behaviors?: string[];
+  }) => Promise<unknown>;
+  updating: boolean;
 }) {
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkEmail, setLinkEmail] = useState("");
