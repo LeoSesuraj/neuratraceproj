@@ -14,6 +14,7 @@ import {
   Pause,
   Play,
   Link2Off,
+  Pencil,
 } from "lucide-react";
 import { getFacilityStaffKey, getMyRole } from "@/lib/app.functions";
 import {
@@ -24,6 +25,7 @@ import {
   reactivateUser,
   removeUser,
   adminCreateResident,
+  adminUpdateResident,
   deactivateResident,
   reactivateResident,
   linkFamilyByEmail,
@@ -32,6 +34,8 @@ import {
 import { KeyCard } from "@/components/key-card";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { BetaWarningBar } from "@/components/beta-notice";
+import { BehaviorChecklist } from "@/components/behavior-checklist";
+import { BEHAVIOR_OPTIONS } from "@/lib/behaviors";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminPage,
