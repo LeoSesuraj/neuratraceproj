@@ -194,6 +194,7 @@ export function ResidentMessageThread({
         >
           <Send className="h-5 w-5" />
         </button>
+        </div>
       </form>
       {send.isError && (
         <p className="mt-2 text-xs text-destructive">
