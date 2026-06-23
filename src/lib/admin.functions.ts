@@ -297,7 +297,7 @@ export const listFacilityResidents = createServerFn({ method: "GET" })
     const db = await loose();
     const { data, error } = await db
       .from("residents")
-      .select("id, name, room_number, care_stage, dementia_type, deactivated_at, deactivated_reason, created_at")
+      .select("id, name, room_number, care_stage, dementia_type, behaviors, deactivated_at, deactivated_reason, created_at")
       .eq("facility_id", facilityId)
       .order("name");
     if (error) throw new Error(error.message);
@@ -307,6 +307,7 @@ export const listFacilityResidents = createServerFn({ method: "GET" })
       room_number: string | null;
       care_stage: string | null;
       dementia_type: string | null;
+      behaviors: string[] | null;
       deactivated_at: string | null;
       deactivated_reason: string | null;
       created_at: string;
@@ -342,6 +343,7 @@ export const adminCreateResident = createServerFn({ method: "POST" })
         name: z.string().trim().min(1).max(120),
         room_number: z.string().trim().max(40).optional().or(z.literal("")),
         care_stage: z.enum(["early", "middle", "late", ""]).optional(),
+        behaviors: z.array(z.string()).optional(),
       })
       .parse(d),
   )
@@ -356,6 +358,7 @@ export const adminCreateResident = createServerFn({ method: "POST" })
         facility_id: facilityId,
         room_number: data.room_number || null,
         care_stage: data.care_stage || null,
+        behaviors: data.behaviors ?? [],
       })
       .select()
       .single();
@@ -372,6 +375,7 @@ export const adminUpdateResident = createServerFn({ method: "POST" })
         name: z.string().trim().min(1).max(120).optional(),
         room_number: z.string().trim().max(40).nullable().optional(),
         care_stage: z.enum(["early", "middle", "late"]).nullable().optional(),
+        behaviors: z.array(z.string()).optional(),
       })
       .parse(d),
   )
