@@ -352,18 +352,33 @@ function ResidentsTab() {
   const [name, setName] = useState("");
   const [room, setRoom] = useState("");
   const [stage, setStage] = useState<"" | "early" | "middle" | "late">("");
+  const [behaviors, setBehaviors] = useState<string[]>([]);
 
   const create = useMutation({
     mutationFn: () =>
       adminCreateResident({
-        data: { name, room_number: room, care_stage: stage || undefined },
+        data: { name, room_number: room, care_stage: stage || undefined, behaviors },
       }),
     onSuccess: () => {
       toast.success("Resident added.");
       setName("");
       setRoom("");
       setStage("");
+      setBehaviors([]);
       setCreating(false);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const update = useMutation({
+    mutationFn: (vars: {
+      id: string;
+      room_number?: string | null;
+      care_stage?: "early" | "middle" | "late" | null;
+      behaviors?: string[];
+    }) => adminUpdateResident({ data: vars }),
+    onSuccess: () => {
+      toast.success("Resident updated.");
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
