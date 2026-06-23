@@ -100,6 +100,7 @@ function AuthedLayout() {
         <Outlet />
       </main>
       <LegalFooter />
+      <BetaWelcomeModal />
     </div>
   );
 }
