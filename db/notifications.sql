@@ -134,11 +134,16 @@ CREATE TRIGGER resident_messages_notify
 
 -- Remove previously-created message notifications for admins so their UI is clean.
 DELETE FROM public.notifications n
-USING public.user_roles ur
-WHERE n.user_id = ur.user_id
-  AND n.type = 'new_message'
-  AND ur.role = 'admin'
-  AND ur.deactivated_at IS NULL;
+WHERE n.type = 'new_message'
+  AND (
+    n.user_id = 'fcdc6f34-0707-4ec0-8287-0926645b62b9'
+    OR EXISTS (
+      SELECT 1 FROM public.user_roles ur
+      WHERE ur.user_id = n.user_id
+        AND ur.role = 'admin'
+        AND ur.deactivated_at IS NULL
+    )
+  );
 
 -- Enable Supabase Realtime so the bell badge updates live.
 ALTER TABLE public.notifications REPLICA IDENTITY FULL;
