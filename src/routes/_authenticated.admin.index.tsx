@@ -31,6 +31,7 @@ import {
 } from "@/lib/admin.functions";
 import { KeyCard } from "@/components/key-card";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { BetaWarningBar } from "@/components/beta-notice";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminPage,
