@@ -483,6 +483,15 @@ function ResidentsTab() {
               </select>
             </label>
           </div>
+          <div className="mt-4">
+            <p className="text-sm font-medium">Current behaviors</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Optional — pick any that apply now. You can edit these later.
+            </p>
+            <div className="mt-2">
+              <BehaviorChecklist value={behaviors} onChange={setBehaviors} />
+            </div>
+          </div>
           <div className="mt-3 flex gap-2">
             <button
               type="submit"
@@ -498,6 +507,7 @@ function ResidentsTab() {
                 setName("");
                 setRoom("");
                 setStage("");
+                setBehaviors([]);
               }}
               className="rounded-full border border-border px-4 py-2 text-sm"
             >
