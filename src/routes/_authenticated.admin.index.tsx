@@ -430,6 +430,7 @@ function ResidentsTab() {
           }}
           className="rounded-2xl border border-dashed border-border bg-surface/60 p-4"
         >
+          <BetaWarningBar />
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="block text-sm">
               <span className="font-medium">Name</span>
