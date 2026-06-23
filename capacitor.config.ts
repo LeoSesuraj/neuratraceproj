@@ -9,7 +9,7 @@ const PRODUCTION_URL = "https://CHANGE-ME.vercel.app";
 const config: CapacitorConfig = {
   appId: "app.neurotrace.caregiver",
   appName: "NeuroTrace",
-  webDir: "dist",
+  webDir: "capacitor-shell",
   server: {
     url: PRODUCTION_URL,
     androidScheme: "https",
