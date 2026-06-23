@@ -37,7 +37,7 @@ CREATE POLICY "Users update own notifications"
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
--- No INSERT or DELETE policies — only the trigger (security definer) writes here.
+-- No INSERT or DELETE policies, only the trigger (security definer) writes here.
 
 -- Trigger: on every resident_messages insert, fan out notifications.
 CREATE OR REPLACE FUNCTION public.notify_on_resident_message()
@@ -73,22 +73,14 @@ BEGIN
   ) INTO v_sender_is_staff;
 
   SELECT EXISTS(
-    SELECT 1
-    FROM public.user_roles ur
-    WHERE ur.user_id = NEW.sender_id
-      AND ur.facility_id = v_facility
-      AND ur.role = 'family'
-      AND ur.deactivated_at IS NULL
+    SELECT 1 FROM public.resident_family rf
+    WHERE rf.resident_id = NEW.resident_id
+      AND rf.user_id = NEW.sender_id
       AND NOT EXISTS (
         SELECT 1 FROM public.user_roles elevated_sender_role
-        WHERE elevated_sender_role.user_id = ur.user_id
+        WHERE elevated_sender_role.user_id = rf.user_id
           AND elevated_sender_role.role IN ('admin', 'staff')
           AND elevated_sender_role.deactivated_at IS NULL
-      )
-      AND EXISTS (
-        SELECT 1 FROM public.resident_family rf
-        WHERE rf.resident_id = NEW.resident_id
-          AND rf.user_id = ur.user_id
       )
   ) INTO v_sender_is_family;
 
@@ -98,29 +90,23 @@ BEGIN
     -- Admin accounts are outside staff-family messaging notifications.
     RETURN NEW;
   ELSIF v_sender_is_staff THEN
-    -- Staff sent → notify family-only accounts linked to that resident.
-    -- Family recipients must not also be staff/admin accounts, which prevents
-    -- dual-role demo/admin users from stealing the family notification.
+    -- Staff sent to family-only accounts linked to that resident.
+    -- resident_family is the source of truth for the family portal. Recipients
+    -- must not also be staff/admin accounts, which prevents dual-role demo or
+    -- admin users from stealing the family notification.
     INSERT INTO public.notifications (user_id, resident_id, type, message)
-    SELECT DISTINCT ur.user_id, NEW.resident_id, 'new_message', v_preview
-    FROM public.user_roles ur
-    WHERE ur.role = 'family'
-      AND ur.facility_id = v_facility
-      AND ur.deactivated_at IS NULL
-      AND ur.user_id <> NEW.sender_id
+    SELECT DISTINCT rf.user_id, NEW.resident_id, 'new_message', v_preview
+    FROM public.resident_family rf
+    WHERE rf.resident_id = NEW.resident_id
+      AND rf.user_id <> NEW.sender_id
       AND NOT EXISTS (
         SELECT 1 FROM public.user_roles elevated_recipient_role
-        WHERE elevated_recipient_role.user_id = ur.user_id
+        WHERE elevated_recipient_role.user_id = rf.user_id
           AND elevated_recipient_role.role IN ('admin', 'staff')
           AND elevated_recipient_role.deactivated_at IS NULL
-      )
-      AND EXISTS (
-        SELECT 1 FROM public.resident_family rf
-        WHERE rf.resident_id = NEW.resident_id
-          AND rf.user_id = ur.user_id
       );
   ELSIF v_sender_is_family THEN
-    -- Family sent → notify staff at that facility (skip the sender, exclude admins).
+    -- Family sent to staff at that facility (skip the sender, exclude admins).
     INSERT INTO public.notifications (user_id, resident_id, type, message)
     SELECT DISTINCT ur.user_id, NEW.resident_id, 'new_message', v_preview
     FROM public.user_roles ur
