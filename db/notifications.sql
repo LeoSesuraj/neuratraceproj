@@ -37,7 +37,7 @@ CREATE POLICY "Users update own notifications"
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
--- No INSERT or DELETE policies — only the trigger (security definer) writes here.
+-- No INSERT or DELETE policies, only the trigger (security definer) writes here.
 
 -- Trigger: on every resident_messages insert, fan out notifications.
 CREATE OR REPLACE FUNCTION public.notify_on_resident_message()
@@ -49,8 +49,8 @@ AS $$
 DECLARE
   v_facility UUID;
   v_sender_is_admin BOOLEAN;
-  v_sender_is_family BOOLEAN;
   v_sender_is_staff BOOLEAN;
+  v_sender_is_family BOOLEAN;
   v_preview TEXT;
 BEGIN
   SELECT facility_id INTO v_facility
@@ -60,24 +60,9 @@ BEGIN
   SELECT EXISTS(
     SELECT 1 FROM public.user_roles ur
     WHERE ur.user_id = NEW.sender_id
-      AND ur.facility_id = v_facility
       AND ur.role = 'admin'
       AND ur.deactivated_at IS NULL
   ) INTO v_sender_is_admin;
-
-  SELECT EXISTS(
-    SELECT 1
-    FROM public.user_roles ur
-    WHERE ur.user_id = NEW.sender_id
-      AND ur.facility_id = v_facility
-      AND ur.role = 'family'
-      AND ur.deactivated_at IS NULL
-      AND EXISTS (
-        SELECT 1 FROM public.resident_family rf
-        WHERE rf.resident_id = NEW.resident_id
-          AND rf.user_id = ur.user_id
-      )
-  ) INTO v_sender_is_family;
 
   SELECT EXISTS(
     SELECT 1 FROM public.user_roles ur
@@ -87,10 +72,41 @@ BEGIN
       AND ur.deactivated_at IS NULL
   ) INTO v_sender_is_staff;
 
+  SELECT EXISTS(
+    SELECT 1 FROM public.resident_family rf
+    WHERE rf.resident_id = NEW.resident_id
+      AND rf.user_id = NEW.sender_id
+      AND NOT EXISTS (
+        SELECT 1 FROM public.user_roles elevated_sender_role
+        WHERE elevated_sender_role.user_id = rf.user_id
+          AND elevated_sender_role.role IN ('admin', 'staff')
+          AND elevated_sender_role.deactivated_at IS NULL
+      )
+  ) INTO v_sender_is_family;
+
   v_preview := substring(NEW.content FROM 1 FOR 200);
 
-  IF v_sender_is_family AND NOT v_sender_is_admin THEN
-    -- Family sent → notify staff at that facility (skip the sender, exclude admins).
+  IF v_sender_is_admin THEN
+    -- Admin accounts are outside staff-family messaging notifications.
+    RETURN NEW;
+  ELSIF v_sender_is_staff THEN
+    -- Staff sent to family-only accounts linked to that resident.
+    -- resident_family is the source of truth for the family portal. Recipients
+    -- must not also be staff/admin accounts, which prevents dual-role demo or
+    -- admin users from stealing the family notification.
+    INSERT INTO public.notifications (user_id, resident_id, type, message)
+    SELECT DISTINCT rf.user_id, NEW.resident_id, 'new_message', v_preview
+    FROM public.resident_family rf
+    WHERE rf.resident_id = NEW.resident_id
+      AND rf.user_id <> NEW.sender_id
+      AND NOT EXISTS (
+        SELECT 1 FROM public.user_roles elevated_recipient_role
+        WHERE elevated_recipient_role.user_id = rf.user_id
+          AND elevated_recipient_role.role IN ('admin', 'staff')
+          AND elevated_recipient_role.deactivated_at IS NULL
+      );
+  ELSIF v_sender_is_family THEN
+    -- Family sent to staff at that facility (skip the sender, exclude admins).
     INSERT INTO public.notifications (user_id, resident_id, type, message)
     SELECT DISTINCT ur.user_id, NEW.resident_id, 'new_message', v_preview
     FROM public.user_roles ur
@@ -104,30 +120,6 @@ BEGIN
           AND ur2.role = 'admin'
           AND ur2.deactivated_at IS NULL
       );
-  ELSIF v_sender_is_staff AND NOT v_sender_is_admin THEN
-    -- Staff sent → notify family linked to that resident (never admins).
-    -- Drive from active family roles first, then confirm the user is linked
-    -- to this resident. This prevents admin/staff accounts that appear in
-    -- resident_family from being notified as family recipients.
-    INSERT INTO public.notifications (user_id, resident_id, type, message)
-    SELECT DISTINCT ur.user_id, NEW.resident_id, 'new_message', v_preview
-    FROM public.user_roles ur
-    WHERE ur.role = 'family'
-      AND ur.facility_id = v_facility
-      AND ur.deactivated_at IS NULL
-      AND ur.user_id <> NEW.sender_id
-      AND NOT EXISTS (
-        SELECT 1 FROM public.user_roles admin_role
-        WHERE admin_role.user_id = ur.user_id
-          AND admin_role.facility_id = v_facility
-          AND admin_role.role = 'admin'
-          AND admin_role.deactivated_at IS NULL
-      )
-      AND EXISTS (
-        SELECT 1 FROM public.resident_family rf
-        WHERE rf.resident_id = NEW.resident_id
-          AND rf.user_id = ur.user_id
-      );
   END IF;
 
   RETURN NEW;
@@ -140,13 +132,42 @@ CREATE TRIGGER resident_messages_notify
   FOR EACH ROW
   EXECUTE FUNCTION public.notify_on_resident_message();
 
+-- Clean up accidental overlap: staff/admin accounts must not also sit in the
+-- family portal for the same facility. This is what caused message alerts to
+-- land on elevated demo accounts instead of the real family account.
+DELETE FROM public.resident_family rf
+USING public.residents r
+WHERE r.id = rf.resident_id
+  AND EXISTS (
+    SELECT 1 FROM public.user_roles elevated_role
+    WHERE elevated_role.user_id = rf.user_id
+      AND elevated_role.facility_id = r.facility_id
+      AND elevated_role.role IN ('admin', 'staff')
+      AND elevated_role.deactivated_at IS NULL
+  );
+
+DELETE FROM public.user_roles family_role
+WHERE family_role.role = 'family'
+  AND EXISTS (
+    SELECT 1 FROM public.user_roles elevated_role
+    WHERE elevated_role.user_id = family_role.user_id
+      AND elevated_role.facility_id = family_role.facility_id
+      AND elevated_role.role IN ('admin', 'staff')
+      AND elevated_role.deactivated_at IS NULL
+  );
+
 -- Remove previously-created message notifications for admins so their UI is clean.
 DELETE FROM public.notifications n
-USING public.user_roles ur
-WHERE n.user_id = ur.user_id
-  AND n.type = 'new_message'
-  AND ur.role = 'admin'
-  AND ur.deactivated_at IS NULL;
+WHERE n.type = 'new_message'
+  AND (
+    n.user_id = 'fcdc6f34-0707-4ec0-8287-0926645b62b9'
+    OR EXISTS (
+      SELECT 1 FROM public.user_roles ur
+      WHERE ur.user_id = n.user_id
+        AND ur.role = 'admin'
+        AND ur.deactivated_at IS NULL
+    )
+  );
 
 -- Enable Supabase Realtime so the bell badge updates live.
 ALTER TABLE public.notifications REPLICA IDENTITY FULL;
