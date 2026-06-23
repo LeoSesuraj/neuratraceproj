@@ -14,6 +14,7 @@ import {
   Pause,
   Play,
   Link2Off,
+  Pencil,
 } from "lucide-react";
 import { getFacilityStaffKey, getMyRole } from "@/lib/app.functions";
 import {
@@ -24,6 +25,7 @@ import {
   reactivateUser,
   removeUser,
   adminCreateResident,
+  adminUpdateResident,
   deactivateResident,
   reactivateResident,
   linkFamilyByEmail,
@@ -32,6 +34,8 @@ import {
 import { KeyCard } from "@/components/key-card";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { BetaWarningBar } from "@/components/beta-notice";
+import { BehaviorChecklist } from "@/components/behavior-checklist";
+import { BEHAVIOR_OPTIONS } from "@/lib/behaviors";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminPage,
@@ -348,18 +352,33 @@ function ResidentsTab() {
   const [name, setName] = useState("");
   const [room, setRoom] = useState("");
   const [stage, setStage] = useState<"" | "early" | "middle" | "late">("");
+  const [behaviors, setBehaviors] = useState<string[]>([]);
 
   const create = useMutation({
     mutationFn: () =>
       adminCreateResident({
-        data: { name, room_number: room, care_stage: stage || undefined },
+        data: { name, room_number: room, care_stage: stage || undefined, behaviors },
       }),
     onSuccess: () => {
       toast.success("Resident added.");
       setName("");
       setRoom("");
       setStage("");
+      setBehaviors([]);
       setCreating(false);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const update = useMutation({
+    mutationFn: (vars: {
+      id: string;
+      room_number?: string | null;
+      care_stage?: "early" | "middle" | "late" | null;
+      behaviors?: string[];
+    }) => adminUpdateResident({ data: vars }),
+    onSuccess: () => {
+      toast.success("Resident updated.");
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -464,6 +483,15 @@ function ResidentsTab() {
               </select>
             </label>
           </div>
+          <div className="mt-4">
+            <p className="text-sm font-medium">Current behaviors</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Optional — pick any that apply now. You can edit these later.
+            </p>
+            <div className="mt-2">
+              <BehaviorChecklist value={behaviors} onChange={setBehaviors} />
+            </div>
+          </div>
           <div className="mt-3 flex gap-2">
             <button
               type="submit"
@@ -479,6 +507,7 @@ function ResidentsTab() {
                 setName("");
                 setRoom("");
                 setStage("");
+                setBehaviors([]);
               }}
               className="rounded-full border border-border px-4 py-2 text-sm"
             >
@@ -504,6 +533,8 @@ function ResidentsTab() {
             onUnlinkFamily={(user_id) =>
               unlinkFam.mutateAsync({ resident_id: r.id, user_id })
             }
+            onUpdate={(patch) => update.mutateAsync({ id: r.id, ...patch })}
+            updating={update.isPending}
           />
         ))}
       </ul>
@@ -517,6 +548,7 @@ type ResidentRow = {
   room_number: string | null;
   care_stage: string | null;
   dementia_type: string | null;
+  behaviors: string[] | null;
   deactivated_at: string | null;
   deactivated_reason: string | null;
   family: { user_id: string; email: string | null; name: string | null }[];
@@ -528,16 +560,33 @@ function ResidentCard({
   onReactivate,
   onLinkFamily,
   onUnlinkFamily,
+  onUpdate,
+  updating,
 }: {
   resident: ResidentRow;
   onDeactivate: () => Promise<unknown>;
   onReactivate: () => Promise<unknown>;
   onLinkFamily: (email: string) => Promise<unknown>;
   onUnlinkFamily: (user_id: string) => Promise<unknown>;
+  onUpdate: (patch: {
+    room_number?: string | null;
+    care_stage?: "early" | "middle" | "late" | null;
+    behaviors?: string[];
+  }) => Promise<unknown>;
+  updating: boolean;
 }) {
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkEmail, setLinkEmail] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+  const [eRoom, setERoom] = useState(resident.room_number ?? "");
+  const [eStage, setEStage] = useState<"" | "early" | "middle" | "late">(
+    (resident.care_stage as "" | "early" | "middle" | "late") ?? "",
+  );
+  const [eBehaviors, setEBehaviors] = useState<string[]>(resident.behaviors ?? []);
   const inactive = !!resident.deactivated_at;
+  const behaviorLabels = (resident.behaviors ?? [])
+    .map((id) => BEHAVIOR_OPTIONS.find((b) => b.id === id)?.label)
+    .filter(Boolean) as string[];
 
   return (
     <li
@@ -560,8 +609,26 @@ function ResidentCard({
             {resident.care_stage ? `${resident.care_stage} stage` : "Stage -"}
             {resident.dementia_type && ` · ${resident.dementia_type}`}
           </p>
+          {behaviorLabels.length > 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Behaviors: {behaviorLabels.join(", ")}
+            </p>
+          )}
         </div>
         <div className="flex gap-1.5">
+          {!inactive && (
+            <button
+              onClick={() => {
+                setERoom(resident.room_number ?? "");
+                setEStage((resident.care_stage as "" | "early" | "middle" | "late") ?? "");
+                setEBehaviors(resident.behaviors ?? []);
+                setEditOpen((v) => !v);
+              }}
+              className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] hover:bg-surface"
+            >
+              <Pencil className="h-3 w-3" aria-hidden="true" /> {editOpen ? "Close" : "Edit"}
+            </button>
+          )}
           {inactive ? (
             <button
               onClick={() => void onReactivate()}
@@ -588,6 +655,70 @@ function ResidentCard({
           )}
         </div>
       </div>
+
+      {editOpen && !inactive && (
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            await onUpdate({
+              room_number: eRoom.trim() ? eRoom.trim() : null,
+              care_stage: eStage === "" ? null : eStage,
+              behaviors: eBehaviors,
+            });
+            setEditOpen(false);
+          }}
+          className="mt-3 grid gap-3 rounded-2xl border border-dashed border-border bg-surface/60 p-3"
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm">
+              <span className="font-medium">Room #</span>
+              <input
+                value={eRoom}
+                onChange={(e) => setERoom(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="font-medium">Care stage</span>
+              <select
+                value={eStage}
+                onChange={(e) => setEStage(e.target.value as typeof eStage)}
+                className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="">-</option>
+                <option value="early">Early</option>
+                <option value="middle">Middle</option>
+                <option value="late">Late</option>
+              </select>
+            </label>
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Behaviors
+            </p>
+            <div className="mt-2">
+              <BehaviorChecklist value={eBehaviors} onChange={setEBehaviors} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={updating}
+              className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+            >
+              {updating ? "Saving…" : "Save changes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditOpen(false)}
+              className="rounded-full border border-border px-4 py-2 text-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
 
       <div className="mt-3 border-t border-border pt-3">
         <div className="flex items-center justify-between">
