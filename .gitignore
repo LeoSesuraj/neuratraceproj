@@ -31,3 +31,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Capacitor native projects (generated locally with `npx cap add`)
+ios/
+android/
