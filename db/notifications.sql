@@ -49,8 +49,8 @@ AS $$
 DECLARE
   v_facility UUID;
   v_sender_is_admin BOOLEAN;
-  v_sender_is_family BOOLEAN;
   v_sender_is_staff BOOLEAN;
+  v_sender_is_family BOOLEAN;
   v_preview TEXT;
 BEGIN
   SELECT facility_id INTO v_facility
@@ -60,24 +60,9 @@ BEGIN
   SELECT EXISTS(
     SELECT 1 FROM public.user_roles ur
     WHERE ur.user_id = NEW.sender_id
-      AND ur.facility_id = v_facility
       AND ur.role = 'admin'
       AND ur.deactivated_at IS NULL
   ) INTO v_sender_is_admin;
-
-  SELECT EXISTS(
-    SELECT 1
-    FROM public.user_roles ur
-    WHERE ur.user_id = NEW.sender_id
-      AND ur.facility_id = v_facility
-      AND ur.role = 'family'
-      AND ur.deactivated_at IS NULL
-      AND EXISTS (
-        SELECT 1 FROM public.resident_family rf
-        WHERE rf.resident_id = NEW.resident_id
-          AND rf.user_id = ur.user_id
-      )
-  ) INTO v_sender_is_family;
 
   SELECT EXISTS(
     SELECT 1 FROM public.user_roles ur
@@ -87,9 +72,54 @@ BEGIN
       AND ur.deactivated_at IS NULL
   ) INTO v_sender_is_staff;
 
+  SELECT EXISTS(
+    SELECT 1
+    FROM public.user_roles ur
+    WHERE ur.user_id = NEW.sender_id
+      AND ur.facility_id = v_facility
+      AND ur.role = 'family'
+      AND ur.deactivated_at IS NULL
+      AND NOT EXISTS (
+        SELECT 1 FROM public.user_roles elevated_sender_role
+        WHERE elevated_sender_role.user_id = ur.user_id
+          AND elevated_sender_role.role IN ('admin', 'staff')
+          AND elevated_sender_role.deactivated_at IS NULL
+      )
+      AND EXISTS (
+        SELECT 1 FROM public.resident_family rf
+        WHERE rf.resident_id = NEW.resident_id
+          AND rf.user_id = ur.user_id
+      )
+  ) INTO v_sender_is_family;
+
   v_preview := substring(NEW.content FROM 1 FOR 200);
 
-  IF v_sender_is_family AND NOT v_sender_is_admin THEN
+  IF v_sender_is_admin THEN
+    -- Admin accounts are outside staff-family messaging notifications.
+    RETURN NEW;
+  ELSIF v_sender_is_staff THEN
+    -- Staff sent → notify family-only accounts linked to that resident.
+    -- Family recipients must not also be staff/admin accounts, which prevents
+    -- dual-role demo/admin users from stealing the family notification.
+    INSERT INTO public.notifications (user_id, resident_id, type, message)
+    SELECT DISTINCT ur.user_id, NEW.resident_id, 'new_message', v_preview
+    FROM public.user_roles ur
+    WHERE ur.role = 'family'
+      AND ur.facility_id = v_facility
+      AND ur.deactivated_at IS NULL
+      AND ur.user_id <> NEW.sender_id
+      AND NOT EXISTS (
+        SELECT 1 FROM public.user_roles elevated_recipient_role
+        WHERE elevated_recipient_role.user_id = ur.user_id
+          AND elevated_recipient_role.role IN ('admin', 'staff')
+          AND elevated_recipient_role.deactivated_at IS NULL
+      )
+      AND EXISTS (
+        SELECT 1 FROM public.resident_family rf
+        WHERE rf.resident_id = NEW.resident_id
+          AND rf.user_id = ur.user_id
+      );
+  ELSIF v_sender_is_family THEN
     -- Family sent → notify staff at that facility (skip the sender, exclude admins).
     INSERT INTO public.notifications (user_id, resident_id, type, message)
     SELECT DISTINCT ur.user_id, NEW.resident_id, 'new_message', v_preview
@@ -103,30 +133,6 @@ BEGIN
         WHERE ur2.user_id = ur.user_id
           AND ur2.role = 'admin'
           AND ur2.deactivated_at IS NULL
-      );
-  ELSIF v_sender_is_staff AND NOT v_sender_is_admin THEN
-    -- Staff sent → notify family linked to that resident (never admins).
-    -- Drive from active family roles first, then confirm the user is linked
-    -- to this resident. This prevents admin/staff accounts that appear in
-    -- resident_family from being notified as family recipients.
-    INSERT INTO public.notifications (user_id, resident_id, type, message)
-    SELECT DISTINCT ur.user_id, NEW.resident_id, 'new_message', v_preview
-    FROM public.user_roles ur
-    WHERE ur.role = 'family'
-      AND ur.facility_id = v_facility
-      AND ur.deactivated_at IS NULL
-      AND ur.user_id <> NEW.sender_id
-      AND NOT EXISTS (
-        SELECT 1 FROM public.user_roles admin_role
-        WHERE admin_role.user_id = ur.user_id
-          AND admin_role.facility_id = v_facility
-          AND admin_role.role = 'admin'
-          AND admin_role.deactivated_at IS NULL
-      )
-      AND EXISTS (
-        SELECT 1 FROM public.resident_family rf
-        WHERE rf.resident_id = NEW.resident_id
-          AND rf.user_id = ur.user_id
       );
   END IF;
 
