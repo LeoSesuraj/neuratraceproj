@@ -104,6 +104,7 @@ function StaffPage() {
           }}
           className="mt-3 grid gap-4"
         >
+          <BetaWarningBar />
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
