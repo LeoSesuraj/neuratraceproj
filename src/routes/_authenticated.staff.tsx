@@ -21,6 +21,7 @@ import {
   FacilityHeader,
   type ResidentWithFacility,
 } from "@/components/grouped-residents";
+import { BetaWarningBar } from "@/components/beta-notice";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   component: StaffPage,
