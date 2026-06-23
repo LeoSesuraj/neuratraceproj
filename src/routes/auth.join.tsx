@@ -102,7 +102,7 @@ function JoinPage() {
   if (!info) {
     return (
       <div>
-        <h1 className="text-3xl">Join with a key</h1>
+        <h1 className="text-3xl font-sans font-semibold">Join with a key</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Enter the 8-character key from your facility, staff, or admin. Keys
           refresh every day at midnight UTC.
