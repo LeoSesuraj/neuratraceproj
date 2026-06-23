@@ -4,7 +4,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 // Update `server.url` to your live Vercel URL (or a stable Lovable URL)
 // before running `cap sync`. Using `server.url` keeps every TanStack
 // server function, Supabase call, and API route working unchanged.
-const PRODUCTION_URL = "https://CHANGE-ME.vercel.app";
+const PRODUCTION_URL = "https://neurotraceproj.vercel.app";
 
 const config: CapacitorConfig = {
   appId: "app.neurotrace.caregiver",
