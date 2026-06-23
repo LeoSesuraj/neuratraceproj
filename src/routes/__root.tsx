@@ -146,6 +146,9 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
+    // Capacitor (iOS/Android) bootstrap — no-op on web.
+    void import("@/lib/native").then((m) => m.initNativeShell());
+
     // Sentry.init() runs synchronously in src/router.tsx before render.
     // Here we only attach user context once auth state is known.
     void (async () => {
