@@ -656,6 +656,70 @@ function ResidentCard({
         </div>
       </div>
 
+      {editOpen && !inactive && (
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            await onUpdate({
+              room_number: eRoom.trim() ? eRoom.trim() : null,
+              care_stage: eStage === "" ? null : eStage,
+              behaviors: eBehaviors,
+            });
+            setEditOpen(false);
+          }}
+          className="mt-3 grid gap-3 rounded-2xl border border-dashed border-border bg-surface/60 p-3"
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm">
+              <span className="font-medium">Room #</span>
+              <input
+                value={eRoom}
+                onChange={(e) => setERoom(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="font-medium">Care stage</span>
+              <select
+                value={eStage}
+                onChange={(e) => setEStage(e.target.value as typeof eStage)}
+                className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="">-</option>
+                <option value="early">Early</option>
+                <option value="middle">Middle</option>
+                <option value="late">Late</option>
+              </select>
+            </label>
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Behaviors
+            </p>
+            <div className="mt-2">
+              <BehaviorChecklist value={eBehaviors} onChange={setEBehaviors} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={updating}
+              className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+            >
+              {updating ? "Saving…" : "Save changes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditOpen(false)}
+              className="rounded-full border border-border px-4 py-2 text-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+
       <div className="mt-3 border-t border-border pt-3">
         <div className="flex items-center justify-between">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
