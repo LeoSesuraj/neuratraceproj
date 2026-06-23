@@ -164,8 +164,14 @@ export function ResidentMessageThread({
           e.preventDefault();
           handleSend();
         }}
-        className="mt-3 flex items-end gap-2"
+        className="mt-3 flex flex-col gap-2"
       >
+        {isFamily && (
+          <p className="text-xs text-muted-foreground">
+            Beta: do not share personal medical details in this chat.
+          </p>
+        )}
+        <div className="flex items-end gap-2">
         <textarea
           ref={inputRef}
           value={draft}
@@ -188,6 +194,7 @@ export function ResidentMessageThread({
         >
           <Send className="h-5 w-5" />
         </button>
+        </div>
       </form>
       {send.isError && (
         <p className="mt-2 text-xs text-destructive">

@@ -31,6 +31,7 @@ import {
 } from "@/lib/admin.functions";
 import { KeyCard } from "@/components/key-card";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { BetaWarningBar } from "@/components/beta-notice";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminPage,
@@ -429,6 +430,7 @@ function ResidentsTab() {
           }}
           className="rounded-2xl border border-dashed border-border bg-surface/60 p-4"
         >
+          <BetaWarningBar />
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="block text-sm">
               <span className="font-medium">Name</span>

@@ -21,6 +21,7 @@ import {
   FacilityHeader,
   type ResidentWithFacility,
 } from "@/components/grouped-residents";
+import { BetaWarningBar } from "@/components/beta-notice";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   component: StaffPage,
@@ -103,6 +104,7 @@ function StaffPage() {
           }}
           className="mt-3 grid gap-4"
         >
+          <BetaWarningBar />
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
