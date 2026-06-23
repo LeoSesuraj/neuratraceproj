@@ -132,6 +132,30 @@ CREATE TRIGGER resident_messages_notify
   FOR EACH ROW
   EXECUTE FUNCTION public.notify_on_resident_message();
 
+-- Clean up accidental overlap: staff/admin accounts must not also sit in the
+-- family portal for the same facility. This is what caused message alerts to
+-- land on elevated demo accounts instead of the real family account.
+DELETE FROM public.resident_family rf
+USING public.residents r
+WHERE r.id = rf.resident_id
+  AND EXISTS (
+    SELECT 1 FROM public.user_roles elevated_role
+    WHERE elevated_role.user_id = rf.user_id
+      AND elevated_role.facility_id = r.facility_id
+      AND elevated_role.role IN ('admin', 'staff')
+      AND elevated_role.deactivated_at IS NULL
+  );
+
+DELETE FROM public.user_roles family_role
+WHERE family_role.role = 'family'
+  AND EXISTS (
+    SELECT 1 FROM public.user_roles elevated_role
+    WHERE elevated_role.user_id = family_role.user_id
+      AND elevated_role.facility_id = family_role.facility_id
+      AND elevated_role.role IN ('admin', 'staff')
+      AND elevated_role.deactivated_at IS NULL
+  );
+
 -- Remove previously-created message notifications for admins so their UI is clean.
 DELETE FROM public.notifications n
 WHERE n.type = 'new_message'
