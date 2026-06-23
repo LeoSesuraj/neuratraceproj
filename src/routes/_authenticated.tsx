@@ -9,6 +9,7 @@ import {
   useNotificationsRealtime,
   useUnreadNotificationsCount,
 } from "@/hooks/use-notifications";
+import { BetaWelcomeModal } from "@/components/beta-notice";
 
 const INACTIVITY_MS = 60 * 60 * 1000; // 60 minutes
 const ACTIVITY_EVENTS = ["mousedown", "keydown", "touchstart", "scroll"] as const;
