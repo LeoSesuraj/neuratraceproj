@@ -577,7 +577,16 @@ function ResidentCard({
 }) {
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkEmail, setLinkEmail] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+  const [eRoom, setERoom] = useState(resident.room_number ?? "");
+  const [eStage, setEStage] = useState<"" | "early" | "middle" | "late">(
+    (resident.care_stage as "" | "early" | "middle" | "late") ?? "",
+  );
+  const [eBehaviors, setEBehaviors] = useState<string[]>(resident.behaviors ?? []);
   const inactive = !!resident.deactivated_at;
+  const behaviorLabels = (resident.behaviors ?? [])
+    .map((id) => BEHAVIOR_OPTIONS.find((b) => b.id === id)?.label)
+    .filter(Boolean) as string[];
 
   return (
     <li
@@ -600,8 +609,26 @@ function ResidentCard({
             {resident.care_stage ? `${resident.care_stage} stage` : "Stage -"}
             {resident.dementia_type && ` · ${resident.dementia_type}`}
           </p>
+          {behaviorLabels.length > 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Behaviors: {behaviorLabels.join(", ")}
+            </p>
+          )}
         </div>
         <div className="flex gap-1.5">
+          {!inactive && (
+            <button
+              onClick={() => {
+                setERoom(resident.room_number ?? "");
+                setEStage((resident.care_stage as "" | "early" | "middle" | "late") ?? "");
+                setEBehaviors(resident.behaviors ?? []);
+                setEditOpen((v) => !v);
+              }}
+              className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] hover:bg-surface"
+            >
+              <Pencil className="h-3 w-3" aria-hidden="true" /> {editOpen ? "Close" : "Edit"}
+            </button>
+          )}
           {inactive ? (
             <button
               onClick={() => void onReactivate()}
