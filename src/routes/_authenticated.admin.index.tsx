@@ -15,6 +15,7 @@ import {
   Play,
   Link2Off,
   Pencil,
+  LockOpen,
 } from "lucide-react";
 import { getFacilityStaffKey, getMyRole } from "@/lib/app.functions";
 import {
@@ -24,6 +25,7 @@ import {
   deactivateUser,
   reactivateUser,
   removeUser,
+  unlockUser,
   adminCreateResident,
   adminUpdateResident,
   deactivateResident,
@@ -31,6 +33,7 @@ import {
   linkFamilyByEmail,
   unlinkFamilyFromResident,
 } from "@/lib/admin.functions";
+
 import { KeyCard } from "@/components/key-card";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { BetaWarningBar } from "@/components/beta-notice";
