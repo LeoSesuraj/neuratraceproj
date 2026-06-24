@@ -15,9 +15,18 @@ type AnyClient = {
   auth: {
     admin: {
       deleteUser: (id: string) => Promise<{ error: { message: string } | null }>;
+      getUserById: (id: string) => Promise<{
+        data: { user: { app_metadata?: Record<string, unknown> | null } | null };
+        error: { message: string } | null;
+      }>;
+      updateUserById: (
+        id: string,
+        attrs: { app_metadata?: Record<string, unknown> },
+      ) => Promise<{ error: { message: string } | null }>;
     };
   };
 };
+
 
 async function loose(): Promise<AnyClient> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
