@@ -175,6 +175,15 @@ function UsersTab() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const unlock = useMutation({
+    mutationFn: (user_id: string) => unlockUser({ data: { user_id } }),
+    onSuccess: () => {
+      toast.success("Account unlocked");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading users…</p>;
   if (error) return <p className="text-sm text-destructive">{(error as Error).message}</p>;
