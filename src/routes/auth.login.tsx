@@ -2,47 +2,16 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole } from "@/lib/app.functions";
-import { recordLoginEvent } from "@/lib/admin.functions";
+import {
+  recordLoginEvent,
+  checkLockout,
+  recordFailedLogin,
+  clearLockoutSelf,
+} from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/auth/login")({
   component: LoginPage,
 });
-
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 15 * 60 * 1000;
-
-type AttemptRecord = { count: number; lockedUntil: number };
-
-function attemptKey(email: string) {
-  return `login_attempts:${email.toLowerCase().trim()}`;
-}
-
-function readAttempts(email: string): AttemptRecord {
-  if (typeof window === "undefined") return { count: 0, lockedUntil: 0 };
-  try {
-    const raw = localStorage.getItem(attemptKey(email));
-    if (!raw) return { count: 0, lockedUntil: 0 };
-    return JSON.parse(raw) as AttemptRecord;
-  } catch {
-    return { count: 0, lockedUntil: 0 };
-  }
-}
-
-function writeAttempts(email: string, rec: AttemptRecord) {
-  try {
-    localStorage.setItem(attemptKey(email), JSON.stringify(rec));
-  } catch {
-    // ignore
-  }
-}
-
-function clearAttempts(email: string) {
-  try {
-    localStorage.removeItem(attemptKey(email));
-  } catch {
-    // ignore
-  }
-}
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -58,28 +27,27 @@ function LoginPage() {
     setError(null);
     setInfo(null);
 
-    const rec = readAttempts(email);
-    if (rec.lockedUntil && rec.lockedUntil > Date.now()) {
-      const mins = Math.ceil((rec.lockedUntil - Date.now()) / 60000);
-      setError(`Too many attempts. Try again in ${mins} minute${mins === 1 ? "" : "s"}.`);
-      return;
-    }
-
     setLoading(true);
     try {
+      const { lockedUntil } = await checkLockout({ data: { email } }).catch(() => ({ lockedUntil: null }));
+      if (lockedUntil && lockedUntil > Date.now()) {
+        const mins = Math.ceil((lockedUntil - Date.now()) / 60000);
+        setError(`Too many attempts. Try again in ${mins} minute${mins === 1 ? "" : "s"}.`);
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        const next = rec.count + 1;
-        if (next >= MAX_ATTEMPTS) {
-          writeAttempts(email, { count: next, lockedUntil: Date.now() + LOCKOUT_MS });
+        const res = await recordFailedLogin({ data: { email } }).catch(() => ({ locked: false }));
+        if (res.locked) {
           setError("Too many attempts. Try again in 15 minutes.");
         } else {
-          writeAttempts(email, { count: next, lockedUntil: 0 });
           setError(error.message);
         }
         return;
       }
-      clearAttempts(email);
+      // Successful sign-in: clear any prior lockout/attempt counter.
+      void clearLockoutSelf().catch(() => {});
       // Fire-and-forget audit log; never block sign-in on it.
       void recordLoginEvent().catch(() => {});
       const { role } = await getMyRole();
@@ -93,6 +61,7 @@ function LoginPage() {
       setLoading(false);
     }
   }
+
 
   async function onForgotPassword() {
     setError(null);

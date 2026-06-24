@@ -537,3 +537,65 @@ export const unlinkFamilyFromResident = createServerFn({ method: "POST" })
 
 // Suppress unused-import warnings for the helper used only by assertSuperOrAdmin.
 void assertSuperOrAdmin;
+
+// ---------- Public lockout (server-backed so admins can clear it) ----------
+
+const MAX_FAILED = 5;
+const LOCKOUT_MINUTES = 15;
+
+async function findUserIdByEmail(db: AnyClient, email: string): Promise<string | null> {
+  const normalized = email.toLowerCase().trim();
+  const { data } = await db
+    .from("profiles")
+    .select("id")
+    .ilike("email", normalized)
+    .maybeSingle();
+  return ((data as { id?: string } | null)?.id) ?? null;
+}
+
+export const checkLockout = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ email: z.string().email() }).parse(d))
+  .handler(async ({ data }) => {
+    const db = await loose();
+    const userId = await findUserIdByEmail(db, data.email);
+    if (!userId) return { lockedUntil: null as number | null };
+    const { data: got } = await db.auth.admin.getUserById(userId);
+    const meta = (got?.user?.app_metadata ?? {}) as Record<string, unknown>;
+    const lu = typeof meta.locked_until === "string" ? Date.parse(meta.locked_until) : 0;
+    if (lu && lu > Date.now()) return { lockedUntil: lu };
+    return { lockedUntil: null as number | null };
+  });
+
+export const recordFailedLogin = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ email: z.string().email() }).parse(d))
+  .handler(async ({ data }) => {
+    const db = await loose();
+    const userId = await findUserIdByEmail(db, data.email);
+    if (!userId) return { locked: false, lockedUntil: null as number | null };
+    const { data: got } = await db.auth.admin.getUserById(userId);
+    const meta = { ...(got?.user?.app_metadata ?? {}) } as Record<string, unknown>;
+    const current = typeof meta.failed_login_attempts === "number" ? (meta.failed_login_attempts as number) : 0;
+    const next = current + 1;
+    meta.failed_login_attempts = next;
+    let lockedUntil: number | null = null;
+    if (next >= MAX_FAILED) {
+      lockedUntil = Date.now() + LOCKOUT_MINUTES * 60 * 1000;
+      meta.locked_until = new Date(lockedUntil).toISOString();
+    }
+    await db.auth.admin.updateUserById(userId, { app_metadata: meta });
+    return { locked: lockedUntil !== null, lockedUntil };
+  });
+
+export const clearLockoutSelf = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = await loose();
+    const { data: got } = await db.auth.admin.getUserById(context.userId);
+    const meta = { ...(got?.user?.app_metadata ?? {}) } as Record<string, unknown>;
+    if (meta.failed_login_attempts === undefined && meta.locked_until === undefined) return { ok: true };
+    delete meta.failed_login_attempts;
+    delete meta.locked_until;
+    await db.auth.admin.updateUserById(context.userId, { app_metadata: meta });
+    return { ok: true };
+  });
+
