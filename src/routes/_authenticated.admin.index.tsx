@@ -271,6 +271,20 @@ function UsersTab() {
                           />
                         )}
                         <ConfirmDialog
+                          title="Unlock this account?"
+                          description="This clears the failed login attempt counter and lockout timer so the user can sign in immediately."
+                          confirmLabel="Unlock"
+                          onConfirm={() => unlock.mutateAsync(u.user_id)}
+                          trigger={
+                            <button
+                              aria-label={`Unlock ${u.email ?? "user"}`}
+                              className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] hover:bg-surface"
+                            >
+                              <LockOpen className="h-3 w-3" aria-hidden="true" /> Unlock
+                            </button>
+                          }
+                        />
+                        <ConfirmDialog
                           title="Remove this user?"
                           description="This action cannot be undone. Are you sure? Their account and all access will be permanently removed."
                           confirmLabel="Remove"
@@ -285,6 +299,7 @@ function UsersTab() {
                             </button>
                           }
                         />
+
                       </div>
                     </td>
                   </tr>
