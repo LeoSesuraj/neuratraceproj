@@ -36,17 +36,17 @@ function ResidentSelector() {
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8">
-      <header className="flex items-center justify-between">
-        <div>
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
           <p className="text-sm font-medium text-primary">Resident</p>
-          <h1 className="mt-1 text-3xl">Choose a loved one</h1>
+          <h1 className="mt-1 text-2xl sm:text-3xl">Choose a loved one</h1>
         </div>
         <button
           onClick={async () => {
             await supabase.auth.signOut();
             navigate({ to: "/" });
           }}
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="shrink-0 text-sm text-muted-foreground hover:text-foreground"
         >
           Sign out
         </button>
