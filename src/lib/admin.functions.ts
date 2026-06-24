@@ -227,6 +227,36 @@ export const deactivateUser = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const unlockUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const facilityId = await getMyAdminFacilityId(context);
+    if (!facilityId) throw new Error("Forbidden: admin only");
+    const db = await loose();
+    // Confirm the target user belongs to the admin's facility.
+    const { data: roleRow } = await db
+      .from("user_roles")
+      .select("user_id")
+      .eq("user_id", data.user_id)
+      .eq("facility_id", facilityId)
+      .limit(1)
+      .maybeSingle();
+    if (!roleRow) throw new Error("User not found in your facility.");
+
+    const { data: got, error: getErr } = await db.auth.admin.getUserById(data.user_id);
+    if (getErr) throw new Error(getErr.message);
+    const meta = { ...(got?.user?.app_metadata ?? {}) } as Record<string, unknown>;
+    delete meta.failed_login_attempts;
+    delete meta.locked_until;
+    const { error: updErr } = await db.auth.admin.updateUserById(data.user_id, {
+      app_metadata: meta,
+    });
+    if (updErr) throw new Error(updErr.message);
+    return { ok: true };
+  });
+
+
 export const reactivateUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ user_id: z.string().uuid() }).parse(d))
