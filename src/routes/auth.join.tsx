@@ -92,9 +92,9 @@ function JoinPage() {
   if (done) {
     return (
       <div>
-        <h1 className="text-3xl">Almost there</h1>
+        <h1 className="text-3xl">Account created</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          Check your email to verify your account before signing in.
+          You can sign in now with your email and password.
         </p>
         <Link
           to="/auth/login"
