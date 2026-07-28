@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { isValidPassword, PASSWORD_HINT } from "./password";
+
 
 // ---------- Public ----------
 
@@ -21,7 +23,7 @@ export const signupWithKey = createServerFn({ method: "POST" })
     z
       .object({
         email: z.string().email(),
-        password: z.string().min(8),
+        password: z.string().refine(isValidPassword, { message: PASSWORD_HINT }),
         code: z
           .string()
           .transform((s) => s.toUpperCase().replace(/[^A-Z0-9]/g, ""))
