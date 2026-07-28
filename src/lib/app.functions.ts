@@ -30,7 +30,7 @@ export const signupWithKey = createServerFn({ method: "POST" })
         code: z
           .string()
           .transform((s) => s.toUpperCase().replace(/[^A-Z0-9]/g, ""))
-          .pipe(z.string().regex(/^[A-Z0-9]{8}$/, "Key must be 8 alphanumeric characters")),
+          .pipe(z.string().regex(/^[A-Z0-9]{8,9}$/, "Key must be 8-9 alphanumeric characters")),
       })
       .parse(d),
   )
