@@ -115,21 +115,69 @@ function OverviewTab({ facilityId }: { facilityId: string | null }) {
     );
   }
   return (
-    <section>
-      <h2 className="text-xl">Today's join key</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        This key resets at midnight UTC. Share it only with authorized family
-        members or staff.
-      </p>
-      <div className="mt-3 max-w-md">
-        <KeyCard
-          queryKey={["staff-key", facilityId]}
-          fetch={() => getFacilityStaffKey({ data: { facility_id: facilityId } })}
-        />
+    <section className="grid gap-6">
+      <div>
+        <h2 className="text-xl">Today's join key</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          This key resets at midnight UTC. Share it only with authorized family
+          members or staff.
+        </p>
+        <div className="mt-3 max-w-md">
+          <KeyCard
+            queryKey={["staff-key", facilityId]}
+            fetch={() => getFacilityStaffKey({ data: { facility_id: facilityId } })}
+          />
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+        <h2 className="text-lg">Security policy</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Default protections applied to every account in this facility.
+        </p>
+        <ul className="mt-3 space-y-2 text-sm">
+          <li className="flex items-start gap-2">
+            <span className="mt-0.5 h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
+            <span>
+              <strong>Passwords:</strong> at least 12 characters with uppercase, lowercase,
+              number, and special character.
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-0.5 h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
+            <span>
+              <strong>Inactivity timeout:</strong> users are signed out after 60 minutes of no
+              activity.
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-0.5 h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
+            <span>
+              <strong>Failed-login lockout:</strong> 5 failed attempts lock an account for 15
+              minutes. An admin can unlock it from the Active users tab.
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-0.5 h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
+            <span>
+              <strong>Email verification:</strong> new accounts must confirm their email before
+              signing in.
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-0.5 h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
+            <span>
+              <strong>PHI warning:</strong> NeuroTrace does not support Protected Health
+              Information. Do not enter real patient names, diagnoses, room numbers, or
+              medical details.
+            </span>
+          </li>
+        </ul>
       </div>
     </section>
   );
 }
+
 
 function relTime(iso: string | null): string {
   if (!iso) return "-";
