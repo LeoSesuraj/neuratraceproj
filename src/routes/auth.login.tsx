@@ -73,7 +73,7 @@ function LoginPage() {
     setResetLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "https://neurotraceproj.vercel.app/auth/reset-password",
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       });
       if (error) throw error;
       setInfo("Check your email for a reset link.");
