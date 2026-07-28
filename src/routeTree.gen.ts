@@ -40,6 +40,7 @@ import { Route as LearnUnderstandTopicRouteImport } from './routes/learn.underst
 import { Route as LearnSupportResourceRouteImport } from './routes/learn.support.$resource'
 import { Route as LearnConnectSituationRouteImport } from './routes/learn.connect.$situation'
 import { Route as LearnCoachThreadIdRouteImport } from './routes/learn.coach.$threadId'
+import { Route as ApiPublicDeleteDemoFamilyRouteImport } from './routes/api/public/delete-demo-family'
 import { Route as AuthenticatedResidentResidentIdRouteImport } from './routes/_authenticated.resident.$residentId'
 import { Route as AuthenticatedAdminSuperRouteImport } from './routes/_authenticated.admin.super'
 
@@ -199,6 +200,12 @@ const LearnCoachThreadIdRoute = LearnCoachThreadIdRouteImport.update({
   path: '/$threadId',
   getParentRoute: () => LearnCoachRoute,
 } as any)
+const ApiPublicDeleteDemoFamilyRoute =
+  ApiPublicDeleteDemoFamilyRouteImport.update({
+    id: '/api/public/delete-demo-family',
+    path: '/api/public/delete-demo-family',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedResidentResidentIdRoute =
   AuthenticatedResidentResidentIdRouteImport.update({
     id: '/resident/$residentId',
@@ -234,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/learn/': typeof LearnIndexRoute
   '/admin/super': typeof AuthenticatedAdminSuperRoute
   '/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
+  '/api/public/delete-demo-family': typeof ApiPublicDeleteDemoFamilyRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
   '/learn/support/$resource': typeof LearnSupportResourceRoute
@@ -264,6 +272,7 @@ export interface FileRoutesByTo {
   '/learn': typeof LearnIndexRoute
   '/admin/super': typeof AuthenticatedAdminSuperRoute
   '/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
+  '/api/public/delete-demo-family': typeof ApiPublicDeleteDemoFamilyRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
   '/learn/support/$resource': typeof LearnSupportResourceRoute
@@ -300,6 +309,7 @@ export interface FileRoutesById {
   '/learn/': typeof LearnIndexRoute
   '/_authenticated/admin/super': typeof AuthenticatedAdminSuperRoute
   '/_authenticated/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
+  '/api/public/delete-demo-family': typeof ApiPublicDeleteDemoFamilyRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
   '/learn/support/$resource': typeof LearnSupportResourceRoute
@@ -336,6 +346,7 @@ export interface FileRouteTypes {
     | '/learn/'
     | '/admin/super'
     | '/resident/$residentId'
+    | '/api/public/delete-demo-family'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
     | '/learn/support/$resource'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/admin/super'
     | '/resident/$residentId'
+    | '/api/public/delete-demo-family'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
     | '/learn/support/$resource'
@@ -401,6 +413,7 @@ export interface FileRouteTypes {
     | '/learn/'
     | '/_authenticated/admin/super'
     | '/_authenticated/resident/$residentId'
+    | '/api/public/delete-demo-family'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
     | '/learn/support/$resource'
@@ -427,6 +440,7 @@ export interface RootRouteChildren {
   LearnSupportRoute: typeof LearnSupportRouteWithChildren
   LearnUnderstandRoute: typeof LearnUnderstandRouteWithChildren
   LearnIndexRoute: typeof LearnIndexRoute
+  ApiPublicDeleteDemoFamilyRoute: typeof ApiPublicDeleteDemoFamilyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -648,6 +662,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LearnCoachThreadIdRouteImport
       parentRoute: typeof LearnCoachRoute
     }
+    '/api/public/delete-demo-family': {
+      id: '/api/public/delete-demo-family'
+      path: '/api/public/delete-demo-family'
+      fullPath: '/api/public/delete-demo-family'
+      preLoaderRoute: typeof ApiPublicDeleteDemoFamilyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/resident/$residentId': {
       id: '/_authenticated/resident/$residentId'
       path: '/resident/$residentId'
@@ -785,7 +806,18 @@ const rootRouteChildren: RootRouteChildren = {
   LearnSupportRoute: LearnSupportRouteWithChildren,
   LearnUnderstandRoute: LearnUnderstandRouteWithChildren,
   LearnIndexRoute: LearnIndexRoute,
+  ApiPublicDeleteDemoFamilyRoute: ApiPublicDeleteDemoFamilyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
