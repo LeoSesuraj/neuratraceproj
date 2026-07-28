@@ -1,8 +1,7 @@
 import { Outlet, createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { LegalFooter } from "@/components/legal-footer";
-
-const logo = "/neuratrace-logo.png";
+import logo from "../assets/neuratrace-logo.png";
 
 export const Route = createFileRoute("/legal")({
   component: LegalLayout,

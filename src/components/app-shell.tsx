@@ -9,8 +9,7 @@ import {
   Compass,
 } from "lucide-react";
 import { LegalFooter } from "@/components/legal-footer";
-
-const logo = "/neuratrace-logo.png";
+import logo from "../assets/neuratrace-logo.png";
 
 type Tab = {
   to:

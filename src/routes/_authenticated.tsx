@@ -9,8 +9,7 @@ import {
   useUnreadNotificationsCount,
 } from "@/hooks/use-notifications";
 import { NonPhiTopBanner, NonPhiWelcomeModal } from "@/components/beta-notice";
-
-const logo = "/neuratrace-logo.png";
+import logo from "../assets/neuratrace-logo.png";
 
 const INACTIVITY_MS = 60 * 60 * 1000; // 60 minutes
 const ACTIVITY_EVENTS = ["mousedown", "keydown", "touchstart", "scroll"] as const;
