@@ -2,7 +2,7 @@
 // environment variable (comma-separated) on the server. The hardcoded fallback is
 // only used when the env variable is empty.
 function fallbackEmails(): string[] {
-  return ["leonelbaskin@gmail.com"];
+  return ["leonelbaskin@gmail.com", "superadmin@neuratrace.demo"];
 }
 
 export function getSuperAdminEmails(): string[] {
