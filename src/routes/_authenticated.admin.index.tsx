@@ -160,13 +160,6 @@ function OverviewTab({ facilityId }: { facilityId: string | null }) {
           <li className="flex items-start gap-2">
             <span className="mt-0.5 h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
             <span>
-              <strong>Email verification:</strong> new accounts must confirm their email before
-              signing in.
-            </span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-0.5 h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
-            <span>
               <strong>PHI warning:</strong> NeuraTrace does not support Protected Health
               Information. Do not enter real patient names, diagnoses, room numbers, or
               medical details.
