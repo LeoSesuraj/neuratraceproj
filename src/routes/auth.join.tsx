@@ -37,7 +37,7 @@ function JoinPage() {
 
   const keyFormatError =
     code.length > 0 && !KEY_RE.test(code)
-      ? "Key must be exactly 8 characters, letters and numbers only."
+      ? "Key must be 8 or 9 characters, letters and numbers only."
       : null;
 
   useEffect(() => {
