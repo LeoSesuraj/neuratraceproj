@@ -655,6 +655,7 @@ export const createPhotoPost = createServerFn({ method: "POST" })
     if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
       throw new Error("Forbidden");
     }
+    if (data.caption) assertNoPhi(data.caption, "Caption");
     const { error } = await context.supabase.from("posts").insert({
       resident_id: data.resident_id,
       author_id: context.userId,
@@ -701,6 +702,9 @@ export const upsertDailyNote = createServerFn({ method: "POST" })
     if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
       throw new Error("Forbidden");
     }
+    assertNoPhi(data.activities, "Activities");
+    assertNoPhi(data.food, "Food");
+    assertNoPhi(data.feelings, "Feelings");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const caption = encodeNote({
       activities: data.activities,
