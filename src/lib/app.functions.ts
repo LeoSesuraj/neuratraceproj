@@ -19,8 +19,8 @@ export const listFacilities = createServerFn({ method: "GET" }).handler(async ()
   return data ?? [];
 });
 
-// Public: validate the signup key, create an unconfirmed user, and assign their
-// role/facility link server-side. Email confirmation is required before sign-in.
+// Public: validate the signup key, create a confirmed user, and assign their
+// role/facility link server-side. Users can sign in immediately, no email verification.
 export const signupWithKey = createServerFn({ method: "POST" })
   .inputValidator((d) =>
     z
