@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { isValidPassword, PASSWORD_HINT } from "./password";
+import { assertNoPhi, validatePseudonym } from "./phi";
+
+
 
 
 // ---------- Public ----------
@@ -490,7 +493,13 @@ export const createResident = createServerFn({ method: "POST" })
   .inputValidator((d) =>
     z
       .object({
-        name: z.string().min(1).max(120),
+        name: z
+          .string()
+          .min(1)
+          .max(20)
+          .refine((v) => validatePseudonym(v) === null, {
+            message: "Use initials or a nickname (max 20 characters). Do not enter a resident's real full name.",
+          }),
         date_of_birth: z.string().optional(),
         dementia_type: z.string().max(120).optional(),
         behaviors: z.array(z.string().max(64)).max(50).optional(),
