@@ -7,6 +7,7 @@ import {
   type ResidentMessage,
 } from "@/lib/messages.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { findPhi } from "@/lib/phi";
 
 function formatTime(iso: string) {
   const d = new Date(iso);
@@ -100,9 +101,11 @@ export function ResidentMessageThread({
     if (autoFocus) inputRef.current?.focus();
   }, [autoFocus]);
 
+  const phiHit = draft ? findPhi(draft) : null;
+
   const handleSend = () => {
     const trimmed = draft.trim();
-    if (!trimmed || send.isPending) return;
+    if (!trimmed || send.isPending || phiHit) return;
     send.mutate(trimmed);
   };
 
@@ -166,9 +169,12 @@ export function ResidentMessageThread({
         }}
         className="mt-3 flex flex-col gap-2"
       >
-        {isFamily && (
-          <p className="text-xs text-muted-foreground">
-            Beta: do not share personal medical details in this chat.
+        <p className="text-xs text-muted-foreground">
+          Non-PHI pilot: do not share names, dates of birth, diagnoses, or contact info here.
+        </p>
+        {phiHit && (
+          <p className="text-xs text-destructive" role="alert">
+            That looks like a {phiHit.label}. Remove it before sending.
           </p>
         )}
         <div className="flex items-end gap-2">
@@ -188,7 +194,7 @@ export function ResidentMessageThread({
         />
         <button
           type="submit"
-          disabled={!draft.trim() || send.isPending}
+          disabled={!draft.trim() || send.isPending || !!phiHit}
           aria-label="Send message"
           className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
         >
