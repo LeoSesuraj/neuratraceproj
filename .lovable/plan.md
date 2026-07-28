@@ -1,26 +1,25 @@
-CocoaPods is now installed (`1.16.2`). No code changes required — just continue with the Capacitor shell setup on your Mac.
+## Goal
+Wipe all existing accounts and bootstrap a single super admin: `leonelbaskin@gmail.com` with a password you choose. Super admin can then onboard other users via the existing daily-key join flow shown in the admin dashboard.
 
-## Run on your Mac
+## Steps
 
-```bash
-npx cap add ios
-npx cap sync ios
-npx cap open ios
-```
+1. **Collect the password securely** via `add_secret` (name: `BOOTSTRAP_SUPERADMIN_PASSWORD`). You'll type it into a secure form — I never see it.
 
-## What to expect
+2. **Add a one-shot bootstrap server function** `bootstrapSuperAdmin` in `src/lib/admin.functions.ts`:
+   - Guarded so it only runs while `BOOTSTRAP_SUPERADMIN_PASSWORD` is set (delete the secret after to disable).
+   - Uses `supabaseAdmin` to:
+     - Delete every user in `auth.users` (cascades to `profiles`, `user_roles`, `family_links`, messages, notifications, etc.).
+     - Create `leonelbaskin@gmail.com` with the chosen password, `email_confirm: true`.
+     - Insert a `user_roles` row with `role = 'super_admin'` for that user.
+   - Returns `{ ok: true }` or the error.
 
-- `cap add ios` will create the `ios/` folder and automatically run `pod install` (you'll see "Installing Capacitor (7.x.x)", "Installing CapacitorSplashScreen", "Installing CapacitorStatusBar", then "Pod installation complete").
-- It generates **`ios/App/App.xcworkspace`** — with CocoaPods you must always open the `.xcworkspace`, never `.xcodeproj`. `cap open ios` opens the correct one automatically.
+3. **Invoke it once** via `invoke-server-function`, verify the account exists, then delete the `BOOTSTRAP_SUPERADMIN_PASSWORD` secret so the function is inert.
 
-## In Xcode
+4. **Verify sign-in**: from `/` sign in as `leonelbaskin@gmail.com` → lands on `/admin/super`, where today's family/staff/admin join keys are already displayed. Share those keys with new users, who sign up via `/auth/join`.
 
-1. Top bar → device selector → pick **iPhone 15** (or any simulator).
-2. Click the blue **App** target → **Signing & Capabilities** → set **Team** to your Apple ID (free account works for simulator).
-3. Press **⌘R**.
+## Notes
+- This is irreversible — every existing account (super admins, admins, staff, family, residents' linked users) will be deleted.
+- The super admin whitelist in `src/lib/super-admin.ts` already includes `leonelbaskin@gmail.com`, so the role check passes automatically.
+- No new UI is needed; account creation for other users continues through the daily-key join flow already built into `/admin/super`.
 
-First build takes ~1 min while it compiles the Capacitor pods, then the simulator boots and loads your app.
-
-## If anything fails
-
-Send me the **first** red error from the Issue Navigator (⌘5). The previous Swift API errors (`bridge.viewController`, `call.reject`, `PluginConfig.getString`) should be gone now that you're on Capacitor 7, which is what those plugin versions were built against.
+Reply "go" to proceed and I'll open the secure password prompt.
