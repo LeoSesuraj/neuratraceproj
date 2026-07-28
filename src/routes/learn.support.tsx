@@ -3,7 +3,7 @@ import { Outlet, createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/learn/support")({
   head: () => ({
     meta: [
-      { title: "Support, NeuroTrace" },
+      { title: "Support, NeuraTrace" },
       {
         name: "description",
         content:

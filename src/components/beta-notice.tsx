@@ -73,7 +73,7 @@ export function NonPhiWelcomeModal() {
           </h2>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
-          NeuroTrace is an educational and communication support tool, not a medical record
+          NeuraTrace is an educational and communication support tool, not a medical record
           system. This environment is not HIPAA-compliant.
         </p>
         <p className="mt-3 text-sm text-foreground font-medium">You agree not to enter:</p>

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import logo from "@/assets/neurotrace-logo.png";
+import logo from "@/assets/neuratrace-logo.png";
 import { BookOpen, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole } from "@/lib/app.functions";
@@ -10,11 +10,11 @@ import { checkLockout, recordFailedLogin, clearLockoutSelf } from "@/lib/admin.f
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NeuroTrace, Sign in" },
+      { title: "NeuraTrace, Sign in" },
       {
         name: "description",
         content:
-          "Sign in to NeuroTrace, join your facility, or explore our free Learn module about dementia caregiving.",
+          "Sign in to NeuraTrace, join your facility, or explore our free Learn module about dementia caregiving.",
       },
     ],
   }),
@@ -125,9 +125,9 @@ function LandingPage() {
       </a>
       <main id="main-content" className="mx-auto max-w-2xl px-5 py-10 sm:py-16">
         <header className="flex flex-col items-center text-center">
-          <img src={logo} alt="NeuroTrace logo" width={88} height={88} className="h-22 w-22" style={{ height: 88, width: 88 }} />
+          <img src={logo} alt="NeuraTrace logo" width={88} height={88} className="h-22 w-22" style={{ height: 88, width: 88 }} />
           <h1 className="mt-5 text-4xl leading-[1.05] sm:text-6xl">
-            Welcome to <span className="text-primary">NeuroTrace</span>
+            Welcome to <span className="text-primary">NeuraTrace</span>
           </h1>
           <p className="mt-4 max-w-lg text-base text-muted-foreground sm:text-lg">
             A gentle companion for families and care teams supporting someone
@@ -224,7 +224,7 @@ function LandingPage() {
         </ul>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          NeuroTrace is for education and emotional support only. It is not a
+          NeuraTrace is for education and emotional support only. It is not a
           diagnostic tool or a substitute for medical care. Do not enter real
           patient names, diagnoses, room numbers, or medical details.
         </p>

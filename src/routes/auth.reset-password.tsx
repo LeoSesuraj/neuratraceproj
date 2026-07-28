@@ -83,7 +83,7 @@ function ResetPasswordPage() {
     <div>
       <h1 className="text-3xl">Reset your password</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Choose a new password for your NeuroTrace account.
+        Choose a new password for your NeuraTrace account.
       </p>
       <form onSubmit={onSubmit} className="mt-8 space-y-4">
         <label className="block">

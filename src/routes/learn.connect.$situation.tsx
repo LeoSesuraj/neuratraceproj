@@ -25,7 +25,7 @@ export const Route = createFileRoute("/learn/connect/$situation")({
     loaderData
       ? {
           meta: [
-            { title: `${loaderData.title}, NeuroTrace` },
+            { title: `${loaderData.title}, NeuraTrace` },
             { name: "description", content: loaderData.blurb },
           ],
         }
@@ -241,7 +241,7 @@ function SituationPage() {
           <div>
             <h3 className="text-base font-semibold">Want to talk it through?</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              The NeuroTrace Coach can help you think through your specific
+              The NeuraTrace Coach can help you think through your specific
               situation.
             </p>
             <Link

@@ -7,7 +7,7 @@ import {
 } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
-const SYSTEM_PROMPT = `You are the NeuroTrace Coach, a warm, practical companion for family members caring for a loved one with Alzheimer's or another form of dementia.
+const SYSTEM_PROMPT = `You are the NeuraTrace Coach, a warm, practical companion for family members caring for a loved one with Alzheimer's or another form of dementia.
 
 ROLE AND LIMITS
 - You provide emotional support and general caregiving guidance only.

@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import logo from "@/assets/neurotrace-logo.png";
+import logo from "@/assets/neuratrace-logo.png";
 import {
   ArrowLeft,
   BookOpen,
@@ -46,16 +46,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </a>
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
-          <Link to="/learn" aria-label="NeuroTrace home" className="flex shrink-0 items-center gap-2.5">
+          <Link to="/learn" aria-label="NeuraTrace home" className="flex shrink-0 items-center gap-2.5">
             <img
               src={logo}
-              alt="NeuroTrace logo"
+              alt="NeuraTrace logo"
               width={44}
               height={44}
               className="h-11 w-11"
             />
             <span className="font-display text-xl tracking-tight">
-              NeuroTrace
+              NeuraTrace
             </span>
           </Link>
           <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">

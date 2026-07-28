@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/neurotrace-logo.png";
+import logo from "@/assets/neuratrace-logo.png";
 import { Bell, LogOut } from "lucide-react";
 import { LegalFooter } from "@/components/legal-footer";
 import {
@@ -81,9 +81,9 @@ function AuthedLayout() {
       <NonPhiTopBanner />
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
-          <Link to="/" aria-label="NeuroTrace home" className="flex items-center gap-2.5">
-            <img src={logo} alt="NeuroTrace logo" className="h-11 w-11" />
-            <span className="font-display text-xl tracking-tight">NeuroTrace</span>
+          <Link to="/" aria-label="NeuraTrace home" className="flex items-center gap-2.5">
+            <img src={logo} alt="NeuraTrace logo" className="h-11 w-11" />
+            <span className="font-display text-xl tracking-tight">NeuraTrace</span>
           </Link>
           <div className="flex items-center gap-1">
             <NotificationsBellLink />

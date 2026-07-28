@@ -50,7 +50,7 @@ function SupportIndex() {
           <div>
             <h3 className="text-lg font-semibold">Need to talk it through?</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              The NeuroTrace Coach can help with the specific situation you're in
+              The NeuraTrace Coach can help with the specific situation you're in
               right now.
             </p>
             <Link

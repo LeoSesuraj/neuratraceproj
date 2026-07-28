@@ -6,7 +6,7 @@ export function LegalFooter({ className = "" }: { className?: string }) {
       className={`border-t border-border/60 px-5 py-6 text-center text-xs text-muted-foreground ${className}`}
     >
       <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-x-4 gap-y-2">
-        <span>© {new Date().getFullYear()} NeuroTrace</span>
+        <span>© {new Date().getFullYear()} NeuraTrace</span>
         <Link to="/legal/terms" className="hover:text-foreground hover:underline">
           Terms of Service
         </Link>

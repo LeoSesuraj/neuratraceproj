@@ -1,7 +1,7 @@
 import type { UIMessage } from "ai";
 import { useCallback, useSyncExternalStore } from "react";
 
-const STORAGE_KEY = "neurotrace.threads.v1";
+const STORAGE_KEY = "neuratrace.threads.v1";
 
 export type ChatThread = {
   id: string;

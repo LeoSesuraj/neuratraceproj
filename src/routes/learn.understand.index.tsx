@@ -7,7 +7,7 @@ import { ArrowRight, BookOpen, Search, X } from "lucide-react";
 export const Route = createFileRoute("/learn/understand/")({
   head: () => ({
     meta: [
-      { title: "Understand, NeuroTrace" },
+      { title: "Understand, NeuraTrace" },
       {
         name: "description",
         content:

@@ -23,7 +23,7 @@ export const Route = createFileRoute("/learn/understand/$topic")({
     loaderData
       ? {
           meta: [
-            { title: `${loaderData.title}, NeuroTrace` },
+            { title: `${loaderData.title}, NeuraTrace` },
             { name: "description", content: loaderData.blurb },
           ],
         }

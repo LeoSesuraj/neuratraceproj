@@ -12,13 +12,13 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
-import logo from "@/assets/neurotrace-logo.png";
+import logo from "@/assets/neuratrace-logo.png";
 
 function BrandMark() {
   return (
     <div className="flex flex-col items-center">
-      <img src={logo} alt="NeuroTrace logo" width={72} height={72} className="h-18 w-18" style={{ height: 72, width: 72 }} />
-      <p className="mt-3 font-serif text-lg text-foreground">NeuroTrace</p>
+      <img src={logo} alt="NeuraTrace logo" width={72} height={72} className="h-18 w-18" style={{ height: 72, width: 72 }} />
+      <p className="mt-3 font-serif text-lg text-foreground">NeuraTrace</p>
     </div>
   );
 }
@@ -97,13 +97,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
       { name: "theme-color", content: "#f6fafd" },
-      { title: "NeuroTrace, A gentle companion for dementia caregivers" },
+      { title: "NeuraTrace, A gentle companion for dementia caregivers" },
       {
         name: "description",
         content:
-          "NeuroTrace helps families understand dementia behaviors, communicate with loved ones, and feel less alone, with an AI coach trained for caregiving.",
+          "NeuraTrace helps families understand dementia behaviors, communicate with loved ones, and feel less alone, with an AI coach trained for caregiving.",
       },
-      { property: "og:title", content: "NeuroTrace" },
+      { property: "og:title", content: "NeuraTrace" },
       {
         property: "og:description",
         content:

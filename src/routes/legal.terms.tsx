@@ -3,11 +3,11 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/legal/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Service, NeuroTrace" },
+      { title: "Terms of Service, NeuraTrace" },
       {
         name: "description",
         content:
-          "Terms of Service for NeuroTrace, an educational and emotional support tool for dementia caregivers.",
+          "Terms of Service for NeuraTrace, an educational and emotional support tool for dementia caregivers.",
       },
     ],
   }),
@@ -31,18 +31,18 @@ function TermsPage() {
       <h1 className="font-serif text-3xl text-foreground">Terms of Service</h1>
       <p className="mt-2 text-xs text-muted-foreground">Last updated: June 21, 2026</p>
 
-      <Section title="What NeuroTrace is">
+      <Section title="What NeuraTrace is">
         <p>
-          NeuroTrace is an educational and emotional support tool designed to help
+          NeuraTrace is an educational and emotional support tool designed to help
           families, caregivers, and care teams understand dementia, communicate
           with loved ones, and feel less alone. It provides guides, conversation
           frameworks, and an AI Coach trained for caregiving-related support.
         </p>
       </Section>
 
-      <Section title="What NeuroTrace is not">
+      <Section title="What NeuraTrace is not">
         <p>
-          NeuroTrace is <strong>not a medical device</strong>. It is not a
+          NeuraTrace is <strong>not a medical device</strong>. It is not a
           diagnostic tool, does not provide medical advice, and is not a
           substitute for evaluation, treatment, or care from a licensed
           healthcare professional. Always consult a qualified clinician for
@@ -52,7 +52,7 @@ function TermsPage() {
 
       <Section title="Permitted use">
         <p>
-          NeuroTrace is intended for use by family members, informal caregivers,
+          NeuraTrace is intended for use by family members, informal caregivers,
           and facility staff acting in a supportive capacity. You may use the
           service to learn, reflect, journal, and explore communication
           approaches for people living with dementia.
@@ -67,7 +67,7 @@ function TermsPage() {
             Coach or any input field.
           </li>
           <li>
-            Using NeuroTrace for clinical decision-making, triage, medication
+            Using NeuraTrace for clinical decision-making, triage, medication
             management, or as part of a formal care plan.
           </li>
           <li>
@@ -83,7 +83,7 @@ function TermsPage() {
 
       <Section title="Disclaimer of warranties">
         <p>
-          NeuroTrace is provided "as is" and "as available", without warranties
+          NeuraTrace is provided "as is" and "as available", without warranties
           of any kind, whether express or implied, including warranties of
           merchantability, fitness for a particular purpose, accuracy, or
           non-infringement. We do not warrant that the service will be
@@ -94,7 +94,7 @@ function TermsPage() {
 
       <Section title="Limitation of liability">
         <p>
-          To the maximum extent permitted by law, NeuroTrace and its operators
+          To the maximum extent permitted by law, NeuraTrace and its operators
           shall not be liable for any indirect, incidental, special,
           consequential, or punitive damages, or any loss of profits, data, or
           goodwill, arising from your use of or inability to use the service -
@@ -113,8 +113,8 @@ function TermsPage() {
       <Section title="Contact">
         <p>
           Questions about these Terms? Email{" "}
-          <a href="mailto:neurotraceadmin@gmail.com" className="text-primary hover:underline">
-            neurotraceadmin@gmail.com
+          <a href="mailto:neuratraceadmin@gmail.com" className="text-primary hover:underline">
+            neuratraceadmin@gmail.com
           </a>
           .
         </p>

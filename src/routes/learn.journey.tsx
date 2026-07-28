@@ -15,7 +15,7 @@ import {
 export const Route = createFileRoute("/learn/journey")({
   head: () => ({
     meta: [
-      { title: "Journey, NeuroTrace" },
+      { title: "Journey, NeuraTrace" },
       {
         name: "description",
         content:
