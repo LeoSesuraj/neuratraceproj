@@ -599,3 +599,72 @@ export const clearLockoutSelf = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// ---------- one-shot bootstrap: wipe all accounts, create the sole super admin ----------
+// Guarded by the presence of BOOTSTRAP_SUPERADMIN_PASSWORD. Delete that secret
+// after running to disable this function permanently.
+export const bootstrapSuperAdmin = createServerFn({ method: "POST" }).handler(async () => {
+  const password = process.env.BOOTSTRAP_SUPERADMIN_PASSWORD;
+  if (!password) throw new Error("Bootstrap disabled: BOOTSTRAP_SUPERADMIN_PASSWORD not set");
+  if (password.length < 8) throw new Error("Password must be at least 8 characters");
+
+  const email = "leonelbaskin@gmail.com";
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const db = supabaseAdmin as unknown as AnyClient & {
+    auth: {
+      admin: AnyClient["auth"]["admin"] & {
+        listUsers: (opts?: { page?: number; perPage?: number }) => Promise<{
+          data: { users: Array<{ id: string; email?: string | null }> };
+          error: { message: string } | null;
+        }>;
+        createUser: (attrs: {
+          email: string;
+          password: string;
+          email_confirm?: boolean;
+        }) => Promise<{
+          data: { user: { id: string; email?: string | null } | null };
+          error: { message: string } | null;
+        }>;
+      };
+    };
+  };
+
+  // 1. Delete every auth user (cascades to profiles, user_roles, family_links, etc.).
+  let deleted = 0;
+  // Page through until empty.
+  for (let page = 1; page < 100; page++) {
+    const { data, error } = await db.auth.admin.listUsers({ page, perPage: 200 });
+    if (error) throw new Error(`listUsers failed: ${error.message}`);
+    const users = data?.users ?? [];
+    if (users.length === 0) break;
+    for (const u of users) {
+      const { error: delErr } = await db.auth.admin.deleteUser(u.id);
+      if (delErr) throw new Error(`deleteUser ${u.id} failed: ${delErr.message}`);
+      deleted++;
+    }
+    if (users.length < 200) break;
+  }
+
+  // 2. Create the sole super admin.
+  const { data: created, error: createErr } = await db.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+  if (createErr || !created?.user) {
+    throw new Error(`createUser failed: ${createErr?.message ?? "unknown"}`);
+  }
+  const userId = created.user.id;
+
+  // 3. Grant the super_admin role (email whitelist already covers it, but keep DB consistent).
+  const { error: roleErr } = await db
+    .from("user_roles")
+    .insert({ user_id: userId, role: "super_admin" });
+  if (roleErr && !/duplicate|unique/i.test(roleErr.message ?? "")) {
+    // Non-fatal: whitelist still grants access via isSuperAdminEmail.
+    console.warn("[bootstrap] user_roles insert warning:", roleErr.message);
+  }
+
+  return { ok: true, deleted, userId, email };
+});
+
+
