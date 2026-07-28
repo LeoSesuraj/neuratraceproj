@@ -35,7 +35,7 @@ export const signupWithKey = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    const { normalizeKey, dailyKey } = await import("./keys.server");
+    const { normalizeKey, dailyKey, resolveDemoKey } = await import("./keys.server");
     const code = normalizeKey(data.code);
     const INVALID = "This key is invalid or has expired. Ask your facility administrator for today's key.";
     if (!code) throw new Error(INVALID);
@@ -47,13 +47,20 @@ export const signupWithKey = createServerFn({ method: "POST" })
       | { kind: "admin"; facility_id: string };
     let match: Match | null = null;
 
-    const { data: residents } = await supabaseAdmin
-      .from("residents")
-      .select("id, facility_id");
-    for (const r of residents ?? []) {
-      if (dailyKey("family", r.id) === code) {
-        match = { kind: "family", resident_id: r.id, facility_id: r.facility_id };
-        break;
+    const demo = await resolveDemoKey(code);
+    if (demo) {
+      match = { kind: "family", resident_id: demo.resident_id, facility_id: demo.facility_id };
+    }
+
+    if (!match) {
+      const { data: residents } = await supabaseAdmin
+        .from("residents")
+        .select("id, facility_id");
+      for (const r of residents ?? []) {
+        if (dailyKey("family", r.id) === code) {
+          match = { kind: "family", resident_id: r.id, facility_id: r.facility_id };
+          break;
+        }
       }
     }
     if (!match) {
