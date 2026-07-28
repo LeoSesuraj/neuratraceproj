@@ -37,26 +37,26 @@ export function NonPhiTopBanner() {
  * persisted per-user in the DB so it follows them across devices.
  */
 export function NonPhiWelcomeModal() {
-  const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ["phi-ack"],
-    queryFn: () => getMyPhiAck(),
-    staleTime: 5 * 60 * 1000,
+  const [acknowledged, setAcknowledged] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return sessionStorage.getItem("nt.phi-ack.session") === "1";
   });
   const [checked, setChecked] = useState(false);
-  const ack = useMutation({
-    mutationFn: () => acknowledgePhi(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["phi-ack"] });
+  const ack = {
+    isPending: false,
+    isError: false,
+    mutate: () => {
+      sessionStorage.setItem("nt.phi-ack.session", "1");
+      setAcknowledged(true);
     },
-  });
+  };
 
-  // Reset check state when a new user session loads.
   useEffect(() => {
     setChecked(false);
-  }, [data?.acknowledged]);
+  }, [acknowledged]);
 
-  if (isLoading || data?.acknowledged) return null;
+  if (acknowledged) return null;
+
 
   return (
     <div
