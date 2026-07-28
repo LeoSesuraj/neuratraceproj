@@ -74,7 +74,7 @@ export const signupWithKey = createServerFn({ method: "POST" })
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       password: data.password,
-      email_confirm: false,
+      email_confirm: true,
     });
     if (error) {
       if (/already|exists|registered/i.test(error.message)) {
