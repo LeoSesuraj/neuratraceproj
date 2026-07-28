@@ -7,7 +7,7 @@ import { isValidPassword, PASSWORD_HINT } from "@/lib/password";
 
 const searchSchema = z.object({ code: z.string().optional() });
 
-const KEY_RE = /^[A-Z0-9]{8}$/;
+const KEY_RE = /^[A-Z0-9]{8,9}$/;
 
 export const Route = createFileRoute("/auth/join")({
   validateSearch: (s) => searchSchema.parse(s),
@@ -37,7 +37,7 @@ function JoinPage() {
 
   const keyFormatError =
     code.length > 0 && !KEY_RE.test(code)
-      ? "Key must be exactly 8 characters, letters and numbers only."
+      ? "Key must be 8 or 9 characters, letters and numbers only."
       : null;
 
   useEffect(() => {
@@ -64,7 +64,7 @@ function JoinPage() {
   async function onSubmitKey(e: React.FormEvent) {
     e.preventDefault();
     if (!KEY_RE.test(code)) {
-      setError("Key must be exactly 8 characters, letters and numbers only.");
+      setError("Key must be 8 or 9 characters, letters and numbers only.");
       return;
     }
     await verify(code);
@@ -119,16 +119,16 @@ function JoinPage() {
             required
             value={code}
             onChange={(e) =>
-              setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8))
+              setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 9))
             }
             placeholder="ABCD1234"
-            maxLength={8}
+            maxLength={9}
             inputMode="text"
             autoCapitalize="characters"
             autoCorrect="off"
             spellCheck={false}
             autoComplete="one-time-code"
-            aria-label="8-character access key"
+            aria-label="Access key"
             className="w-full rounded-xl border border-border bg-card px-3.5 py-3 text-center font-mono text-xl tracking-widest shadow-soft min-h-[48px]"
           />
           {keyFormatError && (

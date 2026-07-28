@@ -30,12 +30,12 @@ export const signupWithKey = createServerFn({ method: "POST" })
         code: z
           .string()
           .transform((s) => s.toUpperCase().replace(/[^A-Z0-9]/g, ""))
-          .pipe(z.string().regex(/^[A-Z0-9]{8}$/, "Key must be 8 alphanumeric characters")),
+          .pipe(z.string().regex(/^[A-Z0-9]{8,9}$/, "Key must be 8-9 alphanumeric characters")),
       })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    const { normalizeKey, dailyKey } = await import("./keys.server");
+    const { normalizeKey, dailyKey, resolveDemoKey } = await import("./keys.server");
     const code = normalizeKey(data.code);
     const INVALID = "This key is invalid or has expired. Ask your facility administrator for today's key.";
     if (!code) throw new Error(INVALID);
@@ -47,13 +47,20 @@ export const signupWithKey = createServerFn({ method: "POST" })
       | { kind: "admin"; facility_id: string };
     let match: Match | null = null;
 
-    const { data: residents } = await supabaseAdmin
-      .from("residents")
-      .select("id, facility_id");
-    for (const r of residents ?? []) {
-      if (dailyKey("family", r.id) === code) {
-        match = { kind: "family", resident_id: r.id, facility_id: r.facility_id };
-        break;
+    const demo = await resolveDemoKey(code);
+    if (demo) {
+      match = { kind: "family", resident_id: demo.resident_id, facility_id: demo.facility_id };
+    }
+
+    if (!match) {
+      const { data: residents } = await supabaseAdmin
+        .from("residents")
+        .select("id, facility_id");
+      for (const r of residents ?? []) {
+        if (dailyKey("family", r.id) === code) {
+          match = { kind: "family", resident_id: r.id, facility_id: r.facility_id };
+          break;
+        }
       }
     }
     if (!match) {
@@ -107,10 +114,23 @@ export const signupWithKey = createServerFn({ method: "POST" })
 export const lookupKey = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ code: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
-    const { normalizeKey, dailyKey } = await import("./keys.server");
+    const { normalizeKey, dailyKey, resolveDemoKey } = await import("./keys.server");
     const code = normalizeKey(data.code);
     if (!code) return { found: false as const };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Demo static code
+    const demo = await resolveDemoKey(code);
+    if (demo) {
+      return {
+        found: true as const,
+        kind: "family" as const,
+        resident_id: demo.resident_id,
+        resident_name: demo.resident_name,
+        facility_id: demo.facility_id,
+        facility_name: demo.facility_name,
+      };
+    }
 
     // Try family (per resident)
     const { data: residents } = await supabaseAdmin
