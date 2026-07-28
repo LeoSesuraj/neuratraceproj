@@ -90,7 +90,11 @@ function LoginPage() {
       <p className="mt-2 text-sm text-muted-foreground">
         Sign in to continue to NeuroTrace.
       </p>
-      <form onSubmit={onSubmit} className="mt-8 space-y-4">
+      <p className="mt-6 text-center text-xs text-muted-foreground">
+        NeuroTrace is for education and emotional support only. Do not enter real
+        patient names, diagnoses, room numbers, or medical details.
+      </p>
+      <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <label className="block">
           <span className="text-sm font-medium">Email</span>
           <input
