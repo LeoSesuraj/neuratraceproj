@@ -64,7 +64,7 @@ function JoinPage() {
   async function onSubmitKey(e: React.FormEvent) {
     e.preventDefault();
     if (!KEY_RE.test(code)) {
-      setError("Key must be exactly 8 characters, letters and numbers only.");
+      setError("Key must be 8 or 9 characters, letters and numbers only.");
       return;
     }
     await verify(code);
