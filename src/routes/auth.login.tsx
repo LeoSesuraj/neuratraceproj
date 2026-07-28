@@ -88,10 +88,10 @@ function LoginPage() {
     <div>
       <h1 className="text-3xl">Welcome back</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Sign in to continue to NeuroTrace.
+        Sign in to continue to NeuraTrace.
       </p>
       <p className="mt-6 text-center text-xs text-muted-foreground">
-        NeuroTrace is for education and emotional support only. Do not enter real
+        NeuraTrace is for education and emotional support only. Do not enter real
         patient names, diagnoses, room numbers, or medical details.
       </p>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">

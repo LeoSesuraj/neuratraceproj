@@ -3,11 +3,11 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/legal/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy, NeuroTrace" },
+      { title: "Privacy Policy, NeuraTrace" },
       {
         name: "description",
         content:
-          "How NeuroTrace collects, uses, and protects your data, and your rights as a user.",
+          "How NeuraTrace collects, uses, and protects your data, and your rights as a user.",
       },
     ],
   }),
@@ -60,7 +60,7 @@ function PrivacyPage() {
       </Section>
 
       <Section title="Third-party processors">
-        <p>We rely on a small set of trusted vendors to run NeuroTrace:</p>
+        <p>We rely on a small set of trusted vendors to run NeuraTrace:</p>
         <ul className="list-disc space-y-1 pl-5">
           <li>
             <strong>Supabase</strong>, database and authentication.
@@ -88,8 +88,8 @@ function PrivacyPage() {
         <p>
           You may request access to, correction of, or deletion of your
           personal data at any time. Email{" "}
-          <a href="mailto:neurotraceadmin@gmail.com" className="text-primary hover:underline">
-            neurotraceadmin@gmail.com
+          <a href="mailto:neuratraceadmin@gmail.com" className="text-primary hover:underline">
+            neuratraceadmin@gmail.com
           </a>{" "}
           and we'll respond within a reasonable timeframe.
         </p>
@@ -97,7 +97,7 @@ function PrivacyPage() {
 
       <Section title="Children">
         <p>
-          NeuroTrace is not intended for users under the age of 13. We do not
+          NeuraTrace is not intended for users under the age of 13. We do not
           knowingly collect personal information from children under 13. If you
           believe a child has provided us with personal information, please
           contact us so we can remove it.

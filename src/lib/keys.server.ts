@@ -8,7 +8,7 @@ function secret(): string {
   return (
     process.env.SIGNUP_KEY_SECRET ||
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    "neurotrace-dev-secret"
+    "neuratrace-dev-secret"
   );
 }
 

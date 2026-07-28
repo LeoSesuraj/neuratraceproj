@@ -87,7 +87,7 @@ function SetPasswordPage() {
     <div>
       <h1 className="text-3xl">Set your password</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Welcome to NeuroTrace. Choose a password to finish setting up your
+        Welcome to NeuraTrace. Choose a password to finish setting up your
         account.
       </p>
       <form onSubmit={onSubmit} className="mt-8 space-y-4">

@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute, Link } from "@tanstack/react-router";
-import logo from "@/assets/neurotrace-logo.png";
+import logo from "@/assets/neuratrace-logo.png";
 import { ArrowLeft } from "lucide-react";
 import { LegalFooter } from "@/components/legal-footer";
 
@@ -18,9 +18,9 @@ function LegalLayout() {
       </a>
       <header className="border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-5">
-          <Link to="/" aria-label="NeuroTrace home" className="flex items-center gap-2.5">
-            <img src={logo} alt="NeuroTrace logo" className="h-10 w-10" />
-            <span className="font-display text-xl tracking-tight">NeuroTrace</span>
+          <Link to="/" aria-label="NeuraTrace home" className="flex items-center gap-2.5">
+            <img src={logo} alt="NeuraTrace logo" className="h-10 w-10" />
+            <span className="font-display text-xl tracking-tight">NeuraTrace</span>
           </Link>
           <Link
             to="/"

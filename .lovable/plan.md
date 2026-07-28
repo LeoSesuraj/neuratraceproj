@@ -1,5 +1,5 @@
 ## Goal
-Determine whether NeuroTrace is ready for a nursing home, and create a safe path to production for web + native deployment.
+Determine whether NeuraTrace is ready for a nursing home, and create a safe path to production for web + native deployment.
 
 ## Key finding: this is NOT ready for real patient data as-is
 
@@ -20,7 +20,7 @@ The security scan returns clean, the role-based access controls and RLS policies
 
 3. **Harden the existing code.**
    - Enforce email verification before a user can view any authenticated data. The current signup already requires confirmation, but verify it is enforced everywhere.
-   - Switch the password-reset `redirectTo` from the hardcoded `https://neurotraceproj.vercel.app` to `window.location.origin` so it works in any deployment and the native shell.
+   - Switch the password-reset `redirectTo` from the hardcoded `https://neuratraceproj.vercel.app` to `window.location.origin` so it works in any deployment and the native shell.
    - Add multi-factor authentication (MFA) as an option for admin and staff accounts.
    - Strengthen password requirements beyond the current 8-character minimum.
    - Make the 60-minute inactivity timeout and the failed-login lockout policy visible to admins.
@@ -40,7 +40,7 @@ The security scan returns clean, the role-based access controls and RLS policies
 6. **Operational readiness.**
    - Write a lightweight incident-response and breach-notification plan.
    - Create a staff/family training guide that repeats the "no PHI" rule.
-   - Set up a support process around the `neurotraceadmin@gmail.com` contact.
+   - Set up a support process around the `neuratraceadmin@gmail.com` contact.
    - Schedule regular security scans and access reviews.
 
 ## Plan if you must process PHI (Option B)
