@@ -7,7 +7,7 @@ import { isValidPassword, PASSWORD_HINT } from "@/lib/password";
 
 const searchSchema = z.object({ code: z.string().optional() });
 
-const KEY_RE = /^[A-Z0-9]{8}$/;
+const KEY_RE = /^[A-Z0-9]{8,9}$/;
 
 export const Route = createFileRoute("/auth/join")({
   validateSearch: (s) => searchSchema.parse(s),
