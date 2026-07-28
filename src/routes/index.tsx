@@ -104,7 +104,7 @@ function LandingPage() {
     setResetLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "https://neurotraceproj.vercel.app/auth/reset-password",
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       });
       if (error) throw error;
       setInfo("Check your email for a reset link.");
@@ -225,8 +225,10 @@ function LandingPage() {
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
           NeuroTrace is for education and emotional support only. It is not a
-          diagnostic tool or a substitute for medical care.
+          diagnostic tool or a substitute for medical care. Do not enter real
+          patient names, diagnoses, room numbers, or medical details.
         </p>
+
       </main>
       <LegalFooter />
     </div>

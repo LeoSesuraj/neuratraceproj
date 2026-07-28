@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole } from "@/lib/app.functions";
+import { isValidPassword, PASSWORD_HINT } from "@/lib/password";
+
 
 export const Route = createFileRoute("/auth/set-password")({
   component: SetPasswordPage,
@@ -40,8 +42,9 @@ function SetPasswordPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (password.length < 8) return setError("Password must be at least 8 characters.");
+    if (!isValidPassword(password)) return setError(PASSWORD_HINT);
     if (password !== confirm) return setError("Passwords do not match.");
+
     setLoading(true);
     const { error: uErr } = await supabase.auth.updateUser({ password });
     if (uErr) {
@@ -93,11 +96,14 @@ function SetPasswordPage() {
           <input
             type="password"
             required
+            minLength={12}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="mt-1 w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm shadow-soft"
           />
+          <p className="mt-1 text-xs text-muted-foreground">{PASSWORD_HINT}</p>
         </label>
+
         <label className="block">
           <span className="text-sm font-medium">Confirm password</span>
           <input
