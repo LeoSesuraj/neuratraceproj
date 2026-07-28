@@ -111,7 +111,7 @@ function JoinPage() {
       <div>
         <h1 className="text-3xl font-sans font-semibold">Join with a key</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Enter the 8-character key from your facility, staff, or admin. Keys
+          Enter the access key from your facility, staff, or admin. Keys
           refresh every day at midnight UTC.
         </p>
         <form onSubmit={onSubmitKey} className="mt-8 space-y-4">
