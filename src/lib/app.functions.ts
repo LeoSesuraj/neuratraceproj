@@ -114,10 +114,23 @@ export const signupWithKey = createServerFn({ method: "POST" })
 export const lookupKey = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ code: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
-    const { normalizeKey, dailyKey } = await import("./keys.server");
+    const { normalizeKey, dailyKey, resolveDemoKey } = await import("./keys.server");
     const code = normalizeKey(data.code);
     if (!code) return { found: false as const };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Demo static code
+    const demo = await resolveDemoKey(code);
+    if (demo) {
+      return {
+        found: true as const,
+        kind: "family" as const,
+        resident_id: demo.resident_id,
+        resident_name: demo.resident_name,
+        facility_id: demo.facility_id,
+        facility_name: demo.facility_name,
+      };
+    }
 
     // Try family (per resident)
     const { data: residents } = await supabaseAdmin
