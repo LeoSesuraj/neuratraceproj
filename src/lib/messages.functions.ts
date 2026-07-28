@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { assertNoPhi } from "./phi";
 
 export type ResidentMessage = {
   id: string;
@@ -110,6 +111,7 @@ export const sendResidentMessage = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<ResidentMessage> => {
     await assertThreadAccess(context, data.resident_id);
+    assertNoPhi(data.content, "Message");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: inserted, error } = await (context.supabase as any)
       .from("resident_messages")

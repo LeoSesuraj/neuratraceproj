@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { isValidPassword, PASSWORD_HINT } from "./password";
+import { assertNoPhi, validatePseudonym } from "./phi";
+
+
 
 
 // ---------- Public ----------
@@ -490,7 +493,13 @@ export const createResident = createServerFn({ method: "POST" })
   .inputValidator((d) =>
     z
       .object({
-        name: z.string().min(1).max(120),
+        name: z
+          .string()
+          .min(1)
+          .max(20)
+          .refine((v) => validatePseudonym(v) === null, {
+            message: "Use initials or a nickname (max 20 characters). Do not enter a resident's real full name.",
+          }),
         date_of_birth: z.string().optional(),
         dementia_type: z.string().max(120).optional(),
         behaviors: z.array(z.string().max(64)).max(50).optional(),
@@ -646,6 +655,7 @@ export const createPhotoPost = createServerFn({ method: "POST" })
     if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
       throw new Error("Forbidden");
     }
+    if (data.caption) assertNoPhi(data.caption, "Caption");
     const { error } = await context.supabase.from("posts").insert({
       resident_id: data.resident_id,
       author_id: context.userId,
@@ -692,6 +702,9 @@ export const upsertDailyNote = createServerFn({ method: "POST" })
     if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
       throw new Error("Forbidden");
     }
+    assertNoPhi(data.activities, "Activities");
+    assertNoPhi(data.food, "Food");
+    assertNoPhi(data.feelings, "Feelings");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const caption = encodeNote({
       activities: data.activities,

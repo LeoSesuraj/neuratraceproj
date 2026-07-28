@@ -9,7 +9,7 @@ import {
   useNotificationsRealtime,
   useUnreadNotificationsCount,
 } from "@/hooks/use-notifications";
-import { NonPhiWelcomeModal } from "@/components/beta-notice";
+import { NonPhiTopBanner, NonPhiWelcomeModal } from "@/components/beta-notice";
 
 const INACTIVITY_MS = 60 * 60 * 1000; // 60 minutes
 const ACTIVITY_EVENTS = ["mousedown", "keydown", "touchstart", "scroll"] as const;
@@ -78,6 +78,7 @@ function AuthedLayout() {
       >
         Skip to main content
       </a>
+      <NonPhiTopBanner />
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
           <Link to="/" aria-label="NeuroTrace home" className="flex items-center gap-2.5">

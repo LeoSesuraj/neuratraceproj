@@ -22,6 +22,7 @@ import {
   type ResidentWithFacility,
 } from "@/components/grouped-residents";
 import { NonPhiWarningBar } from "@/components/beta-notice";
+import { PSEUDONYM_HINT, PSEUDONYM_MAX, validatePseudonym } from "@/lib/phi";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   component: StaffPage,
@@ -97,36 +98,62 @@ function StaffPage() {
 
       <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
         <h2 className="text-lg">Add a resident</h2>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (name.trim()) create.mutate();
-          }}
-          className="mt-3 grid gap-4"
-        >
-          <NonPhiWarningBar />
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Resident's name"
-            className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm"
-          />
-          <div>
-            <p className="text-sm font-medium">Current behaviors</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Optional, pick any that apply now. You can edit these later from the resident's page.
-            </p>
-            <div className="mt-3">
-              <BehaviorChecklist value={behaviors} onChange={setBehaviors} />
-            </div>
-          </div>
-          <button
-            disabled={create.isPending || !name.trim()}
-            className="justify-self-start rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-          >
-            {create.isPending ? "Adding…" : "Add resident"}
-          </button>
-        </form>
+        {(() => {
+          const nameError = name.trim() ? validatePseudonym(name) : null;
+          return (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!name.trim() || nameError) return;
+                create.mutate();
+              }}
+              className="mt-3 grid gap-4"
+            >
+              <NonPhiWarningBar />
+              <div>
+                <label htmlFor="resident-pseudonym" className="text-sm font-medium">
+                  Resident initials or pseudonym
+                </label>
+                <input
+                  id="resident-pseudonym"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. R.J. or Nana B"
+                  maxLength={PSEUDONYM_MAX}
+                  aria-invalid={!!nameError}
+                  aria-describedby="resident-pseudonym-hint"
+                  className="mt-1 w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm"
+                />
+                <p id="resident-pseudonym-hint" className="mt-1 text-xs text-muted-foreground">
+                  {PSEUDONYM_HINT}
+                </p>
+                {nameError && (
+                  <p className="mt-1 text-xs text-destructive">{nameError}</p>
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium">Current behaviors</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Optional, pick any that apply now. You can edit these later from the resident's page.
+                </p>
+                <div className="mt-3">
+                  <BehaviorChecklist value={behaviors} onChange={setBehaviors} />
+                </div>
+              </div>
+              <button
+                disabled={create.isPending || !name.trim() || !!nameError}
+                className="justify-self-start rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                {create.isPending ? "Adding…" : "Add resident"}
+              </button>
+              {create.isError && (
+                <p className="text-xs text-destructive">
+                  {(create.error as Error)?.message ?? "Could not add resident."}
+                </p>
+              )}
+            </form>
+          );
+        })()}
       </section>
 
       <div className="mt-6 relative">
