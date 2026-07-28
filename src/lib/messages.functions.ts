@@ -67,6 +67,20 @@ async function resolveSenders(
   return out;
 }
 
+type MessageRow = {
+  id: string;
+  resident_id: string;
+  sender_id: string | null;
+  content: string;
+  created_at: string;
+  sender_label?: string | null;
+  sender_role?: string | null;
+};
+
+function coerceRole(value: unknown): ResidentMessage["sender_role"] {
+  return value === "family" || value === "staff" || value === "admin" ? value : null;
+}
+
 export const listResidentMessages = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ resident_id: z.string().uuid() }).parse(d))
@@ -75,26 +89,28 @@ export const listResidentMessages = createServerFn({ method: "POST" })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: rows, error } = await (context.supabase as any)
       .from("resident_messages")
-      .select("id, resident_id, sender_id, content, created_at")
+      .select("*")
       .eq("resident_id", data.resident_id)
       .order("created_at", { ascending: true })
       .limit(500);
     if (error) throw new Error(error.message);
-    const messages = (rows ?? []) as Array<{
-      id: string;
-      resident_id: string;
-      sender_id: string;
-      content: string;
-      created_at: string;
-    }>;
-    const senderIds = Array.from(new Set(messages.map((m) => m.sender_id)));
+    const messages = (rows ?? []) as MessageRow[];
+    const senderIds = Array.from(
+      new Set(messages.map((m) => m.sender_id).filter((id): id is string => !!id)),
+    );
     const senders = await resolveSenders(senderIds, data.resident_id);
     return messages.map((m) => {
-      const s = senders.get(m.sender_id);
+      const s = m.sender_id ? senders.get(m.sender_id) : undefined;
       return {
-        ...m,
-        sender_name: s?.name ?? null,
-        sender_role: s?.role ?? null,
+        id: m.id,
+        resident_id: m.resident_id,
+        sender_id: m.sender_id ?? "",
+        content: m.content,
+        created_at: m.created_at,
+        // Fall back to the snapshot so messages from removed accounts still
+        // show who wrote them.
+        sender_name: s?.name ?? m.sender_label ?? null,
+        sender_role: s?.role ?? coerceRole(m.sender_role),
       };
     });
   });
@@ -112,29 +128,45 @@ export const sendResidentMessage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<ResidentMessage> => {
     await assertThreadAccess(context, data.resident_id);
     assertNoPhi(data.content, "Message");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: inserted, error } = await (context.supabase as any)
-      .from("resident_messages")
-      .insert({
-        resident_id: data.resident_id,
-        sender_id: context.userId,
-        content: data.content.trim(),
-      })
-      .select("id, resident_id, sender_id, content, created_at")
-      .single();
-    if (error) throw new Error(error.message);
-    const row = inserted as {
-      id: string;
-      resident_id: string;
-      sender_id: string;
-      content: string;
-      created_at: string;
+
+    const senders = await resolveSenders([context.userId], data.resident_id);
+    const me = senders.get(context.userId);
+
+    const base = {
+      resident_id: data.resident_id,
+      sender_id: context.userId,
+      content: data.content.trim(),
     };
-    const senders = await resolveSenders([row.sender_id], row.resident_id);
-    const s = senders.get(row.sender_id);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const insert = (payload: Record<string, unknown>) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (context.supabase as any)
+        .from("resident_messages")
+        .insert(payload)
+        .select("*")
+        .single();
+
+    let { data: inserted, error } = await insert({
+      ...base,
+      sender_label: me?.name ?? null,
+      sender_role: me?.role ?? null,
+    });
+    if (error && /sender_label|sender_role/.test(error.message ?? "")) {
+      // Snapshot columns not migrated yet.
+      ({ data: inserted, error } = await insert(base));
+    }
+    if (error) throw new Error(error.message);
+
+    const row = inserted as MessageRow;
     return {
-      ...row,
-      sender_name: s?.name ?? null,
-      sender_role: s?.role ?? null,
+      id: row.id,
+      resident_id: row.resident_id,
+      sender_id: row.sender_id ?? context.userId,
+      content: row.content,
+      created_at: row.created_at,
+      sender_name: me?.name ?? row.sender_label ?? null,
+      sender_role: me?.role ?? coerceRole(row.sender_role),
     };
   });
+
