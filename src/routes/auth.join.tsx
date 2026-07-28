@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { lookupKey, signupWithKey } from "@/lib/app.functions";
+import { isValidPassword, PASSWORD_HINT } from "@/lib/password";
+
 
 const searchSchema = z.object({ code: z.string().optional() });
 
@@ -71,6 +73,10 @@ function JoinPage() {
   async function onSignup(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!isValidPassword(password)) {
+      setError(PASSWORD_HINT);
+      return;
+    }
     setLoading(true);
     try {
       await signupWithKey({ data: { email, password, code } });
@@ -81,6 +87,7 @@ function JoinPage() {
       setLoading(false);
     }
   }
+
 
   if (done) {
     return (
@@ -174,12 +181,14 @@ function JoinPage() {
           <input
             type="password"
             required
-            minLength={8}
+            minLength={12}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="mt-1 w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm shadow-soft"
           />
+          <p className="mt-1 text-xs text-muted-foreground">{PASSWORD_HINT}</p>
         </label>
+
         {error && (
           <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {error}
