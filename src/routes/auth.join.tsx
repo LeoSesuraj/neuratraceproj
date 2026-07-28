@@ -119,16 +119,16 @@ function JoinPage() {
             required
             value={code}
             onChange={(e) =>
-              setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8))
+              setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 9))
             }
             placeholder="ABCD1234"
-            maxLength={8}
+            maxLength={9}
             inputMode="text"
             autoCapitalize="characters"
             autoCorrect="off"
             spellCheck={false}
             autoComplete="one-time-code"
-            aria-label="8-character access key"
+            aria-label="Access key"
             className="w-full rounded-xl border border-border bg-card px-3.5 py-3 text-center font-mono text-xl tracking-widest shadow-soft min-h-[48px]"
           />
           {keyFormatError && (
