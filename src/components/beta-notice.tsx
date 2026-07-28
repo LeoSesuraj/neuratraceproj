@@ -1,25 +1,25 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ShieldCheck } from "lucide-react";
 
-export function BetaWarningBar() {
+export function NonPhiWarningBar() {
   return (
     <div
       role="note"
-      className="mb-4 flex items-start gap-2 rounded-2xl border border-yellow-300/70 bg-yellow-50 px-4 py-3 text-sm text-yellow-900"
+      className="mb-4 flex items-start gap-2 rounded-2xl border border-warm/70 bg-warm/30 px-4 py-3 text-sm text-foreground"
     >
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-foreground" aria-hidden="true" />
       <p>
         <span aria-hidden="true">⚠️ </span>
-        Beta version, do not enter real patient information. Use placeholder data only until the
-        full release.
+        This app is for education and coordination only. Do not enter real patient information,
+        diagnoses, room numbers, or any medical details.
       </p>
     </div>
   );
 }
 
-const STORAGE_KEY = "neurotrace.betaWelcomeDismissed.v1";
+const STORAGE_KEY = "neurotrace.nonPhiWelcomeDismissed.v1";
 
-export function BetaWelcomeModal() {
+export function NonPhiWelcomeModal() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -46,17 +46,21 @@ export function BetaWelcomeModal() {
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="beta-welcome-title"
+      aria-labelledby="nonphi-welcome-title"
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
     >
       <div className="w-full max-w-md rounded-3xl bg-card p-6 shadow-soft">
-        <h2 id="beta-welcome-title" className="text-xl font-semibold text-foreground">
-          Welcome to NeuroTrace Beta
-        </h2>
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5 text-primary" aria-hidden="true" />
+          <h2 id="nonphi-welcome-title" className="text-xl font-semibold text-foreground">
+            Before you start
+          </h2>
+        </div>
         <p className="mt-3 text-sm text-muted-foreground">
-          This is a beta version of NeuroTrace. Please do not enter real resident names, diagnoses,
-          room numbers, or any personal medical information. The app is for testing and feedback
-          purposes only.
+          NeuroTrace is an educational and communication support tool, not a medical record
+          system. Do not enter real resident names, diagnoses, room numbers, medications, or any
+          Protected Health Information (PHI). Use first names, initials, or anonymous identifiers
+          if your facility permits it.
         </p>
         <div className="mt-5 flex justify-end">
           <button
@@ -70,3 +74,4 @@ export function BetaWelcomeModal() {
     </div>
   );
 }
+
