@@ -4,18 +4,20 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const getMyPhiAck = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (context.supabase as any)
       .from("phi_acknowledgments")
       .select("acknowledged_at, version")
       .eq("user_id", context.userId)
       .maybeSingle();
-    if (error && error.code !== "PGRST116") {
-      // Table missing during rollout, treat as un-acked.
-      return { acknowledged: false as const };
+    if (error) {
+      // Table missing during rollout: treat as un-acked so users still see the prompt.
+      return { acknowledged: false as const, acknowledged_at: null };
     }
+    const row = data as { acknowledged_at: string; version: string } | null;
     return {
-      acknowledged: !!data,
-      acknowledged_at: data?.acknowledged_at ?? null,
+      acknowledged: !!row,
+      acknowledged_at: row?.acknowledged_at ?? null,
     };
   });
 
@@ -23,7 +25,8 @@ export const acknowledgePhi = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabaseAdmin as any)
       .from("phi_acknowledgments")
       .upsert(
         {
