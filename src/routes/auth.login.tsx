@@ -36,6 +36,7 @@ function LoginPage() {
         return;
       }
 
+      sessionStorage.removeItem("nt.phi-ack.session");
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         const res = await recordFailedLogin({ data: { email } }).catch(() => ({ locked: false }));
