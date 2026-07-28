@@ -225,8 +225,10 @@ function LandingPage() {
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
           NeuroTrace is for education and emotional support only. It is not a
-          diagnostic tool or a substitute for medical care.
+          diagnostic tool or a substitute for medical care. Do not enter real
+          patient names, diagnoses, room numbers, or medical details.
         </p>
+
       </main>
       <LegalFooter />
     </div>
