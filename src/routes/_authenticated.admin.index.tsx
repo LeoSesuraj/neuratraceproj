@@ -36,7 +36,7 @@ import {
 
 import { KeyCard } from "@/components/key-card";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { BetaWarningBar } from "@/components/beta-notice";
+import { NonPhiWarningBar } from "@/components/beta-notice";
 import { BehaviorChecklist } from "@/components/behavior-checklist";
 import { BEHAVIOR_OPTIONS } from "@/lib/behaviors";
 
