@@ -12,7 +12,8 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
-import logo from "@/assets/neuratrace-logo.png";
+
+const logo = "/neuratrace-logo.png";
 
 function BrandMark() {
   return (

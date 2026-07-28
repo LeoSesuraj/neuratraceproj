@@ -1,5 +1,4 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import logo from "@/assets/neuratrace-logo.png";
 import {
   ArrowLeft,
   BookOpen,
@@ -10,6 +9,8 @@ import {
   Compass,
 } from "lucide-react";
 import { LegalFooter } from "@/components/legal-footer";
+
+const logo = "/neuratrace-logo.png";
 
 type Tab = {
   to:

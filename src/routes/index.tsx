@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import logo from "@/assets/neuratrace-logo.png";
 import { BookOpen, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRole } from "@/lib/app.functions";
 import { LegalFooter } from "@/components/legal-footer";
 import { checkLockout, recordFailedLogin, clearLockoutSelf } from "@/lib/admin.functions";
+
+const logo = "/neuratrace-logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({

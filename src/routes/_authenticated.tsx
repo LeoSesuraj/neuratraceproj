@@ -2,7 +2,6 @@ import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/neuratrace-logo.png";
 import { Bell, LogOut } from "lucide-react";
 import { LegalFooter } from "@/components/legal-footer";
 import {
@@ -10,6 +9,8 @@ import {
   useUnreadNotificationsCount,
 } from "@/hooks/use-notifications";
 import { NonPhiTopBanner, NonPhiWelcomeModal } from "@/components/beta-notice";
+
+const logo = "/neuratrace-logo.png";
 
 const INACTIVITY_MS = 60 * 60 * 1000; // 60 minutes
 const ACTIVITY_EVENTS = ["mousedown", "keydown", "touchstart", "scroll"] as const;
