@@ -889,7 +889,7 @@ export const getResidentOverview = createServerFn({ method: "POST" })
       .select("week_of, eating, mood, social, mobility, behaviors, notes")
       .eq("resident_id", data.resident_id)
       .order("week_of", { ascending: false })
-      .limit(8);
+      .limit(26);
 
     const { data: alerts } = await context.supabase
       .from("decline_alerts")
@@ -941,6 +941,30 @@ export const dismissAlert = createServerFn({ method: "POST" })
       .from("decline_alerts")
       .update({ dismissed_at: new Date().toISOString() })
       .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const updateResidentPhoto = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        resident_id: z.string().uuid(),
+        photo_url: z.string().max(2000).nullable(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
+      throw new Error("Forbidden");
+    }
+    const { db: __db } = await import("./db.server");
+    const supabaseAdmin = await __db(context.supabase as never);
+    const { error } = await supabaseAdmin
+      .from("residents")
+      .update({ photo_url: data.photo_url } as never)
+      .eq("id", data.resident_id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
