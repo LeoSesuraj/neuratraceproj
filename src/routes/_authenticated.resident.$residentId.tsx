@@ -1219,6 +1219,8 @@ function FamilyUnreadDot({
       className="ml-0.5 inline-block h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-primary-foreground"
     />
   );
+}
+
 
 type SurveyRow = {
   week_of: string;
