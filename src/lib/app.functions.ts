@@ -490,15 +490,16 @@ export const listResidentsForMe = createServerFn({ method: "GET" })
 export const listFamilyResidentsForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: links, error: linkError } = await supabaseAdmin
+    // Read as the signed-in user (RLS) so this keeps working even if the
+    // service-role key is unavailable.
+    const { data: links, error: linkError } = await context.supabase
       .from("resident_family")
       .select("resident_id")
       .eq("user_id", context.userId);
     if (linkError) throw new Error(linkError.message);
     const ids = (links ?? []).map((r) => r.resident_id as string);
     if (ids.length === 0) return [];
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await context.supabase
       .from("residents")
       .select("id, name, photo_url, facility_id, dementia_type, facilities(name)")
       .in("id", ids)
