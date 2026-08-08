@@ -280,10 +280,11 @@ export const getMyRole = createServerFn({ method: "GET" })
       .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
     const roles = data ?? [];
+    const superAdmin = roles.find((r) => r.role === "super_admin");
     const admin = roles.find((r) => r.role === "admin");
     const staff = roles.find((r) => r.role === "staff");
     const family = roles.find((r) => r.role === "family");
-    const primary = admin ?? staff ?? family ?? null;
+    const primary = superAdmin ?? admin ?? staff ?? family ?? null;
     return {
       role: (primary?.role as string | null) ?? null,
       facilityId: primary?.facility_id ?? null,
