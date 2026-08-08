@@ -381,27 +381,7 @@ function ResidentFeed() {
         </section>
       )}
 
-      {chartData.length > 0 && (
-        <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-soft">
-          <h2 className="text-lg">Last {chartData.length} weeks</h2>
-          <div className="mt-3 h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="week" fontSize={11} />
-                <YAxis domain={[0.5, 3.5]} ticks={[1, 2, 3]} fontSize={11} />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="Eating" stroke="#3b82f6" />
-                <Line type="monotone" dataKey="Mood" stroke="#10b981" />
-                <Line type="monotone" dataKey="Social" stroke="#f59e0b" />
-                <Line type="monotone" dataKey="Mobility" stroke="#8b5cf6" />
-                <Line type="monotone" dataKey="Behaviors" stroke="#ef4444" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
-      )}
+      <TrendsSection surveys={surveys} todayMood={todayMood} latestSurvey={latestSurvey} />
 
       {canEdit && <InlinePhotoUploader residentId={residentId} />}
 
