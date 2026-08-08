@@ -280,10 +280,11 @@ export const getMyRole = createServerFn({ method: "GET" })
       .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
     const roles = data ?? [];
+    const superAdmin = roles.find((r) => (r.role as string) === "super_admin");
     const admin = roles.find((r) => r.role === "admin");
     const staff = roles.find((r) => r.role === "staff");
     const family = roles.find((r) => r.role === "family");
-    const primary = admin ?? staff ?? family ?? null;
+    const primary = superAdmin ?? admin ?? staff ?? family ?? null;
     return {
       role: (primary?.role as string | null) ?? null,
       facilityId: primary?.facility_id ?? null,
@@ -318,7 +319,19 @@ async function getPrimaryAccess(
 
 // ---------- Daily Keys (display) ----------
 
-async function isSuperAdmin(context: { claims: { email?: unknown } }): Promise<boolean> {
+async function isSuperAdmin(context: {
+  supabase: import("@supabase/supabase-js").SupabaseClient;
+  userId: string;
+  claims: { email?: unknown };
+}): Promise<boolean> {
+  const { data: roleMatch } = await context.supabase
+    .from("user_roles")
+    .select("user_id")
+    .eq("user_id", context.userId)
+    .eq("role", "super_admin")
+    .maybeSingle();
+  if (roleMatch) return true;
+
   const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
   const email = (context.claims.email as string | undefined) ?? "";
   return SUPER_ADMIN_EMAILS.includes(email.toLowerCase().trim());
@@ -377,7 +390,11 @@ export const getFacilityAdminKey = createServerFn({ method: "POST" })
 
 // ---------- Super Admin (email-gated) ----------
 
-async function assertSuperAdmin(context: { claims: { email?: unknown } }) {
+async function assertSuperAdmin(context: {
+  supabase: import("@supabase/supabase-js").SupabaseClient;
+  userId: string;
+  claims: { email?: unknown };
+}) {
   if (!(await isSuperAdmin(context))) {
     throw new Error("Forbidden: super admin only");
   }
