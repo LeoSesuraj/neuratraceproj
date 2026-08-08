@@ -40,7 +40,6 @@ import { Route as LearnUnderstandTopicRouteImport } from './routes/learn.underst
 import { Route as LearnSupportResourceRouteImport } from './routes/learn.support.$resource'
 import { Route as LearnConnectSituationRouteImport } from './routes/learn.connect.$situation'
 import { Route as LearnCoachThreadIdRouteImport } from './routes/learn.coach.$threadId'
-import { Route as ApiPublicLinkCheckRouteImport } from './routes/api/public/link-check'
 import { Route as AuthenticatedResidentResidentIdRouteImport } from './routes/_authenticated.resident.$residentId'
 import { Route as AuthenticatedAdminSuperRouteImport } from './routes/_authenticated.admin.super'
 
@@ -200,11 +199,6 @@ const LearnCoachThreadIdRoute = LearnCoachThreadIdRouteImport.update({
   path: '/$threadId',
   getParentRoute: () => LearnCoachRoute,
 } as any)
-const ApiPublicLinkCheckRoute = ApiPublicLinkCheckRouteImport.update({
-  id: '/api/public/link-check',
-  path: '/api/public/link-check',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedResidentResidentIdRoute =
   AuthenticatedResidentResidentIdRouteImport.update({
     id: '/resident/$residentId',
@@ -240,7 +234,6 @@ export interface FileRoutesByFullPath {
   '/learn/': typeof LearnIndexRoute
   '/admin/super': typeof AuthenticatedAdminSuperRoute
   '/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
-  '/api/public/link-check': typeof ApiPublicLinkCheckRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
   '/learn/support/$resource': typeof LearnSupportResourceRoute
@@ -271,7 +264,6 @@ export interface FileRoutesByTo {
   '/learn': typeof LearnIndexRoute
   '/admin/super': typeof AuthenticatedAdminSuperRoute
   '/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
-  '/api/public/link-check': typeof ApiPublicLinkCheckRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
   '/learn/support/$resource': typeof LearnSupportResourceRoute
@@ -308,7 +300,6 @@ export interface FileRoutesById {
   '/learn/': typeof LearnIndexRoute
   '/_authenticated/admin/super': typeof AuthenticatedAdminSuperRoute
   '/_authenticated/resident/$residentId': typeof AuthenticatedResidentResidentIdRoute
-  '/api/public/link-check': typeof ApiPublicLinkCheckRoute
   '/learn/coach/$threadId': typeof LearnCoachThreadIdRoute
   '/learn/connect/$situation': typeof LearnConnectSituationRoute
   '/learn/support/$resource': typeof LearnSupportResourceRoute
@@ -345,7 +336,6 @@ export interface FileRouteTypes {
     | '/learn/'
     | '/admin/super'
     | '/resident/$residentId'
-    | '/api/public/link-check'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
     | '/learn/support/$resource'
@@ -376,7 +366,6 @@ export interface FileRouteTypes {
     | '/learn'
     | '/admin/super'
     | '/resident/$residentId'
-    | '/api/public/link-check'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
     | '/learn/support/$resource'
@@ -412,7 +401,6 @@ export interface FileRouteTypes {
     | '/learn/'
     | '/_authenticated/admin/super'
     | '/_authenticated/resident/$residentId'
-    | '/api/public/link-check'
     | '/learn/coach/$threadId'
     | '/learn/connect/$situation'
     | '/learn/support/$resource'
@@ -439,7 +427,6 @@ export interface RootRouteChildren {
   LearnSupportRoute: typeof LearnSupportRouteWithChildren
   LearnUnderstandRoute: typeof LearnUnderstandRouteWithChildren
   LearnIndexRoute: typeof LearnIndexRoute
-  ApiPublicLinkCheckRoute: typeof ApiPublicLinkCheckRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -661,13 +648,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LearnCoachThreadIdRouteImport
       parentRoute: typeof LearnCoachRoute
     }
-    '/api/public/link-check': {
-      id: '/api/public/link-check'
-      path: '/api/public/link-check'
-      fullPath: '/api/public/link-check'
-      preLoaderRoute: typeof ApiPublicLinkCheckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/resident/$residentId': {
       id: '/_authenticated/resident/$residentId'
       path: '/resident/$residentId'
@@ -805,7 +785,6 @@ const rootRouteChildren: RootRouteChildren = {
   LearnSupportRoute: LearnSupportRouteWithChildren,
   LearnUnderstandRoute: LearnUnderstandRouteWithChildren,
   LearnIndexRoute: LearnIndexRoute,
-  ApiPublicLinkCheckRoute: ApiPublicLinkCheckRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
