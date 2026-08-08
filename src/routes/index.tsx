@@ -5,6 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyRole } from "@/lib/app.functions";
 import { LegalFooter } from "@/components/legal-footer";
 import { checkLockout, recordFailedLogin, clearLockoutSelf } from "@/lib/admin.functions";
+import {
+  lookupDemoPersona,
+  clearDemoPersona,
+  setDemoPersona,
+  DEMO_BASE_EMAIL,
+} from "@/lib/demo-personas";
 import logo from "../assets/neuratrace-logo.png";
 
 export const Route = createFileRoute("/")({
