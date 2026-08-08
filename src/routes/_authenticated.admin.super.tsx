@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Building2, Plus, Trash2 } from "lucide-react";
+import { Building2, Plus, Trash2, ChevronDown, ChevronRight, Mail, UserCog, Users } from "lucide-react";
 import {
   listAllFacilities,
   createFacility,
@@ -9,6 +9,7 @@ import {
   listAllResidents,
   getFacilityAdminKey,
   getFacilityStaffKey,
+  listFacilityStaffing,
 } from "@/lib/app.functions";
 import { KeyCard } from "@/components/key-card";
 import {
@@ -16,6 +17,15 @@ import {
   FacilityHeader,
   type ResidentWithFacility,
 } from "@/components/grouped-residents";
+
+type StaffingEntry = {
+  user_id: string;
+  email: string | null;
+  name: string | null;
+  active: boolean;
+};
+type Staffing = Record<string, { admins: StaffingEntry[]; staff: StaffingEntry[] }>;
+
 
 export const Route = createFileRoute("/_authenticated/admin/super")({
   component: SuperAdminPage,
