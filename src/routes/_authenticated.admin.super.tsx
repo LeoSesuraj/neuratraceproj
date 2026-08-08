@@ -157,7 +157,12 @@ function FacilitiesTab() {
       )}
 
       <ul className="grid gap-4">
-        {facilities.map((f) => (
+        {facilities.map((f) => {
+          const s = staffing[f.id] ?? { admins: [], staff: [] };
+          const admins = s.admins.filter((a) => a.active);
+          const staff = s.staff.filter((a) => a.active);
+          const open = expandedId === f.id;
+          return (
           <li
             key={f.id}
             className={`rounded-3xl border bg-card p-5 shadow-soft transition-colors ${
@@ -165,10 +170,42 @@ function FacilitiesTab() {
             }`}
           >
             <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-primary" />
-                <p className="text-lg font-medium">{f.name}</p>
-              </div>
+              <button
+                onClick={() => setExpandedId(open ? null : f.id)}
+                className="flex flex-1 items-start gap-2 text-left"
+              >
+                {open ? (
+                  <ChevronDown className="mt-1 h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="mt-1 h-4 w-4 text-muted-foreground" />
+                )}
+                <Building2 className="mt-0.5 h-5 w-5 text-primary" />
+                <span className="min-w-0">
+                  <span className="block text-lg font-medium">{f.name}</span>
+                  {admins.length > 0 ? (
+                    <span className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <UserCog className="h-3.5 w-3.5 text-primary" />
+                      {admins.map((a) => (
+                        <span
+                          key={a.user_id}
+                          className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary"
+                        >
+                          {a.email ?? a.name ?? "Admin"}
+                        </span>
+                      ))}
+                    </span>
+                  ) : (
+                    <span className="mt-1 block text-xs text-muted-foreground">
+                      No admin paired yet
+                    </span>
+                  )}
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    {staff.length} {staff.length === 1 ? "staff member" : "staff members"}
+                    {" · "}
+                    {open ? "hide details" : "click to view staff"}
+                  </span>
+                </span>
+              </button>
               <button
                 onClick={() => {
                   if (confirm(`Delete "${f.name}"? This removes all its data.`))
@@ -180,26 +217,68 @@ function FacilitiesTab() {
               </button>
             </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div>
-                <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                  Admin signup key
-                </p>
-                <KeyCard
-                  queryKey={["admin-key", f.id]}
-                  fetch={() => getFacilityAdminKey({ data: { facility_id: f.id } })}
-                />
-              </div>
-              <div>
-                <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                  Staff signup key
-                </p>
-                <KeyCard
-                  queryKey={["staff-key", f.id]}
-                  fetch={() => getFacilityStaffKey({ data: { facility_id: f.id } })}
-                />
-              </div>
-            </div>
+            {open && (
+              <>
+                <div className="mt-4 rounded-2xl border border-border bg-surface/60 p-4">
+                  <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <Users className="h-3.5 w-3.5" /> Staff at this nursing home
+                  </p>
+                  {staff.length === 0 ? (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      No staff paired yet. Share the staff signup key below.
+                    </p>
+                  ) : (
+                    <ul className="mt-2 grid gap-1.5">
+                      {staff.map((m) => (
+                        <li key={m.user_id} className="flex items-center gap-2 text-sm">
+                          <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span>{m.email ?? "(no email)"}</span>
+                          {m.name && (
+                            <span className="text-xs text-muted-foreground">{m.name}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {admins.length > 0 && (
+                    <>
+                      <p className="mt-4 flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+                        <UserCog className="h-3.5 w-3.5" /> Admins
+                      </p>
+                      <ul className="mt-2 grid gap-1.5">
+                        {admins.map((m) => (
+                          <li key={m.user_id} className="flex items-center gap-2 text-sm">
+                            <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span>{m.email ?? "(no email)"}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                      Admin signup key
+                    </p>
+                    <KeyCard
+                      queryKey={["admin-key", f.id]}
+                      fetch={() => getFacilityAdminKey({ data: { facility_id: f.id } })}
+                    />
+                  </div>
+                  <div>
+                    <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                      Staff signup key
+                    </p>
+                    <KeyCard
+                      queryKey={["staff-key", f.id]}
+                      fetch={() => getFacilityStaffKey({ data: { facility_id: f.id } })}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
             {justCreatedId === f.id && (
               <p className="mt-3 text-xs text-primary">
                 Share the admin key with your first admin and the staff key with
@@ -207,7 +286,9 @@ function FacilitiesTab() {
               </p>
             )}
           </li>
-        ))}
+          );
+        })}
+
         {facilities.length === 0 && (
           <li className="rounded-3xl border border-dashed border-border bg-surface p-8 text-center text-sm text-muted-foreground">
             No nursing homes yet. Create your first above.
