@@ -318,7 +318,19 @@ async function getPrimaryAccess(
 
 // ---------- Daily Keys (display) ----------
 
-async function isSuperAdmin(context: { claims: { email?: unknown } }): Promise<boolean> {
+async function isSuperAdmin(context: {
+  supabase: import("@supabase/supabase-js").SupabaseClient;
+  userId: string;
+  claims: { email?: unknown };
+}): Promise<boolean> {
+  const { data: roleMatch } = await context.supabase
+    .from("user_roles")
+    .select("user_id")
+    .eq("user_id", context.userId)
+    .eq("role", "super_admin")
+    .maybeSingle();
+  if (roleMatch) return true;
+
   const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
   const email = (context.claims.email as string | undefined) ?? "";
   return SUPER_ADMIN_EMAILS.includes(email.toLowerCase().trim());
@@ -377,7 +389,11 @@ export const getFacilityAdminKey = createServerFn({ method: "POST" })
 
 // ---------- Super Admin (email-gated) ----------
 
-async function assertSuperAdmin(context: { claims: { email?: unknown } }) {
+async function assertSuperAdmin(context: {
+  supabase: import("@supabase/supabase-js").SupabaseClient;
+  userId: string;
+  claims: { email?: unknown };
+}) {
   if (!(await isSuperAdmin(context))) {
     throw new Error("Forbidden: super admin only");
   }
