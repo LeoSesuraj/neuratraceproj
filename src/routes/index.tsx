@@ -5,6 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyRole } from "@/lib/app.functions";
 import { LegalFooter } from "@/components/legal-footer";
 import { checkLockout, recordFailedLogin, clearLockoutSelf } from "@/lib/admin.functions";
+import {
+  lookupDemoPersona,
+  clearDemoPersona,
+  setDemoPersona,
+  DEMO_BASE_EMAIL,
+} from "@/lib/demo-personas";
 import logo from "../assets/neuratrace-logo.png";
 
 export const Route = createFileRoute("/")({
@@ -70,7 +76,12 @@ function LandingPage() {
         setError(`Too many attempts. Try again in ${mins} minute${mins === 1 ? "" : "s"}.`);
         return;
       }
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const persona = lookupDemoPersona(email);
+      clearDemoPersona();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: persona ? DEMO_BASE_EMAIL : email,
+        password,
+      });
       if (error) {
         const res = await recordFailedLogin({ data: { email } }).catch(() => ({ locked: false }));
         if (res.locked) {
@@ -81,6 +92,11 @@ function LandingPage() {
         return;
       }
       void clearLockoutSelf().catch(() => {});
+      if (persona) {
+        setDemoPersona(persona);
+        navigate({ to: persona.role === "admin" ? "/admin" : "/staff" });
+        return;
+      }
       const { role } = await getMyRole();
       if (role === "super_admin") navigate({ to: "/admin/super" });
       else if (role === "admin") navigate({ to: "/admin" });
