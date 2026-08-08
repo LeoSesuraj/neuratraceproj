@@ -8,6 +8,12 @@ import {
   recordFailedLogin,
   clearLockoutSelf,
 } from "@/lib/admin.functions";
+import {
+  lookupDemoPersona,
+  clearDemoPersona,
+  setDemoPersona,
+  DEMO_BASE_EMAIL,
+} from "@/lib/demo-personas";
 
 export const Route = createFileRoute("/auth/login")({
   component: LoginPage,
