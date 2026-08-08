@@ -456,6 +456,58 @@ export const listAllResidents = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+// Super admin: which admins / staff are attached to each nursing home.
+export const listFacilityStaffing = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context);
+    const { db: __db } = await import("./db.server");
+    const client = await __db(context.supabase as never);
+
+    const { data: rolesData, error } = await client
+      .from("user_roles")
+      .select("user_id, role, facility_id, deactivated_at")
+      .in("role", ["admin", "staff"])
+      .not("facility_id", "is", null);
+    if (error) throw new Error(error.message);
+    const roles = (rolesData ?? []) as Array<{
+      user_id: string;
+      role: string;
+      facility_id: string;
+      deactivated_at: string | null;
+    }>;
+
+    const userIds = Array.from(new Set(roles.map((r) => r.user_id)));
+    const emailById = new Map<string, { email: string | null; name: string | null }>();
+    if (userIds.length > 0) {
+      const { data: profs } = await client
+        .from("profiles")
+        .select("id, email, name")
+        .in("id", userIds);
+      for (const p of (profs ?? []) as Array<{ id: string; email: string | null; name: string | null }>) {
+        emailById.set(p.id, { email: p.email, name: p.name });
+      }
+    }
+
+    const byFacility: Record<
+      string,
+      { admins: Array<{ user_id: string; email: string | null; name: string | null; active: boolean }>; staff: Array<{ user_id: string; email: string | null; name: string | null; active: boolean }> }
+    > = {};
+    for (const r of roles) {
+      const bucket = (byFacility[r.facility_id] ??= { admins: [], staff: [] });
+      const prof = emailById.get(r.user_id);
+      const entry = {
+        user_id: r.user_id,
+        email: prof?.email ?? null,
+        name: prof?.name ?? null,
+        active: !r.deactivated_at,
+      };
+      (r.role === "admin" ? bucket.admins : bucket.staff).push(entry);
+    }
+    return byFacility;
+  });
+
+
 // ---------- Staff / Resident management ----------
 
 export const listResidentsForMe = createServerFn({ method: "GET" })
