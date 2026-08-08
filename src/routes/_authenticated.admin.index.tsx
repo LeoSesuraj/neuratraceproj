@@ -17,7 +17,8 @@ import {
   Pencil,
   LockOpen,
 } from "lucide-react";
-import { getFacilityStaffKey, getMyRole } from "@/lib/app.functions";
+import { getFacilityStaffKey } from "@/lib/app.functions";
+import { useMyRole } from "@/hooks/use-my-role";
 import {
   listFacilityUsers,
   listAccessLog,
@@ -48,10 +49,7 @@ type Tab = "overview" | "users" | "access" | "residents";
 
 function AdminPage() {
   const [tab, setTab] = useState<Tab>("overview");
-  const { data: roleInfo } = useQuery({
-    queryKey: ["my-role"],
-    queryFn: () => getMyRole(),
-  });
+  const { data: roleInfo } = useMyRole();
   const facilityId = roleInfo?.facilityId ?? null;
 
   return (

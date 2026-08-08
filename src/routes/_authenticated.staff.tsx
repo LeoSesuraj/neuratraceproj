@@ -10,8 +10,8 @@ import {
   uploadResidentPhoto,
   createPhotoPost,
   getResidentDailyKey,
-  getMyRole,
 } from "@/lib/app.functions";
+import { useMyRole } from "@/hooks/use-my-role";
 import { KeyCard } from "@/components/key-card";
 import { FilePicker } from "@/components/file-picker";
 import { BehaviorChecklist } from "@/components/behavior-checklist";
@@ -46,10 +46,7 @@ function StaffPage() {
     queryKey: ["residents"],
     queryFn: () => listResidentsForMe() as Promise<ResidentWithFacility[]>,
   });
-  const { data: roleInfo, isLoading: roleLoading } = useQuery({
-    queryKey: ["my-role"],
-    queryFn: () => getMyRole(),
-  });
+  const { data: roleInfo, isLoading: roleLoading } = useMyRole();
   const [name, setName] = useState("");
   const [behaviors, setBehaviors] = useState<string[]>([]);
   const [search, setSearch] = useState("");
