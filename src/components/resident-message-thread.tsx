@@ -129,14 +129,26 @@ export function ResidentMessageThread({
         ) : (
           <ul className="space-y-4">
             {messages.map((m, i) => {
-              const mine = currentUserId !== null && m.sender_id === currentUserId;
+              // "My side" of the thread: my own messages, plus messages from my
+              // side of the conversation whose author account no longer exists.
+              const sideOf = (msg: ResidentMessage): "family" | "team" =>
+                msg.sender_role === "family" ? "family" : "team";
+              const mySide: "family" | "team" = isFamily ? "family" : "team";
+              const mine =
+                (currentUserId !== null && m.sender_id === currentUserId) ||
+                (m.sender_id === "" && sideOf(m) === mySide);
               const prev = i > 0 ? messages[i - 1] : null;
               const newDay =
                 !prev ||
                 new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString();
               const grouped =
-                !newDay && prev !== null && prev.sender_id === m.sender_id;
-              const name = mine ? "You" : (m.sender_name ?? "Member");
+                !newDay &&
+                prev !== null &&
+                (prev.sender_id === m.sender_id
+                  ? true
+                  : prev.sender_name === m.sender_name && sideOf(prev) === sideOf(m));
+              const fallbackName = sideOf(m) === "family" ? "Family" : "Care team";
+              const name = mine ? "You" : (m.sender_name ?? fallbackName);
               const initial = (name[0] ?? "?").toUpperCase();
               const bubble = mine
                 ? "bg-primary text-primary-foreground rounded-br-md"
