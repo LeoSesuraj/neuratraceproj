@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, MessageCircle, MessageCircleHeart, Pencil, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Camera, MessageCircle, MessageCircleHeart, Pencil, Sparkles, Trash2 } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -154,14 +154,6 @@ function ResidentFeed() {
   const trendTone = MOOD_TONE[trendMood];
   const suggestions = VISIT_SUGGESTIONS[trendMood];
 
-  const chartData = surveys.map((s) => ({
-    week: s.week_of.slice(5),
-    Eating: RATING_TO_NUM[s.eating],
-    Mood: RATING_TO_NUM[s.mood],
-    Social: RATING_TO_NUM[s.social],
-    Mobility: RATING_TO_NUM[s.mobility],
-    Behaviors: RATING_TO_NUM[s.behaviors],
-  }));
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-6 pb-20">
@@ -186,13 +178,22 @@ function ResidentFeed() {
 
       <header className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-soft">
         <div className="flex items-center gap-4">
-          <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-sky-soft">
-            {resident.photo_url ? (
-              <img src={resident.photo_url} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <span className="text-xl font-semibold text-primary">
-                {resident.name.charAt(0)}
-              </span>
+          <div className="relative">
+            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-sky-soft">
+              {resident.photo_url ? (
+                <img src={resident.photo_url} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-xl font-semibold text-primary">
+                  {resident.name.charAt(0)}
+                </span>
+              )}
+            </div>
+            {canEdit && (
+              <ProfilePhotoEditor
+                residentId={residentId}
+                currentUrl={resident.photo_url}
+                residentName={resident.name}
+              />
             )}
           </div>
           <div className="flex-1">
