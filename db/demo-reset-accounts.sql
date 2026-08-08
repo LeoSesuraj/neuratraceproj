@@ -72,6 +72,14 @@ BEGIN
           email_confirmed_at = now(),
           raw_app_meta_data = EXCLUDED.raw_app_meta_data,
           raw_user_meta_data = EXCLUDED.raw_user_meta_data,
+          confirmation_token = '',
+          recovery_token = '',
+          email_change = '',
+          email_change_token_new = '',
+          email_change_token_current = '',
+          phone_change = '',
+          phone_change_token = '',
+          reauthentication_token = '',
           updated_at = now();
 
     INSERT INTO auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
