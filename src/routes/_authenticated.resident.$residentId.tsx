@@ -22,6 +22,7 @@ import {
   uploadResidentPhoto,
   createPhotoPost,
   updateResidentBehaviors,
+  updateResidentPhoto,
 } from "@/lib/app.functions";
 import { VISIT_SUGGESTIONS } from "@/lib/visit-mode";
 import { supabase } from "@/integrations/supabase/client";
