@@ -5,13 +5,13 @@ export const Route = createFileRoute("/api/public/list-demo")({
     handlers: {
       GET: async () => {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data: profiles } = await supabaseAdmin
+        const { data: profiles, error: e1 } = await supabaseAdmin
           .from("profiles")
           .select("id, email, name");
-        const { data: roles } = await supabaseAdmin
+        const { data: roles, error: e2 } = await supabaseAdmin
           .from("user_roles")
           .select("user_id, role");
-        return Response.json({ profiles, roles });
+        return Response.json({ profiles, roles, e1, e2 });
       },
     },
   },
