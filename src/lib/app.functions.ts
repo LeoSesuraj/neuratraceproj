@@ -440,7 +440,8 @@ export const listAllResidents = createServerFn({ method: "GET" })
 export const listResidentsForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db } = await import("./db.server");
+    const supabaseAdmin = await db(context.supabase as never);
     const access = await getPrimaryAccess(context);
 
     const selectCols = "id, name, photo_url, facility_id, dementia_type, facilities(name)";

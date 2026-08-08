@@ -45,8 +45,9 @@ export async function resolveDemoKey(code: string): Promise<
   | null
 > {
   if (code !== "NTFAMILY1") return null;
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
+  const { publicDb } = await import("./db.server");
+  const client = await publicDb();
+  const { data } = await client
     .from("residents")
     .select("id, name, facility_id, facilities(name)")
     .ilike("name", "Margaret%")
