@@ -9,6 +9,7 @@ import {
   useUnreadNotificationsCount,
 } from "@/hooks/use-notifications";
 import { NonPhiTopBanner, NonPhiWelcomeModal } from "@/components/beta-notice";
+import { clearDemoPersona } from "@/lib/demo-personas";
 import logo from "../assets/neuratrace-logo.png";
 
 const INACTIVITY_MS = 60 * 60 * 1000; // 60 minutes
@@ -41,6 +42,7 @@ function AuthedLayout() {
   useNotificationsRealtime(userId);
 
   async function signOutInactive() {
+    clearDemoPersona();
     await supabase.auth.signOut();
     toast.message("You were signed out due to inactivity.");
     navigate({ to: "/" });
@@ -67,6 +69,7 @@ function AuthedLayout() {
   }, []);
 
   async function signOut() {
+    clearDemoPersona();
     await supabase.auth.signOut();
     navigate({ to: "/" });
   }
