@@ -68,42 +68,9 @@ BEGIN
       SET user_id = EXCLUDED.user_id, identity_data = EXCLUDED.identity_data;
   END LOOP;
 
-  -- ------------------------------------------- 2. re-point orphaned authorship
-  -- Family-authored messages go to the new family account when the snapshot
-  -- column exists; everything else that referenced a dead account goes to the
-  -- new caregiver account so nothing is cascade-deleted in step 3.
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'resident_messages' AND column_name = 'sender_role'
-  ) THEN
-    EXECUTE format(
-      'UPDATE public.resident_messages SET sender_id = %L WHERE sender_role = %L',
-      v_family, 'family'
-    );
-  END IF;
-
-  FOR r IN
-    SELECT c.table_name, c.column_name
-    FROM information_schema.columns c
-    JOIN information_schema.key_column_usage k
-      ON k.table_schema = c.table_schema AND k.table_name = c.table_name AND k.column_name = c.column_name
-    JOIN information_schema.referential_constraints rc
-      ON rc.constraint_name = k.constraint_name AND rc.constraint_schema = k.table_schema
-    JOIN information_schema.constraint_column_usage u
-      ON u.constraint_name = rc.unique_constraint_name AND u.constraint_schema = rc.unique_constraint_schema
-    WHERE c.table_schema = 'public' AND u.table_schema = 'auth' AND u.table_name = 'users'
-  LOOP
-    EXECUTE format(
-      'UPDATE public.%I SET %I = %L WHERE %I IS NOT NULL AND %I NOT IN (%L,%L,%L,%L)',
-      r.table_name, r.column_name, v_staff, r.column_name, r.column_name,
-      v_super, v_admin, v_staff, v_family
-    );
-  END LOOP;
-
-  -- ------------------------------------------------------- 3. drop old accounts
-  DELETE FROM auth.users WHERE id NOT IN (v_super, v_admin, v_staff, v_family);
-
-  -- --------------------------------------------------- 4. profiles/roles/links
+  -- ------------------------------------------ 2. facility / resident + profiles
+  -- Profiles must exist BEFORE re-pointing, because many tables reference
+  -- public.profiles(id) rather than auth.users(id).
   SELECT id INTO v_sunrise FROM public.facilities
    WHERE name ILIKE 'Sunrise%' ORDER BY created_at LIMIT 1;
   IF v_sunrise IS NULL THEN
@@ -123,6 +90,51 @@ BEGIN
   ON CONFLICT (id) DO UPDATE
     SET email = EXCLUDED.email, name = EXCLUDED.name, facility_id = EXCLUDED.facility_id;
 
+  -- ------------------------------------------- 3. re-point orphaned authorship
+  -- Family-authored messages go to the new family account when the snapshot
+  -- column exists; everything else that referenced a dead account goes to the
+  -- new caregiver account so nothing is nulled/deleted in step 4.
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'resident_messages' AND column_name = 'sender_role'
+  ) THEN
+    EXECUTE format(
+      'UPDATE public.resident_messages SET sender_id = %L WHERE sender_role = %L',
+      v_family, 'family'
+    );
+  END IF;
+
+  FOR r IN
+    SELECT DISTINCT c.table_name, c.column_name
+    FROM information_schema.columns c
+    JOIN information_schema.key_column_usage k
+      ON k.table_schema = c.table_schema AND k.table_name = c.table_name AND k.column_name = c.column_name
+    JOIN information_schema.referential_constraints rc
+      ON rc.constraint_name = k.constraint_name AND rc.constraint_schema = k.table_schema
+    JOIN information_schema.constraint_column_usage u
+      ON u.constraint_name = rc.unique_constraint_name AND u.constraint_schema = rc.unique_constraint_schema
+    WHERE c.table_schema = 'public'
+      AND (
+        (u.table_schema = 'auth'   AND u.table_name = 'users')
+        OR (u.table_schema = 'public' AND u.table_name = 'profiles')
+      )
+      AND NOT (c.table_name = 'profiles' AND c.column_name = 'id')
+  LOOP
+    EXECUTE format(
+      'UPDATE public.%I SET %I = %L WHERE %I IS NOT NULL AND %I NOT IN (%L,%L,%L,%L)',
+      r.table_name, r.column_name, v_staff, r.column_name, r.column_name,
+      v_super, v_admin, v_staff, v_family
+    );
+  END LOOP;
+
+  -- Drop leftover profile rows for accounts that are about to disappear.
+  DELETE FROM public.profiles
+   WHERE id NOT IN (v_super, v_admin, v_staff, v_family);
+
+  -- ------------------------------------------------------- 4. drop old accounts
+  DELETE FROM auth.users WHERE id NOT IN (v_super, v_admin, v_staff, v_family);
+
+  -- ------------------------------------------------------ 5. roles/links
   DELETE FROM public.user_roles
    WHERE user_id IN (v_super, v_admin, v_staff, v_family);
 
