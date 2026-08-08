@@ -28,6 +28,20 @@ DECLARE
   v_margaret UUID;
   r RECORD;
 BEGIN
+  -- Free the four demo email addresses without deleting their old accounts.
+  -- Deleting here would immediately fire ON DELETE actions (for example,
+  -- posts.author_id -> NULL) before the rows can be re-pointed below.
+  UPDATE auth.users
+     SET email = 'demo-reset-' || id::text || '@invalid.local',
+         updated_at = now()
+   WHERE lower(email) IN (
+     'superadmin@neuratrace.demo',
+     'admin@neuratrace.demo',
+     'staff@neuratrace.demo',
+     'family@neuratrace.demo'
+   )
+     AND id NOT IN (v_super, v_admin, v_staff, v_family);
+
   -- ---------------------------------------------------------------- 1. users
   FOR r IN
     SELECT * FROM (VALUES
@@ -37,8 +51,6 @@ BEGIN
       (v_family, 'family@neuratrace.demo',     'Margaret''s Daughter')
     ) AS t(id, email, name)
   LOOP
-    DELETE FROM auth.users WHERE email = r.email AND id <> r.id;
-
     INSERT INTO auth.users (
       instance_id, id, aud, role, email, encrypted_password,
       email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
