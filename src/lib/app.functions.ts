@@ -10,8 +10,9 @@ import { assertNoPhi, validatePseudonym } from "./phi";
 // ---------- Public ----------
 
 export const listFacilities = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
+  const { publicDb } = await import("./db.server");
+  const client = await publicDb();
+  const { data, error } = await client
     .from("facilities")
     .select("id, name")
     .order("name");
@@ -439,7 +440,8 @@ export const listAllResidents = createServerFn({ method: "GET" })
 export const listResidentsForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db } = await import("./db.server");
+    const supabaseAdmin = await db(context.supabase as never);
     const access = await getPrimaryAccess(context);
 
     const selectCols = "id, name, photo_url, facility_id, dementia_type, facilities(name)";

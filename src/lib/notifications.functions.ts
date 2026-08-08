@@ -31,8 +31,9 @@ export const listMyNotifications = createServerFn({ method: "GET" })
     );
     const nameMap = new Map<string, string>();
     if (residentIds.length > 0) {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: residents } = await supabaseAdmin
+      const { db } = await import("./db.server");
+      const client = await db(context.supabase as never);
+      const { data: residents } = await client
         .from("residents")
         .select("id, name")
         .in("id", residentIds);

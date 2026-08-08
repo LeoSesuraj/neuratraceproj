@@ -18,6 +18,8 @@ export type DemoPersona = {
   label: string;
 };
 
+// Real admin@/staff@ accounts exist again (see db/demo-reset-accounts.sql), so
+// the persona remapping is disabled: those emails now sign in as themselves.
 export const DEMO_PERSONAS: Record<string, DemoPersona> = {
   "admin@neuratrace.demo": {
     key: "admin",
@@ -35,8 +37,8 @@ export const DEMO_PERSONAS: Record<string, DemoPersona> = {
   },
 };
 
-export function lookupDemoPersona(email: string): DemoPersona | null {
-  return DEMO_PERSONAS[email.toLowerCase().trim()] ?? null;
+export function lookupDemoPersona(_email: string): DemoPersona | null {
+  return null;
 }
 
 export function setDemoPersona(persona: DemoPersona) {
@@ -50,10 +52,7 @@ export function clearDemoPersona() {
 }
 
 export function getDemoPersona(): DemoPersona | null {
-  if (typeof window === "undefined") return null;
-  const key = localStorage.getItem(STORAGE_KEY);
-  if (!key) return null;
-  return Object.values(DEMO_PERSONAS).find((p) => p.key === key) ?? null;
+  return null;
 }
 
 export type RoleInfo = {

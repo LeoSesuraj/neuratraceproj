@@ -29,10 +29,12 @@ async function assertThreadAccess(
 async function resolveSenders(
   senderIds: string[],
   residentId: string,
+  fallback: unknown,
 ): Promise<Map<string, { name: string | null; role: ResidentMessage["sender_role"] }>> {
   const out = new Map<string, { name: string | null; role: ResidentMessage["sender_role"] }>();
   if (senderIds.length === 0) return out;
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { db } = await import("./db.server");
+  const supabaseAdmin = await db(fallback as never);
 
   const [{ data: profiles }, { data: families }, { data: resRow }] = await Promise.all([
     supabaseAdmin.from("profiles").select("id, name, email").in("id", senderIds),
@@ -98,7 +100,7 @@ export const listResidentMessages = createServerFn({ method: "POST" })
     const senderIds = Array.from(
       new Set(messages.map((m) => m.sender_id).filter((id): id is string => !!id)),
     );
-    const senders = await resolveSenders(senderIds, data.resident_id);
+    const senders = await resolveSenders(senderIds, data.resident_id, context.supabase);
     return messages.map((m) => {
       const s = m.sender_id ? senders.get(m.sender_id) : undefined;
       return {
@@ -129,7 +131,7 @@ export const sendResidentMessage = createServerFn({ method: "POST" })
     await assertThreadAccess(context, data.resident_id);
     assertNoPhi(data.content, "Message");
 
-    const senders = await resolveSenders([context.userId], data.resident_id);
+    const senders = await resolveSenders([context.userId], data.resident_id, context.supabase);
     const me = senders.get(context.userId);
 
     const base = {
