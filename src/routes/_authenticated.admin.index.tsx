@@ -117,8 +117,8 @@ function OverviewTab({ facilityId }: { facilityId: string | null }) {
       <div>
         <h2 className="text-xl">Today's join key</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          This key resets at midnight UTC. Share it only with authorized family
-          members or staff.
+          This key resets at midnight UTC. Share it only with authorized staff
+          members.
         </p>
         <div className="mt-3 max-w-md">
           <KeyCard

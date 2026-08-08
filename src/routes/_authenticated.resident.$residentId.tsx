@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, MessageCircle, MessageCircleHeart, Pencil, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Camera, MessageCircle, MessageCircleHeart, Pencil, Sparkles, Trash2 } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -22,6 +22,7 @@ import {
   uploadResidentPhoto,
   createPhotoPost,
   updateResidentBehaviors,
+  updateResidentPhoto,
 } from "@/lib/app.functions";
 import { VISIT_SUGGESTIONS } from "@/lib/visit-mode";
 import { supabase } from "@/integrations/supabase/client";
@@ -153,14 +154,6 @@ function ResidentFeed() {
   const trendTone = MOOD_TONE[trendMood];
   const suggestions = VISIT_SUGGESTIONS[trendMood];
 
-  const chartData = surveys.map((s) => ({
-    week: s.week_of.slice(5),
-    Eating: RATING_TO_NUM[s.eating],
-    Mood: RATING_TO_NUM[s.mood],
-    Social: RATING_TO_NUM[s.social],
-    Mobility: RATING_TO_NUM[s.mobility],
-    Behaviors: RATING_TO_NUM[s.behaviors],
-  }));
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-6 pb-20">
@@ -185,13 +178,22 @@ function ResidentFeed() {
 
       <header className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-soft">
         <div className="flex items-center gap-4">
-          <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-sky-soft">
-            {resident.photo_url ? (
-              <img src={resident.photo_url} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <span className="text-xl font-semibold text-primary">
-                {resident.name.charAt(0)}
-              </span>
+          <div className="relative">
+            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-sky-soft">
+              {resident.photo_url ? (
+                <img src={resident.photo_url} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-xl font-semibold text-primary">
+                  {resident.name.charAt(0)}
+                </span>
+              )}
+            </div>
+            {canEdit && (
+              <ProfilePhotoEditor
+                residentId={residentId}
+                currentUrl={resident.photo_url}
+                residentName={resident.name}
+              />
             )}
           </div>
           <div className="flex-1">
@@ -380,27 +382,7 @@ function ResidentFeed() {
         </section>
       )}
 
-      {chartData.length > 0 && (
-        <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-soft">
-          <h2 className="text-lg">Last {chartData.length} weeks</h2>
-          <div className="mt-3 h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="week" fontSize={11} />
-                <YAxis domain={[0.5, 3.5]} ticks={[1, 2, 3]} fontSize={11} />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="Eating" stroke="#3b82f6" />
-                <Line type="monotone" dataKey="Mood" stroke="#10b981" />
-                <Line type="monotone" dataKey="Social" stroke="#f59e0b" />
-                <Line type="monotone" dataKey="Mobility" stroke="#8b5cf6" />
-                <Line type="monotone" dataKey="Behaviors" stroke="#ef4444" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
-      )}
+      <TrendsSection surveys={surveys} todayMood={todayMood} latestSurvey={latestSurvey} />
 
       {canEdit && <InlinePhotoUploader residentId={residentId} />}
 
@@ -1217,6 +1199,250 @@ function FamilyUnreadDot({
       aria-label="New messages"
       className="ml-0.5 inline-block h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-primary-foreground"
     />
+  );
+}
+
+
+type SurveyRow = {
+  week_of: string;
+  eating: string;
+  mood: string;
+  social: string;
+  mobility: string;
+  behaviors: string;
+  notes: string | null;
+};
+
+const TREND_RANGES = [
+  { id: "today", label: "Today" },
+  { id: "6", label: "6 weeks" },
+  { id: "12", label: "12 weeks" },
+  { id: "all", label: "All" },
+] as const;
+
+type TrendRange = (typeof TREND_RANGES)[number]["id"];
+
+function TrendsSection({
+  surveys,
+  todayMood,
+  latestSurvey,
+}: {
+  surveys: SurveyRow[];
+  todayMood: "good" | "mixed" | "hard" | null;
+  latestSurvey: SurveyRow | null;
+}) {
+  const [range, setRange] = useState<TrendRange>("6");
+
+  const visible = useMemo(() => {
+    if (range === "all") return surveys;
+    const weeks = range === "today" ? 1 : Number(range);
+    return surveys.slice(-weeks);
+  }, [surveys, range]);
+
+  const chartData = visible.map((s) => ({
+    week: s.week_of.slice(5),
+    Eating: RATING_TO_NUM[s.eating],
+    Mood: RATING_TO_NUM[s.mood],
+    Social: RATING_TO_NUM[s.social],
+    Mobility: RATING_TO_NUM[s.mobility],
+    Behaviors: RATING_TO_NUM[s.behaviors],
+  }));
+
+  return (
+    <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-soft">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg">Wellbeing trends</h2>
+        <div
+          role="tablist"
+          aria-label="Trend range"
+          className="flex flex-wrap gap-1 rounded-full border border-border bg-surface/60 p-1"
+        >
+          {TREND_RANGES.map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              role="tab"
+              aria-selected={range === r.id}
+              onClick={() => setRange(r.id)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                range === r.id
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {range === "today" ? (
+        <div className="mt-4 grid gap-3">
+          <div className="rounded-2xl border border-border bg-surface/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Today's mood
+            </p>
+            <p className="mt-1 text-base">
+              {todayMood ? (MOOD_TONE[todayMood]?.label ?? todayMood) : "Not logged yet"}
+            </p>
+          </div>
+          {latestSurvey ? (
+            <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {(["eating", "mood", "social", "mobility", "behaviors"] as const).map((k) => (
+                <div key={k} className="rounded-2xl border border-border p-3">
+                  <dt className="text-xs uppercase tracking-wide text-muted-foreground">{k}</dt>
+                  <dd className="mt-0.5 text-base capitalize">{latestSurvey[k]}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-sm text-muted-foreground">No survey answers yet.</p>
+          )}
+        </div>
+      ) : chartData.length === 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">
+          No weekly survey data for this range yet.
+        </p>
+      ) : (
+        <>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {chartData.length} week{chartData.length === 1 ? "" : "s"} of staff survey answers.
+            Higher is better.
+          </p>
+          <div className="mt-3 h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="week" fontSize={11} />
+                <YAxis domain={[0.5, 3.5]} ticks={[1, 2, 3]} fontSize={11} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="Eating" stroke="#3b82f6" />
+                <Line type="monotone" dataKey="Mood" stroke="#10b981" />
+                <Line type="monotone" dataKey="Social" stroke="#f59e0b" />
+                <Line type="monotone" dataKey="Mobility" stroke="#8b5cf6" />
+                <Line type="monotone" dataKey="Behaviors" stroke="#ef4444" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
+function ProfilePhotoEditor({
+  residentId,
+  currentUrl,
+  residentName,
+}: {
+  residentId: string;
+  currentUrl: string | null;
+  residentName: string;
+}) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save() {
+    if (!file) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const base64 = await fileToBase64(file);
+      const { url, path } = await uploadResidentPhoto({
+        data: {
+          resident_id: residentId,
+          filename: file.name,
+          contentType: file.type || "image/jpeg",
+          base64,
+        },
+      });
+      await updateResidentPhoto({
+        data: { resident_id: residentId, photo_url: url || path },
+      });
+      qc.invalidateQueries({ queryKey: ["resident", residentId] });
+      setFile(null);
+      setOpen(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update the photo");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function remove() {
+    setLoading(true);
+    setError(null);
+    try {
+      await updateResidentPhoto({ data: { resident_id: residentId, photo_url: null } });
+      qc.invalidateQueries({ queryKey: ["resident", residentId] });
+      setOpen(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not remove the photo");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={`Change ${residentName}'s profile photo`}
+        className="absolute -bottom-1 -right-1 grid h-7 w-7 place-items-center rounded-full border border-border bg-card text-foreground shadow-soft hover:bg-surface"
+      >
+        <Camera className="h-3.5 w-3.5" aria-hidden />
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-4 sm:items-center">
+          <div className="w-full max-w-md rounded-3xl bg-card p-6 shadow-lift">
+            <h3 className="text-lg font-semibold">Profile photo</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Choose a photo for {residentName}. Avoid images that identify the resident by name.
+            </p>
+            <div className="mt-4">
+              <FilePicker file={file} onChange={setFile} label="Choose a profile photo" />
+            </div>
+            {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={save}
+                disabled={!file || loading}
+                className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                {loading ? "Saving…" : "Save photo"}
+              </button>
+              {currentUrl && (
+                <button
+                  type="button"
+                  onClick={remove}
+                  disabled={loading}
+                  className="rounded-full border border-border px-4 py-2 text-sm"
+                >
+                  Remove photo
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  setFile(null);
+                }}
+                className="rounded-full border border-border px-4 py-2 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
