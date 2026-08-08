@@ -77,9 +77,14 @@ function FacilitiesTab() {
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
   const [justCreatedId, setJustCreatedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const { data: facilities = [] } = useQuery({
     queryKey: ["all-facilities"],
     queryFn: () => listAllFacilities(),
+  });
+  const { data: staffing = {} } = useQuery<Staffing>({
+    queryKey: ["facility-staffing"],
+    queryFn: () => listFacilityStaffing() as Promise<Staffing>,
   });
   const create = useMutation({
     mutationFn: () => createFacility({ data: { name } }),
@@ -88,12 +93,17 @@ function FacilitiesTab() {
       setCreating(false);
       setJustCreatedId(f?.id ?? null);
       qc.invalidateQueries({ queryKey: ["all-facilities"] });
+      qc.invalidateQueries({ queryKey: ["facility-staffing"] });
     },
   });
   const del = useMutation({
     mutationFn: (id: string) => deleteFacility({ data: { id } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["all-facilities"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all-facilities"] });
+      qc.invalidateQueries({ queryKey: ["facility-staffing"] });
+    },
   });
+
 
   return (
     <section className="grid gap-4">
