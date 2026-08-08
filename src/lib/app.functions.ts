@@ -404,7 +404,8 @@ export const listAllFacilities = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertSuperAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db: __db } = await import("./db.server");
+    const supabaseAdmin = await __db(context.supabase as never);
     const { data, error } = await supabaseAdmin
       .from("facilities")
       .select("id, name, created_at")
@@ -418,7 +419,8 @@ export const createFacility = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ name: z.string().min(1).max(120) }).parse(d))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db: __db } = await import("./db.server");
+    const supabaseAdmin = await __db(context.supabase as never);
     const { data: row, error } = await supabaseAdmin
       .from("facilities")
       .insert({ name: data.name })
@@ -433,7 +435,8 @@ export const deleteFacility = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db: __db } = await import("./db.server");
+    const supabaseAdmin = await __db(context.supabase as never);
     const { error } = await supabaseAdmin.from("facilities").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -443,7 +446,8 @@ export const listAllResidents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertSuperAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db: __db } = await import("./db.server");
+    const supabaseAdmin = await __db(context.supabase as never);
     const { data, error } = await supabaseAdmin
       .from("residents")
       .select("id, name, photo_url, dementia_type, facility_id, facilities(name)")
@@ -556,7 +560,8 @@ export const createResident = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!role?.facility_id) throw new Error("No facility for current user");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db: __db } = await import("./db.server");
+    const supabaseAdmin = await __db(context.supabase as never);
     const { data: resident, error } = await supabaseAdmin
       .from("residents")
       .insert({
@@ -593,7 +598,8 @@ export const updateResidentBehaviors = createServerFn({ method: "POST" })
     if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
       throw new Error("Forbidden");
     }
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db: __db } = await import("./db.server");
+    const supabaseAdmin = await __db(context.supabase as never);
     const { error } = await supabaseAdmin
       .from("residents")
       .update({ behaviors: data.behaviors } as never)
@@ -745,7 +751,8 @@ export const upsertDailyNote = createServerFn({ method: "POST" })
     assertNoPhi(data.activities, "Activities");
     assertNoPhi(data.food, "Food");
     assertNoPhi(data.feelings, "Feelings");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db: __db } = await import("./db.server");
+    const supabaseAdmin = await __db(context.supabase as never);
     const caption = encodeNote({
       activities: data.activities,
       food: data.food,
@@ -786,7 +793,8 @@ export const deletePost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db: __db } = await import("./db.server");
+    const supabaseAdmin = await __db(context.supabase as never);
     const { data: row } = await supabaseAdmin
       .from("posts")
       .select("resident_id")
@@ -953,7 +961,8 @@ export const uploadResidentPhoto = createServerFn({ method: "POST" })
     if (!(await canEditResident(context.supabase, context.userId, data.resident_id))) {
       throw new Error("Forbidden");
     }
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db: __db } = await import("./db.server");
+    const supabaseAdmin = await __db(context.supabase as never);
     const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
     const ext = data.filename.split(".").pop() || "jpg";
     const path = `${data.resident_id}/${crypto.randomUUID()}.${ext}`;

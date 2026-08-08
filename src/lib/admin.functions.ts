@@ -28,58 +28,70 @@ type AnyClient = {
 };
 
 
-async function loose(): Promise<AnyClient> {
+/** Privileged client only (no signed-in caller available). */
+async function looseAdmin(): Promise<AnyClient> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin as unknown as AnyClient;
 }
 
-// ---------- helpers ----------
-
-async function assertSuperOrAdmin(
-  context: { supabase: import("@supabase/supabase-js").SupabaseClient; userId: string; claims: { email?: unknown } },
-  facilityId: string,
-): Promise<void> {
-  const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
-  const email = (context.claims.email as string | undefined) ?? "";
-  if (SUPER_ADMIN_EMAILS.includes(email.toLowerCase().trim())) return;
-  const db = await loose();
-  const { data } = await db
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", context.userId)
-    .eq("facility_id", facilityId)
-    .eq("role", "admin")
-    .is("deactivated_at", null)
-    .maybeSingle();
-  if (!data) throw new Error("Forbidden: admin only");
+async function loose(fallback: AnyClient): Promise<AnyClient> {
+  const { db } = await import("./db.server");
+  return (await db(fallback as never)) as unknown as AnyClient;
 }
 
-async function getMyAdminFacilityId(
-  context: { userId: string; claims: { email?: unknown } },
-): Promise<string | null> {
-  const db = await loose();
+// ---------- helpers ----------
+
+type Ctx = {
+  supabase: import("@supabase/supabase-js").SupabaseClient;
+  userId: string;
+  claims: { email?: unknown };
+};
+
+/** True when the caller holds the super_admin role row or is on the email allowlist. */
+async function isSuper(context: Ctx): Promise<boolean> {
+  const { data } = await context.supabase
+    .from("user_roles")
+    .select("user_id")
+    .eq("user_id", context.userId)
+    .eq("role", "super_admin")
+    .limit(1);
+  if ((data ?? []).length > 0) return true;
+  const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
+  const email = (context.claims.email as string | undefined) ?? "";
+  return SUPER_ADMIN_EMAILS.includes(email.toLowerCase().trim());
+}
+
+async function adminFacilityIds(context: Ctx): Promise<string[]> {
+  const db = await loose(context.supabase as never);
   const { data } = await db
     .from("user_roles")
     .select("facility_id")
     .eq("user_id", context.userId)
     .eq("role", "admin")
-    .is("deactivated_at", null)
-    .not("facility_id", "is", null)
-    .limit(1)
-    .maybeSingle();
-  const fid = (data?.facility_id as string | undefined) ?? null;
-  if (fid) return fid;
+    .not("facility_id", "is", null);
+  return ((data ?? []) as Array<{ facility_id: string | null }>)
+    .map((r) => r.facility_id)
+    .filter((id): id is string => !!id);
+}
+
+async function assertSuperOrAdmin(context: Ctx, facilityId: string): Promise<void> {
+  if (await isSuper(context)) return;
+  const ids = await adminFacilityIds(context);
+  if (!ids.includes(facilityId)) throw new Error("Forbidden: admin only");
+}
+
+async function getMyAdminFacilityId(context: Ctx): Promise<string | null> {
+  const ids = await adminFacilityIds(context);
+  if (ids.length > 0) return ids[0];
   // Super admin: fall back to the first facility in the system.
-  const { SUPER_ADMIN_EMAILS } = await import("./super-admin");
-  const email = (context.claims.email as string | undefined) ?? "";
-  if (SUPER_ADMIN_EMAILS.includes(email.toLowerCase().trim())) {
+  if (await isSuper(context)) {
+    const db = await loose(context.supabase as never);
     const { data: f } = await db
       .from("facilities")
       .select("id")
       .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    return (f?.id as string | undefined) ?? null;
+      .limit(1);
+    return ((f ?? [])[0]?.id as string | undefined) ?? null;
   }
   return null;
 }
@@ -89,7 +101,7 @@ async function getMyAdminFacilityId(
 export const recordLoginEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     const req = getRequest();
     const ipHeader =
       req?.headers.get("cf-connecting-ip") ||
@@ -135,7 +147,7 @@ export const listFacilityUsers = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
 
     const { data: rolesData, error } = await db
       .from("user_roles")
@@ -217,7 +229,7 @@ export const deactivateUser = createServerFn({ method: "POST" })
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
     if (data.user_id === context.userId) throw new Error("You can't deactivate your own account.");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     const { error } = await db
       .from("user_roles")
       .update({ deactivated_at: new Date().toISOString() })
@@ -233,7 +245,7 @@ export const unlockUser = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     // Confirm the target user belongs to the admin's facility.
     const { data: roleRow } = await db
       .from("user_roles")
@@ -263,7 +275,7 @@ export const reactivateUser = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     const { error } = await db
       .from("user_roles")
       .update({ deactivated_at: null })
@@ -280,7 +292,7 @@ export const removeUser = createServerFn({ method: "POST" })
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
     if (data.user_id === context.userId) throw new Error("You can't remove your own account.");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
 
     const { data: otherRoles } = await db
       .from("user_roles")
@@ -308,7 +320,7 @@ export const listAccessLog = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     const { data, error } = await db
       .from("login_events")
       .select("id, email, role, ip, user_agent, created_at")
@@ -333,7 +345,7 @@ export const listFacilityResidents = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     const { data, error } = await db
       .from("residents")
       .select("id, name, room_number, care_stage, dementia_type, behaviors, deactivated_at, deactivated_reason, created_at")
@@ -389,7 +401,7 @@ export const adminCreateResident = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     const { data: row, error } = await db
       .from("residents")
       .insert({
@@ -421,7 +433,7 @@ export const adminUpdateResident = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     const { id, ...patch } = data;
     const { error } = await db
       .from("residents")
@@ -442,7 +454,7 @@ export const deactivateResident = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     const { error } = await db
       .from("residents")
       .update({ deactivated_at: new Date().toISOString(), deactivated_reason: data.reason || null })
@@ -458,7 +470,7 @@ export const reactivateResident = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     const { error } = await db
       .from("residents")
       .update({ deactivated_at: null, deactivated_reason: null })
@@ -478,7 +490,7 @@ export const linkFamilyByEmail = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
 
     const { data: resident } = await db
       .from("residents")
@@ -517,7 +529,7 @@ export const unlinkFamilyFromResident = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const facilityId = await getMyAdminFacilityId(context);
     if (!facilityId) throw new Error("Forbidden: admin only");
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     const { data: resident } = await db
       .from("residents")
       .select("facility_id")
@@ -556,7 +568,7 @@ async function findUserIdByEmail(db: AnyClient, email: string): Promise<string |
 export const checkLockout = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ email: z.string().email() }).parse(d))
   .handler(async ({ data }) => {
-    const db = await loose();
+    const db = await looseAdmin();
     const userId = await findUserIdByEmail(db, data.email);
     if (!userId) return { lockedUntil: null as number | null };
     const { data: got } = await db.auth.admin.getUserById(userId);
@@ -569,7 +581,7 @@ export const checkLockout = createServerFn({ method: "POST" })
 export const recordFailedLogin = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ email: z.string().email() }).parse(d))
   .handler(async ({ data }) => {
-    const db = await loose();
+    const db = await looseAdmin();
     const userId = await findUserIdByEmail(db, data.email);
     if (!userId) return { locked: false, lockedUntil: null as number | null };
     const { data: got } = await db.auth.admin.getUserById(userId);
@@ -589,7 +601,7 @@ export const recordFailedLogin = createServerFn({ method: "POST" })
 export const clearLockoutSelf = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const db = await loose();
+    const db = await loose(context.supabase as never);
     const { data: got } = await db.auth.admin.getUserById(context.userId);
     const meta = { ...(got?.user?.app_metadata ?? {}) } as Record<string, unknown>;
     if (meta.failed_login_attempts === undefined && meta.locked_until === undefined) return { ok: true };

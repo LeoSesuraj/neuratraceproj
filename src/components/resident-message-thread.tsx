@@ -127,33 +127,80 @@ export function ResidentMessageThread({
             </p>
           </div>
         ) : (
-          <ul className="space-y-3">
-            {messages.map((m) => {
-              const mine = currentUserId !== null && m.sender_id === currentUserId;
-              const fromFamily = m.sender_role === "family";
-              const align = mine ? "items-end" : "items-start";
+          <ul className="space-y-4">
+            {messages.map((m, i) => {
+              // "My side" of the thread: my own messages, plus messages from my
+              // side of the conversation whose author account no longer exists.
+              const sideOf = (msg: ResidentMessage): "family" | "team" =>
+                msg.sender_role === "family" ? "family" : "team";
+              const mySide: "family" | "team" = isFamily ? "family" : "team";
+              const mine =
+                (currentUserId !== null && m.sender_id === currentUserId) ||
+                (m.sender_id === "" && sideOf(m) === mySide);
+              const prev = i > 0 ? messages[i - 1] : null;
+              const newDay =
+                !prev ||
+                new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString();
+              const grouped =
+                !newDay &&
+                prev !== null &&
+                (prev.sender_id === m.sender_id
+                  ? true
+                  : prev.sender_name === m.sender_name && sideOf(prev) === sideOf(m));
+              const fallbackName = sideOf(m) === "family" ? "Family" : "Care team";
+              const name = mine ? "You" : (m.sender_name ?? fallbackName);
+              const initial = (name[0] ?? "?").toUpperCase();
               const bubble = mine
-                ? "bg-primary text-primary-foreground"
-                : fromFamily
-                  ? "bg-warm/70 text-foreground"
-                  : "bg-sky-soft text-foreground";
+                ? "bg-primary text-primary-foreground rounded-br-md"
+                : "bg-card text-foreground border border-border rounded-bl-md";
               return (
-                <li key={m.id} className={`flex flex-col ${align}`}>
-                  <div className="flex items-baseline gap-2 px-1 text-[11px] text-muted-foreground">
-                    <span className="font-medium text-foreground/80">
-                      {mine ? "You" : (m.sender_name ?? "Member")}
-                    </span>
-                    {m.sender_role && !mine && (
-                      <span className="rounded-full bg-card px-1.5 py-0.5 text-[10px] uppercase tracking-wide">
-                        {roleLabel(m.sender_role)}
-                      </span>
-                    )}
-                    <span>{formatTime(m.created_at)}</span>
-                  </div>
+                <li key={m.id}>
+                  {newDay && (
+                    <p className="mb-4 text-center text-xs text-muted-foreground">
+                      {new Date(m.created_at).toLocaleDateString(undefined, {
+                        weekday: "long",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </p>
+                  )}
                   <div
-                    className={`mt-1 max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm shadow-soft ${bubble}`}
+                    className={`flex items-end gap-2 ${mine ? "flex-row-reverse" : "flex-row"} ${
+                      grouped ? "mt-1" : "mt-0"
+                    }`}
                   >
-                    {m.content}
+                    <div
+                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-semibold ${
+                        grouped
+                          ? "opacity-0"
+                          : mine
+                            ? "bg-primary/15 text-primary"
+                            : "bg-surface text-foreground/70"
+                      }`}
+                      aria-hidden={grouped}
+                    >
+                      {initial}
+                    </div>
+                    <div className={`flex max-w-[78%] flex-col ${mine ? "items-end" : "items-start"}`}>
+                      {!grouped && (
+                        <div className="mb-1 flex items-center gap-2 px-1">
+                          <span className="text-xs font-semibold text-foreground/85">{name}</span>
+                          {m.sender_role && !mine && (
+                            <span className="rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                              {roleLabel(m.sender_role)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <div
+                        className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-base leading-relaxed shadow-soft ${bubble}`}
+                      >
+                        {m.content}
+                      </div>
+                      <span className="mt-1 px-1 text-[11px] text-muted-foreground">
+                        {formatTime(m.created_at)}
+                      </span>
+                    </div>
                   </div>
                 </li>
               );
