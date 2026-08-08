@@ -40,7 +40,7 @@ BEGIN
     v_margaret := '22222222-2222-2222-2222-222222222222';
     INSERT INTO public.residents (id, name, facility_id, dementia_type, date_of_birth, photo_url)
     VALUES (
-      v_margaret, 'Margaret B.', v_sunrise, "Alzheimer's disease", NULL,
+      v_margaret, 'Margaret B.', v_sunrise, 'Alzheimer''s disease', NULL,
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&q=80'
     )
     ON CONFLICT (id) DO UPDATE
