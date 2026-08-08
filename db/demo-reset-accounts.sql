@@ -116,28 +116,58 @@ BEGIN
     );
   END IF;
 
+  -- posts.author_id is NOT NULL and some deployed versions use a foreign-key
+  -- definition that information_schema does not reliably expose through the
+  -- joins below. Protect it explicitly before any profile or auth deletion.
+  IF to_regclass('public.posts') IS NOT NULL THEN
+    UPDATE public.posts
+       SET author_id = v_staff
+     WHERE author_id IS NULL
+        OR author_id NOT IN (v_super, v_admin, v_staff, v_family);
+  END IF;
+
   FOR r IN
-    SELECT DISTINCT c.table_name, c.column_name
-    FROM information_schema.columns c
-    JOIN information_schema.key_column_usage k
-      ON k.table_schema = c.table_schema AND k.table_name = c.table_name AND k.column_name = c.column_name
-    JOIN information_schema.referential_constraints rc
-      ON rc.constraint_name = k.constraint_name AND rc.constraint_schema = k.table_schema
-    JOIN information_schema.constraint_column_usage u
-      ON u.constraint_name = rc.unique_constraint_name AND u.constraint_schema = rc.unique_constraint_schema
-    WHERE c.table_schema = 'public'
+    -- Read PostgreSQL's constraint catalog directly. The previous
+    -- information_schema join could miss a foreign key when constraint names
+    -- were reused across schemas, which is exactly what left posts.author_id
+    -- pointing at an account being deleted.
+    SELECT DISTINCT
+      child_ns.nspname AS table_schema,
+      child.relname AS table_name,
+      child_col.attname AS column_name
+    FROM pg_constraint fk
+    JOIN pg_class child ON child.oid = fk.conrelid
+    JOIN pg_namespace child_ns ON child_ns.oid = child.relnamespace
+    JOIN pg_class parent ON parent.oid = fk.confrelid
+    JOIN pg_namespace parent_ns ON parent_ns.oid = parent.relnamespace
+    JOIN LATERAL unnest(fk.conkey) WITH ORDINALITY AS child_key(attnum, ordinality) ON true
+    JOIN pg_attribute child_col
+      ON child_col.attrelid = child.oid AND child_col.attnum = child_key.attnum
+    WHERE fk.contype = 'f'
+      AND child_ns.nspname = 'public'
+      AND cardinality(fk.conkey) = 1
       AND (
-        (u.table_schema = 'auth'   AND u.table_name = 'users')
-        OR (u.table_schema = 'public' AND u.table_name = 'profiles')
+        (parent_ns.nspname = 'auth' AND parent.relname = 'users')
+        OR (parent_ns.nspname = 'public' AND parent.relname = 'profiles')
       )
-      AND NOT (c.table_name = 'profiles' AND c.column_name = 'id')
+      AND NOT (child.relname = 'profiles' AND child_col.attname = 'id')
   LOOP
     EXECUTE format(
-      'UPDATE public.%I SET %I = %L WHERE %I IS NOT NULL AND %I NOT IN (%L,%L,%L,%L)',
-      r.table_name, r.column_name, v_staff, r.column_name, r.column_name,
+      'UPDATE %I.%I SET %I = %L WHERE %I IS NOT NULL AND %I NOT IN (%L,%L,%L,%L)',
+      r.table_schema, r.table_name, r.column_name, v_staff, r.column_name, r.column_name,
       v_super, v_admin, v_staff, v_family
     );
   END LOOP;
+
+  -- Abort instead of partially deleting accounts if any post still points to
+  -- a profile outside the four replacement accounts.
+  IF EXISTS (
+    SELECT 1 FROM public.posts
+     WHERE author_id IS NULL
+        OR author_id NOT IN (v_super, v_admin, v_staff, v_family)
+  ) THEN
+    RAISE EXCEPTION 'Safety check failed: posts.author_id was not fully re-pointed';
+  END IF;
 
   -- Drop leftover profile rows for accounts that are about to disappear.
   DELETE FROM public.profiles
