@@ -92,6 +92,7 @@ function FacilitiesTab() {
       setName("");
       setCreating(false);
       setJustCreatedId(f?.id ?? null);
+      setExpandedId(f?.id ?? null);
       qc.invalidateQueries({ queryKey: ["all-facilities"] });
       qc.invalidateQueries({ queryKey: ["facility-staffing"] });
     },
