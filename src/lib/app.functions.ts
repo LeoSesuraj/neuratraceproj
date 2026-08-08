@@ -10,8 +10,9 @@ import { assertNoPhi, validatePseudonym } from "./phi";
 // ---------- Public ----------
 
 export const listFacilities = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
+  const { publicDb } = await import("./db.server");
+  const client = await publicDb();
+  const { data, error } = await client
     .from("facilities")
     .select("id, name")
     .order("name");
