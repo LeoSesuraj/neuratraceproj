@@ -180,11 +180,8 @@ BEGIN
   DELETE FROM public.user_roles
    WHERE user_id IN (v_super, v_admin, v_staff, v_family);
 
-  -- Super admin also gets a real admin row at every facility so all reads work
-  -- through normal row-level security, not just the privileged key.
-  INSERT INTO public.user_roles (user_id, role, facility_id)
-    SELECT v_super, 'admin'::public.app_role, f.id FROM public.facilities f;
   INSERT INTO public.user_roles (user_id, role, facility_id) VALUES
+    (v_super,  'super_admin'::public.app_role, NULL),
     (v_admin,  'admin'::public.app_role,  v_sunrise),
     (v_staff,  'staff'::public.app_role,  v_sunrise),
     (v_family, 'family'::public.app_role, NULL);
@@ -201,9 +198,15 @@ BEGIN
   END IF;
 END $$;
 
--- Verify
+-- Verify: exactly one row should print for each demo account.
 SELECT u.email, r.role, f.name AS facility
 FROM auth.users u
 LEFT JOIN public.user_roles r ON r.user_id = u.id
 LEFT JOIN public.facilities f ON f.id = r.facility_id
+WHERE u.email IN (
+  'superadmin@neuratrace.demo',
+  'admin@neuratrace.demo',
+  'staff@neuratrace.demo',
+  'family@neuratrace.demo'
+)
 ORDER BY u.email, f.name;
