@@ -767,16 +767,44 @@ export const createPhotoPost = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Does the user hold a staff/admin role at the resident's facility? */
+async function hasFacilityCareRole(
+  supabase: import("@supabase/supabase-js").SupabaseClient,
+  userId: string,
+  residentId: string,
+): Promise<boolean> {
+  const { data: resident } = await supabase
+    .from("residents")
+    .select("facility_id")
+    .eq("id", residentId)
+    .maybeSingle();
+  const facilityId = (resident as { facility_id?: string } | null)?.facility_id;
+  if (!facilityId) return false;
+  const { data: role } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("facility_id", facilityId)
+    .in("role", ["staff", "admin"])
+    .maybeSingle();
+  return !!role;
+}
+
 async function canEditResident(
   supabase: import("@supabase/supabase-js").SupabaseClient,
   userId: string,
   residentId: string,
 ): Promise<boolean> {
-  const { data: isAdmin } = await supabase.rpc("has_role", {
-    _user_id: userId,
-    _role: "admin",
-  });
-  if (isAdmin) return true;
+  const { data: isSuper } = await supabase
+    .from("user_roles")
+    .select("user_id")
+    .eq("user_id", userId)
+    .eq("role", "super_admin")
+    .maybeSingle();
+  if (isSuper) return true;
+  // Any staff or admin at the resident's facility gets the same view and the
+  // same edit rights, so the care team stays transparent across accounts.
+  if (await hasFacilityCareRole(supabase, userId, residentId)) return true;
   const { data: link } = await supabase
     .from("resident_staff")
     .select("resident_id")
@@ -785,6 +813,7 @@ async function canEditResident(
     .maybeSingle();
   return !!link;
 }
+
 
 export const upsertDailyNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
