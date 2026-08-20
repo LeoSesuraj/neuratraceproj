@@ -40,7 +40,9 @@
   --color-surface: var(--surface);
   --color-surface-soft: var(--surface-soft);
   --color-sky-soft: var(--sky-soft);
+  --color-primary-hover: var(--primary-hover);
   --color-sage: var(--sage);
+
   --color-warm: var(--warm);
 
   --color-chart-1: var(--chart-1);
