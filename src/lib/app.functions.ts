@@ -341,22 +341,24 @@ export const getResidentDailyKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ resident_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    // Only staff/admin assigned to the resident (or super admin) may view.
+    // Any staff/admin at the resident's facility (or super admin) may view.
     if (!(await isSuperAdmin(context))) {
-      const { data: row } = await context.supabase
-        .from("resident_staff")
-        .select("resident_id")
-        .eq("resident_id", data.resident_id)
-        .eq("user_id", context.userId)
-        .maybeSingle();
-      if (!row) {
-        const { data: isAdmin } = await context.supabase.rpc("has_role", {
-          _user_id: context.userId,
-          _role: "admin",
-        });
-        if (!isAdmin) throw new Error("Forbidden");
+      const ok = await hasFacilityCareRole(
+        context.supabase,
+        context.userId,
+        data.resident_id,
+      );
+      if (!ok) {
+        const { data: row } = await context.supabase
+          .from("resident_staff")
+          .select("resident_id")
+          .eq("resident_id", data.resident_id)
+          .eq("user_id", context.userId)
+          .maybeSingle();
+        if (!row) throw new Error("Forbidden");
       }
     }
+
     const { dailyKey, utcDateString } = await import("./keys.server");
     return { code: dailyKey("family", data.resident_id), valid_date: utcDateString() };
   });
