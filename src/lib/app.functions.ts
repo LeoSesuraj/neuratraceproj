@@ -538,11 +538,14 @@ export const listResidentsForMe = createServerFn({ method: "GET" })
         .in("facility_id", access.facilityIds);
       (data ?? []).forEach((r) => ids.add(r.id));
     } else if (access.role === "staff") {
+      // Staff see every resident at their facility, so an admin adding a
+      // resident shows up for the whole care team without extra linking.
       const { data } = await supabaseAdmin
-        .from("resident_staff")
-        .select("resident_id")
-        .eq("user_id", context.userId);
-      (data ?? []).forEach((r) => ids.add(r.resident_id as string));
+        .from("residents")
+        .select("id")
+        .in("facility_id", access.facilityIds);
+      (data ?? []).forEach((r) => ids.add(r.id as string));
+
     } else if (access.role === "family") {
       const { data } = await supabaseAdmin
         .from("resident_family")
