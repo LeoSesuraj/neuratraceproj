@@ -30,6 +30,7 @@ import {
   adminCreateResident,
   adminUpdateResident,
   deactivateResident,
+  deleteResident,
   reactivateResident,
   linkFamilyByEmail,
   unlinkFamilyFromResident,
@@ -457,6 +458,14 @@ function ResidentsTab() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const del = useMutation({
+    mutationFn: (id: string) => deleteResident({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Resident deleted.");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const react = useMutation({
     mutationFn: (id: string) => reactivateResident({ data: { id } }),
     onSuccess: () => {
@@ -494,7 +503,7 @@ function ResidentsTab() {
         <div>
           <h2 className="text-xl">Residents</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Add residents, link family, deactivate on discharge.
+            Add residents, link family, delete on discharge.
           </p>
         </div>
         {!creating && (
@@ -594,6 +603,7 @@ function ResidentsTab() {
             key={r.id}
             resident={r}
             onDeactivate={() => deact.mutateAsync(r.id)}
+            onDelete={() => del.mutateAsync(r.id)}
             onReactivate={() => react.mutateAsync(r.id)}
             onLinkFamily={(email) => linkFam.mutateAsync({ resident_id: r.id, email })}
             onUnlinkFamily={(user_id) =>
@@ -624,6 +634,7 @@ function ResidentCard({
   resident,
   onDeactivate,
   onReactivate,
+  onDelete,
   onLinkFamily,
   onUnlinkFamily,
   onUpdate,
@@ -632,6 +643,7 @@ function ResidentCard({
   resident: ResidentRow;
   onDeactivate: () => Promise<unknown>;
   onReactivate: () => Promise<unknown>;
+  onDelete: () => Promise<unknown>;
   onLinkFamily: (email: string) => Promise<unknown>;
   onUnlinkFamily: (user_id: string) => Promise<unknown>;
   onUpdate: (patch: {
