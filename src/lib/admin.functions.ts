@@ -480,6 +480,22 @@ export const reactivateResident = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteResident = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const facilityId = await getMyAdminFacilityId(context);
+    if (!facilityId) throw new Error("Forbidden: admin only");
+    const db = await loose(context.supabase as never);
+    const { error } = await db
+      .from("residents")
+      .delete()
+      .eq("id", data.id)
+      .eq("facility_id", facilityId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const linkFamilyByEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
