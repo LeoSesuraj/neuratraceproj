@@ -29,7 +29,6 @@ import {
   unlockUser,
   adminCreateResident,
   adminUpdateResident,
-  deactivateResident,
   deleteResident,
   reactivateResident,
   linkFamilyByEmail,
@@ -450,14 +449,6 @@ function ResidentsTab() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  const deact = useMutation({
-    mutationFn: (id: string) => deactivateResident({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Resident deactivated.");
-      invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
   const del = useMutation({
     mutationFn: (id: string) => deleteResident({ data: { id } }),
     onSuccess: () => {
@@ -602,7 +593,6 @@ function ResidentsTab() {
           <ResidentCard
             key={r.id}
             resident={r}
-            onDeactivate={() => deact.mutateAsync(r.id)}
             onDelete={() => del.mutateAsync(r.id)}
             onReactivate={() => react.mutateAsync(r.id)}
             onLinkFamily={(email) => linkFam.mutateAsync({ resident_id: r.id, email })}
@@ -632,7 +622,6 @@ type ResidentRow = {
 
 function ResidentCard({
   resident,
-  onDeactivate,
   onReactivate,
   onDelete,
   onLinkFamily,
@@ -641,7 +630,6 @@ function ResidentCard({
   updating,
 }: {
   resident: ResidentRow;
-  onDeactivate: () => Promise<unknown>;
   onReactivate: () => Promise<unknown>;
   onDelete: () => Promise<unknown>;
   onLinkFamily: (email: string) => Promise<unknown>;
