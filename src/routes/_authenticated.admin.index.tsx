@@ -695,30 +695,29 @@ function ResidentCard({
               <Pencil className="h-3 w-3" aria-hidden="true" /> {editOpen ? "Close" : "Edit"}
             </button>
           )}
-          {inactive ? (
+          {inactive && (
             <button
               onClick={() => void onReactivate()}
               className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] hover:bg-surface"
             >
               <Play className="h-3 w-3" aria-hidden="true" /> Reactivate
             </button>
-          ) : (
-            <ConfirmDialog
-              title="Deactivate this resident?"
-              description="This action cannot be undone. Are you sure? Use this when a patient is discharged or has passed away."
-              confirmLabel="Deactivate"
-              destructive
-              onConfirm={onDeactivate}
-              trigger={
-                <button
-                  aria-label={`Deactivate ${resident.name}`}
-                  className="inline-flex items-center gap-1 rounded-full border border-destructive/30 px-2.5 py-1 text-[11px] text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-3 w-3" aria-hidden="true" /> Deactivate
-                </button>
-              }
-            />
           )}
+          <ConfirmDialog
+            title="Delete this resident?"
+            description="This permanently removes the resident and all of their notes, logs, and messages. This cannot be undone."
+            confirmLabel="Delete"
+            destructive
+            onConfirm={onDelete}
+            trigger={
+              <button
+                aria-label={`Delete ${resident.name}`}
+                className="inline-flex items-center gap-1 rounded-full border border-destructive/30 px-2.5 py-1 text-[11px] text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-3 w-3" aria-hidden="true" /> Delete
+              </button>
+            }
+          />
         </div>
       </div>
 
