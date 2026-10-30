@@ -1,63 +1,56 @@
-## Goal
-Determine whether NeuraTrace is ready for a nursing home, and create a safe path to production for web + native deployment.
+# NeuraTrace — Visual Redesign & Immersive Learning Plan
 
-## Key finding: this is NOT ready for real patient data as-is
+Based on the uploaded redesign brief. The brief's warm editorial palette **supersedes** the cool clinical palette applied earlier this week.
 
-The security scan returns clean, the role-based access controls and RLS policies are in place, and the app has audit logs, lockout handling, and inactivity timeouts. **However, the app still shows a Beta warning telling users not to enter real patient information, and Lovable Cloud does not support HIPAA compliance or Business Associate Agreements (BAA).** If a nursing home uses it for real resident names, room numbers, diagnoses, or care notes, that would be PHI handled in a non-compliant environment.
+## Audit findings
 
-## Required decision before any code changes
+**Current state:**
+- `/` (index.tsx) is a login-first landing page — exactly what the brief says to eliminate.
+- Public learning lives under `/learn/*` (home, connect, understand, journey, support, coach) inside `AppShell` — functional but card-grid generic.
+- Design tokens in `src/styles.css`: cool off-white `#F7F9FA`, blue `#087DA5`. Fonts: Plus Jakarta Sans + Fraunces (already loaded in `__root.tsx`).
+- Care Portal: `_authenticated.*` routes (resident, staff, admin, super admin, notifications, messaging) — **untouched by this redesign**.
+- Backend (`src/lib/*.functions.ts`, Supabase, keys, lockouts, PHI checks) — **untouched**.
 
-1. **Choose the compliance path.** The project must decide whether it needs to process PHI.
-   - **Option A: No PHI (fastest, safest):** Keep the app as a non-clinical communication, education, and staff-family coordination tool. Continue to prohibit names, diagnoses, room numbers, medications, or any identifiable health data. Nursing homes can use anonymized IDs or first names only if allowed by your legal counsel. This matches the current Terms and Privacy Policy.
-   - **Option B: PHI required:** Move off Lovable Cloud to a HIPAA/BAA-compliant backend and hosting stack (for example, a Supabase Enterprise or self-hosted environment with signed BAAs, plus a hosting provider that will sign a BAA). You will also need BAAs with every subprocessor that touches PHI (Sentry, Anthropic, push-notification provider, etc.). This is a major infrastructure migration, not a quick code change.
+**Reusable:** font loading, token architecture, `LegalFooter` (to be expanded), situations/guides content in `src/lib/`, UI primitives in `src/components/ui`.
 
-## Plan if you stay non-PHI (Option A)
+## Design system (Phase 1 foundation)
 
-2. **Update legal and in-app copy.**
-   - Remove "Beta version" language and replace it with a permanent "non-PHI / educational use only" disclaimer.
-   - Add a clear onboarding acknowledgement for the first facility admin: "This app does not support Protected Health Information. Do not enter real resident names, diagnoses, room numbers, or medical details."
-   - Keep the existing Terms and Privacy Policy, but update them to describe the no-PHI model and the list of subprocessors that actually touch non-PHI data.
+New tokens in `src/styles.css` (oklch equivalents of the brief's hex values):
+- Background: warm ivory `#F7F5F0` · Text: midnight navy `#172438`
+- Primary: deep blue-teal `#285968` · Secondary text: muted slate `#68717B`
+- Alt section: warm stone `#ECEAE4` · Accent: soft sage `#A7B9AD`
+- Dark navy sections for cinematic moments (brain explorer, hero accents)
+- Typography: Plus Jakarta Sans for headlines/UI (large 64–88px heroes, tight tracking); Fraunces serif reserved for quotes and emotional emphasis only (reverses current serif-everywhere headings)
+- Soft shadows, generous whitespace, minimal pill buttons, reduced-motion support
 
-3. **Harden the existing code.**
-   - Enforce email verification before a user can view any authenticated data. The current signup already requires confirmation, but verify it is enforced everywhere.
-   - Switch the password-reset `redirectTo` from the hardcoded `https://neuratraceproj.vercel.app` to `window.location.origin` so it works in any deployment and the native shell.
-   - Add multi-factor authentication (MFA) as an option for admin and staff accounts.
-   - Strengthen password requirements beyond the current 8-character minimum.
-   - Make the 60-minute inactivity timeout and the failed-login lockout policy visible to admins.
-   - Extend the access log to keep more than 50 events per facility, with a documented retention policy and export path.
-   - Add admin self-service for account data export and permanent deletion.
+## Phase 1 — Visual system + public homepage (this approval covers this)
 
-4. **Clean up admin and data flows.**
-   - Remove the hardcoded `leonelbaskin@gmail.com` super-admin gate once the first facility is onboarded, or replace it with an admin-invitation flow so the customer controls their own operators.
-   - Add family-consent and access-review workflows: staff or admin can invite family, family accepts, and the admin can revoke access at any time.
-   - Make sure deactivated residents and users are hidden from normal views and can be permanently deleted later.
+1. **Retokenize** `src/styles.css` to the warm editorial palette; update base typography rules.
+2. **New public navigation** (`PublicNav` component): NeuraTrace | Learn | Explore | Practice | AI Coach | About | Care Portal + "Start Learning" CTA; polished mobile menu; replaces `AppShell` header on public pages.
+3. **New homepage** at `/` — login form moves to `/auth/login` (already exists; `/` redirects signed-in users to their portal):
+   - Hero: "Understand their world. Stay connected." + Begin Learning / Explore the Brain CTAs, two-column editorial composition with a brain visual
+   - Human Story: "Behind every diagnosis is a person." — editorial photo section
+   - Learning Experience preview: horizontal storytelling layout
+   - Explore the Brain: dark navy interactive section (2D SVG brain with selectable regions, hippocampus highlighted — architecture ready for 3D later)
+   - Learning Chapters: 8 large editorial tiles (Chapter 1 fully linked, others marked "coming soon")
+   - "What would you say?" — working interactive situation preview (reuses existing situations logic)
+   - AI Learning Companion section (links to existing coach, with educational-guidance disclaimer)
+   - Care Portal access section (small, near bottom)
+   - Comprehensive footer: branding, learning nav, Care Portal, About, Privacy, Terms, educational disclaimer, contact (neuratraceadmin@gmail.com)
+4. **Restyle public learn pages** (`/learn/*`) into the new system — same routes and content, new composition.
+5. Care Portal pages inherit new tokens automatically; no layout changes there.
 
-5. **Prepare the native Capacitor app.**
-   - Add privacy labels for app stores, confirm no third-party analytics leak device data, and ensure the app does not cache PHI locally.
-   - Set up distribution through Apple App Store and Google Play Store, or through an enterprise mobile-device management tool if the facility provides devices.
-   - Add push notifications if desired, with a BAA-compatible provider if the provider will process any message content.
+**Media:** generate a small set of original hero/brain/human-story images via image generation; all media behind easily replaceable asset imports.
 
-6. **Operational readiness.**
-   - Write a lightweight incident-response and breach-notification plan.
-   - Create a staff/family training guide that repeats the "no PHI" rule.
-   - Set up a support process around the `neuratraceadmin@gmail.com` contact.
-   - Schedule regular security scans and access reviews.
+## Later phases (separate approvals)
 
-## Plan if you must process PHI (Option B)
+- **Phase 2:** immersive lesson player + flagship chapter "Why Does My Loved One Keep Asking the Same Question?" (7 parts: Experience → Understand → Explore → Practice → Converse → Reflect → Complete), progress tracked without an account (localStorage).
+- **Phase 3:** full interactive brain explorer page.
+- **Phase 4:** AI Coach expansion, branching conversations.
+- **Phase 5:** remaining chapters, media, assessments.
 
-7. **Migrate the backend to a HIPAA-compliant environment.**
-   - Move off Lovable Cloud to a Supabase instance or other backend that will sign a BAA.
-   - Move hosting to a provider that will sign a BAA.
-   - Replace or remove any subprocessors that cannot sign a BAA (Sentry, Anthropic, analytics, push-notification providers, etc.).
-   - This is a replatforming project, not a feature tweak, so the plan is to stop current work and design the new architecture.
+## Guardrails
 
-## Verification
-
-- Confirm the chosen path in writing before any production deployment.
-- Run a final security scan after all changes.
-- Run a role-based access test against a clean production-like environment.
-- Have legal counsel approve the Terms, Privacy Policy, and subprocessor list.
-
-## Non-PHI technical steps are ready to implement once you confirm Option A.
-
-If you want to proceed with Option A, I can start with the legal-copy updates, the email-verification enforcement, and the password-reset URL fix. If you need Option B, I recommend pausing feature work and starting the infrastructure migration plan first.
+- No changes to auth, database, RLS, server functions, or Care Portal logic.
+- No invented endorsements, certifications, or clinical claims; educational disclaimer stays visible.
+- Accessibility: WCAG 2.2 AA targets, keyboard nav, reduced-motion, 16px+ body text, safe-area insets preserved for the Capacitor app.
