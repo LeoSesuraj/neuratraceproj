@@ -21,7 +21,7 @@ export function LessonViewer(props: Props) {
   useEffect(() => setStepIdx(0), [lesson.id]);
 
   const chapter = chapterOf(lesson.id);
-  const step = lesson.steps[stepIdx];
+  const step = lesson.steps[Math.min(stepIdx, lesson.steps.length - 1)];
   const lastStep = stepIdx === lesson.steps.length - 1;
 
   return (

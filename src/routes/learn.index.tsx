@@ -81,6 +81,7 @@ function LearningLayout() {
             <ChapterCompletion chapterTitle={chapterOf(lesson.id).title} onRevisit={() => go(allLessons[0].id)} />
           ) : (
             <LessonViewer
+              key={lesson.id}
               lesson={lesson}
               isLastLesson={!next || chapterOf(next.id).n !== chapterOf(lesson.id).n}
               hasPrevLesson={!!prev}
