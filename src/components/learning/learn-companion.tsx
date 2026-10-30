@@ -93,7 +93,7 @@ export function LearnCompanion({ lesson }: Props) {
         type="button"
         onClick={() => setHidden(false)}
         aria-label="Bring Nim back"
-        className="fixed bottom-32 right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card py-1.5 pr-4 pl-1.5 text-sm font-semibold text-primary shadow-sm lg:bottom-4"
+        className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card py-1.5 pr-4 pl-1.5 text-sm font-semibold text-primary shadow-sm lg:bottom-4"
       >
         <span className="h-8 w-8 shrink-0">
           <NimWisp />
