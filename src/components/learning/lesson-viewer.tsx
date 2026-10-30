@@ -25,7 +25,7 @@ export function LessonViewer(props: Props) {
   const lastStep = stepIdx === lesson.steps.length - 1;
 
   return (
-    <article className="mx-auto w-full max-w-3xl px-5 pb-16 pt-6 sm:px-8 lg:pt-10">
+    <article className="mx-auto w-full max-w-3xl px-5 pb-24 pt-6 sm:px-8 lg:pt-10">
       <header>
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary/80">
           Chapter {String(chapter.n).padStart(2, "0")} · {chapter.title}
