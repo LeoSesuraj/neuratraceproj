@@ -261,4 +261,119 @@
   .companion-bob {
     animation: companion-bob 4.5s ease-in-out infinite;
   }
+
+  /* --- Nim the Wisp: the floating learning companion --------------------- */
+  .nim-wisp {
+    overflow: visible;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: nim-float 5.5s ease-in-out infinite;
+  }
+  .nim-wisp .nim-blink {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: nim-blink 5.4s ease-in-out infinite;
+  }
+  .nim-wisp .nim-blink-late {
+    animation-delay: 0.12s;
+  }
+  .nim-wisp .nim-glow {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: nim-glow 3.2s ease-in-out infinite;
+  }
+  .nim-wisp .nim-sway {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: nim-sway 4.2s ease-in-out infinite;
+  }
+  .nim-wisp .nim-mote {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: nim-mote 6s ease-in-out infinite;
+  }
+  .nim-wisp .nim-mote-b {
+    animation-duration: 7.4s;
+    animation-delay: -2s;
+  }
+  .nim-wisp .nim-mote-c {
+    animation-duration: 8.2s;
+    animation-delay: -4.5s;
+  }
+  .nim-wisp .nim-halo {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: nim-halo 4.8s ease-in-out infinite;
+  }
+
+  @keyframes nim-float {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-1.2deg);
+    }
+    35% {
+      transform: translateY(-5px) rotate(0.6deg);
+    }
+    70% {
+      transform: translateY(-2px) rotate(1.4deg);
+    }
+  }
+  @keyframes nim-blink {
+    0%,
+    92%,
+    100% {
+      transform: scaleY(1);
+    }
+    95% {
+      transform: scaleY(0.08);
+    }
+    97.5% {
+      transform: scaleY(1);
+    }
+  }
+  @keyframes nim-glow {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(0.9);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.12);
+    }
+  }
+  @keyframes nim-sway {
+    0%,
+    100% {
+      transform: rotate(-6deg);
+    }
+    50% {
+      transform: rotate(8deg);
+    }
+  }
+  @keyframes nim-mote {
+    0% {
+      opacity: 0;
+      transform: translateY(4px) scale(0.6);
+    }
+    25% {
+      opacity: 0.9;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-14px) scale(1);
+    }
+  }
+  @keyframes nim-halo {
+    0%,
+    100% {
+      opacity: 0.7;
+      transform: scale(0.96);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+  }
 }
+
