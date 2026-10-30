@@ -105,6 +105,8 @@ function LearningLayout() {
           {sidebar}
         </SheetContent>
       </Sheet>
+
+      {!search.done && <LearnCompanion lesson={lesson} />}
     </div>
   );
 }
