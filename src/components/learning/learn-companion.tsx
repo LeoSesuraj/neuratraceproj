@@ -55,7 +55,7 @@ export function LearnCompanion({ lesson }: Props) {
       <button
         type="button"
         onClick={() => setHidden(false)}
-        className="fixed bottom-4 right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-semibold text-primary shadow-sm"
+        className="fixed bottom-24 right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-semibold text-primary shadow-sm lg:bottom-4"
       >
         <MessageCircleHeart className="h-4 w-4" aria-hidden /> Companion
       </button>
@@ -91,7 +91,7 @@ export function LearnCompanion({ lesson }: Props) {
 
   return (
     <div
-      className={`fixed bottom-4 z-40 flex flex-col items-end gap-3 transition-[left,right] duration-1000 ease-in-out ${
+      className={`fixed bottom-24 z-40 flex flex-col items-end gap-3 transition-[left,right] duration-1000 ease-in-out lg:bottom-4 ${
         side === "right" ? "right-4 left-auto" : "left-4 right-auto"
       }`}
     >
