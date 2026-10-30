@@ -132,7 +132,7 @@ export function LearnCompanion({ lesson }: Props) {
 
   return (
     <div
-      className={`fixed bottom-32 z-40 flex flex-col items-end gap-3 transition-[left,right] duration-1000 ease-in-out lg:bottom-4 ${
+      className={`fixed bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 flex flex-col items-end gap-3 transition-[left,right] duration-1000 ease-in-out lg:bottom-4 ${
         side === "right" ? "right-4 left-auto" : "left-4 right-auto"
       }`}
     >
@@ -196,7 +196,7 @@ export function LearnCompanion({ lesson }: Props) {
         onClick={togglePanel}
         aria-expanded={open}
         aria-label={open ? "Close Nim, the learning companion" : "Open Nim, the learning companion"}
-        className="h-16 w-16 shrink-0 drop-shadow-[0_8px_16px_rgba(75,47,143,0.22)] transition-transform duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:h-[4.5rem] sm:w-[4.5rem]"
+        className="h-12 w-12 shrink-0 drop-shadow-[0_8px_16px_rgba(75,47,143,0.22)] transition-transform duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:h-[4.5rem] sm:w-[4.5rem]"
       >
         <NimWisp mood={mood} />
       </button>
