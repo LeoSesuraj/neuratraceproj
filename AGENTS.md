@@ -1,0 +1,1 @@
+- Public education lives only in `/learn` (chapter sidebar + lesson viewer driven by `src/lib/curriculum.ts`); old `/learn/*` sections redirect there. Why: one learning journey, add chapters as data, not pages.

@@ -1,6 +1,10 @@
-import { Outlet, createFileRoute } from "@tanstack/react-router";
+import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/learn/coach")({
+  // Retired: all education now lives inside the chapter-based learning journey.
+  beforeLoad: () => {
+    throw redirect({ to: "/learn" });
+  },
   head: () => ({
     meta: [
       { title: "AI Coach, NeuraTrace" },
