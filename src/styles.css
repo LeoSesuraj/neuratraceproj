@@ -162,3 +162,79 @@
 
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Public marketing/learning theme (warm editorial palette).
+ * Scoped so the Care Portal keeps its existing clinical appearance.
+ * Apply by wrapping a page in <div className="theme-public">.
+ * ------------------------------------------------------------------------- */
+.theme-public {
+  --background: #f7f5f0;
+  --foreground: #172438;
+
+  --surface: #ffffff;
+  --surface-soft: #eceae4;
+  --sky-soft: #e2ebe6;
+  --sage: #a7b9ad;
+  --warm: #eceae4;
+
+  --card: #ffffff;
+  --card-foreground: #172438;
+  --popover: #ffffff;
+  --popover-foreground: #172438;
+
+  --primary: #285968;
+  --primary-hover: #1d4350;
+  --primary-foreground: #f7f5f0;
+
+  --secondary: #eceae4;
+  --secondary-foreground: #172438;
+
+  --muted: #eceae4;
+  --muted-foreground: #68717b;
+
+  --accent: #a7b9ad;
+  --accent-foreground: #172438;
+
+  --border: #ddd8cc;
+  --input: #ddd8cc;
+  --ring: #285968;
+
+  /* Cinematic dark section tokens */
+  --ink: #172438;
+  --ink-soft: #22344a;
+  --ink-foreground: #f2f0ea;
+  --ink-muted: #9fb0bd;
+
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Editorial typography: confident sans headlines, serif only for quotes. */
+.theme-public h1,
+.theme-public h2,
+.theme-public h3 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.theme-public .editorial-quote {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .theme-public .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .theme-public .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
