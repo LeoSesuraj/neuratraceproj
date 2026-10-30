@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
-import { EyeOff, MessageCircleHeart, Minus, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { EyeOff, Minus } from "lucide-react";
 import type { Lesson } from "@/lib/curriculum";
+import { NimWisp, type CompanionMood } from "./nim-wisp";
 
 /**
- * A small, friendly learning companion that floats over the lesson area.
- * It offers gentle, pre-written help for the current lesson. No network
- * calls, no dependencies; everything stays on the device.
+ * Nim the Wisp floats over the lesson area and offers gentle, pre-written
+ * help for the current lesson. No network calls, no dependencies; everything
+ * stays on the device.
  */
 
 const simpleExplanations: Record<string, string> = {
@@ -37,11 +38,24 @@ export function LearnCompanion({ lesson }: Props) {
   const [hidden, setHidden] = useState(false);
   const [side, setSide] = useState<"right" | "left">("right");
   const [reply, setReply] = useState<string | null>(null);
+  const [mood, setMood] = useState<CompanionMood>("idle");
+  const thinkTimer = useRef<number | null>(null);
 
-  // Reset the reply when the lesson changes.
-  useEffect(() => setReply(null), [lesson.id]);
+  // Reset when the lesson changes.
+  useEffect(() => {
+    setReply(null);
+    setMood("idle");
+  }, [lesson.id]);
 
-  // On wide screens, occasionally drift to the other corner so it never
+  // Clear any pending "thinking" pause when Nim goes away.
+  useEffect(
+    () => () => {
+      if (thinkTimer.current) window.clearTimeout(thinkTimer.current);
+    },
+    [],
+  );
+
+  // On wide screens, occasionally drift to the other corner so she never
   // sits on the same content for too long. Skipped for reduced motion.
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -50,14 +64,40 @@ export function LearnCompanion({ lesson }: Props) {
     return () => window.clearInterval(t);
   }, []);
 
+  function closePanel() {
+    setOpen(false);
+    setMood("idle");
+  }
+
+  function togglePanel() {
+    if (open) closePanel();
+    else {
+      setOpen(true);
+      setMood("listening");
+    }
+  }
+
+  // Nim pauses for a beat before answering, so she feels like she's thinking.
+  function ask(compose: () => string) {
+    setMood("thinking");
+    if (thinkTimer.current) window.clearTimeout(thinkTimer.current);
+    thinkTimer.current = window.setTimeout(() => {
+      setReply(compose());
+      setMood("happy");
+    }, 700);
+  }
+
   if (hidden) {
     return (
       <button
         type="button"
         onClick={() => setHidden(false)}
-        className="fixed bottom-28 right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-semibold text-primary shadow-sm lg:bottom-4"
+        className="fixed bottom-28 right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card py-1.5 pr-4 pl-1.5 text-sm font-semibold text-primary shadow-sm lg:bottom-4"
       >
-        <MessageCircleHeart className="h-4 w-4" aria-hidden /> Companion
+        <span className="h-8 w-8 shrink-0">
+          <NimWisp />
+        </span>
+        Nim
       </button>
     );
   }
@@ -98,15 +138,20 @@ export function LearnCompanion({ lesson }: Props) {
       {open && (
         <div
           role="dialog"
-          aria-label="Learning companion"
+          aria-label="Nim, the learning companion"
           className="w-[min(20rem,calc(100vw-2rem))] rounded-3xl border border-border bg-card shadow-lg"
         >
           <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
-            <p className="text-sm font-semibold text-foreground">Learning companion</p>
+            <div className="flex items-center gap-2">
+              <span className="h-7 w-7 shrink-0">
+                <NimWisp mood={mood} />
+              </span>
+              <p className="text-sm font-semibold text-foreground">Nim is here to help</p>
+            </div>
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={closePanel}
                 aria-label="Minimize companion"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent"
               >
@@ -130,7 +175,7 @@ export function LearnCompanion({ lesson }: Props) {
               <button
                 key={a.label}
                 type="button"
-                onClick={() => setReply(a.respond())}
+                onClick={() => ask(a.respond)}
                 className="block w-full rounded-2xl bg-secondary px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent"
               >
                 {a.label}
@@ -147,36 +192,13 @@ export function LearnCompanion({ lesson }: Props) {
 
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={togglePanel}
         aria-expanded={open}
-        aria-label={open ? "Close learning companion" : "Open learning companion"}
-        className="companion-bob inline-flex h-14 w-14 items-center justify-center rounded-full border border-border bg-gradient-to-br from-lavender to-blush shadow-md transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label={open ? "Close Nim, the learning companion" : "Open Nim, the learning companion"}
+        className="h-16 w-16 shrink-0 drop-shadow-[0_8px_16px_rgba(75,47,143,0.22)] transition-transform duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:h-[4.5rem] sm:w-[4.5rem]"
       >
-        {open ? (
-          <X className="h-6 w-6 text-primary" aria-hidden />
-        ) : (
-          <CompanionFace />
-        )}
+        <NimWisp mood={mood} />
       </button>
     </div>
-  );
-}
-
-function CompanionFace() {
-  return (
-    <svg viewBox="0 0 48 48" className="h-9 w-9" aria-hidden>
-      <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-primary/60" />
-      <circle cx="17.5" cy="21" r="2.4" fill="currentColor" className="text-primary" />
-      <circle cx="30.5" cy="21" r="2.4" fill="currentColor" className="text-primary" />
-      <path
-        d="M17 29c2 3 4.5 4.5 7 4.5s5-1.5 7-4.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        className="text-primary"
-      />
-      <path d="M24 2.5c1 2 3 3 3 3s-2 1-3 3c-1-2-3-3-3-3s2-1 3-3z" fill="currentColor" className="text-primary/70" />
-    </svg>
   );
 }
