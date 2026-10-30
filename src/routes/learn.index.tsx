@@ -12,7 +12,7 @@ type Search = { lesson?: string; done?: boolean };
 
 export const Route = createFileRoute("/learn/")({
   validateSearch: (s: Record<string, unknown>): Search => ({
-    lesson: typeof s.lesson === "string" ? s.lesson : undefined,
+    lesson: typeof s.lesson === "string" || typeof s.lesson === "number" ? String(s.lesson) : undefined,
     done: s.done === true || s.done === "true" ? true : undefined,
   }),
   head: () => ({
