@@ -16,7 +16,6 @@ const portalLinks = [
 ];
 
 const companyLinks = [
-  { label: "About", href: "/#about" },
   { label: "Terms of Service", to: "/legal/terms" as const },
   { label: "Privacy Policy", to: "/legal/privacy" as const },
 ];
