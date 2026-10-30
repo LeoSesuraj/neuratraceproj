@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { stages, type Stage } from "@/lib/journey";
@@ -13,6 +13,10 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/learn/journey")({
+  // Retired: all education now lives inside the chapter-based learning journey.
+  beforeLoad: () => {
+    throw redirect({ to: "/learn" });
+  },
   head: () => ({
     meta: [
       { title: "Journey, NeuraTrace" },
