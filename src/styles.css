@@ -5,6 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-lavender: var(--lavender);
+  --color-blush: var(--blush);
+  --color-blush-strong: var(--blush-strong);
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Fraunces", ui-serif, Georgia, serif;
 
@@ -174,42 +177,45 @@
  * Apply by wrapping a page in <div className="theme-public">.
  * ------------------------------------------------------------------------- */
 .theme-public {
-  --background: #f7f5f0;
-  --foreground: #172438;
+  /* Soft lavender learning identity (see mem://design/visual-identity) */
+  --background: #f6f2fb;
+  --foreground: #2a1d4a;
 
   --surface: #ffffff;
-  --surface-soft: #eceae4;
-  --sky-soft: #e2ebe6;
-  --sage: #a7b9ad;
-  --warm: #eceae4;
+  --surface-soft: #ece4f8;
+  --sky-soft: #fbeef2;
+  --sage: #e9b8c6;
+  --warm: #fbf8f4;
+  --lavender: #ddd0f5;
+  --blush: #f9e3ea;
+  --blush-strong: #e8708f;
 
   --card: #ffffff;
-  --card-foreground: #172438;
+  --card-foreground: #2a1d4a;
   --popover: #ffffff;
-  --popover-foreground: #172438;
+  --popover-foreground: #2a1d4a;
 
-  --primary: #285968;
-  --primary-hover: #1d4350;
-  --primary-foreground: #f7f5f0;
+  --primary: #4b2f8f;
+  --primary-hover: #3b2373;
+  --primary-foreground: #ffffff;
 
-  --secondary: #eceae4;
-  --secondary-foreground: #172438;
+  --secondary: #ece4f8;
+  --secondary-foreground: #2a1d4a;
 
-  --muted: #eceae4;
-  --muted-foreground: #68717b;
+  --muted: #efe9f8;
+  --muted-foreground: #5f5478;
 
-  --accent: #a7b9ad;
-  --accent-foreground: #172438;
+  --accent: #e5dbf7;
+  --accent-foreground: #2a1d4a;
 
-  --border: #ddd8cc;
-  --input: #ddd8cc;
-  --ring: #285968;
+  --border: #e0d6f0;
+  --input: #d6cae9;
+  --ring: #6a4cc2;
 
-  /* Cinematic dark section tokens */
-  --ink: #172438;
-  --ink-soft: #22344a;
-  --ink-foreground: #f2f0ea;
-  --ink-muted: #9fb0bd;
+  --ink: #2a1d4a;
+  --ink-soft: #3b2c63;
+  --ink-foreground: #f6f2fb;
+  --ink-muted: #c9bde3;
 
   background-color: var(--background);
   color: var(--foreground);
