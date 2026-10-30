@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { BookOpen } from "lucide-react";
 import { ChapterSidebar } from "@/components/learning/chapter-sidebar";
+import { LearnCompanion } from "@/components/learning/learn-companion";
 import { ChapterCompletion, LessonViewer } from "@/components/learning/lesson-viewer";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { allLessons, chapterOf, findLesson, nextLesson, prevLesson } from "@/lib/curriculum";
@@ -104,6 +105,8 @@ function LearningLayout() {
           {sidebar}
         </SheetContent>
       </Sheet>
+
+      {!search.done && <LearnCompanion lesson={lesson} />}
     </div>
   );
 }

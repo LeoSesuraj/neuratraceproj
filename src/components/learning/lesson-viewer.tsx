@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, ChevronDown, Clock, PartyPopper } from "lucide-react";
-import { type Lesson, type Interaction, chapterOf, reviewQuiz } from "@/lib/curriculum";
+import { type Lesson, type Interaction, type StepVideo, chapterOf, reviewQuiz } from "@/lib/curriculum";
 import { KnowledgeCheck } from "./knowledge-check";
 import { BrainInteraction } from "./brain-interaction";
 import { BrainChanges, ForgetfulnessSort, MemorySequence, NeuronDiagram } from "./interactive-diagram";
@@ -64,6 +64,7 @@ export function LessonViewer(props: Props) {
             />
           </div>
         )}
+        {step.video && <VideoBlock video={step.video} />}
         {step.deeper && <Deeper text={step.deeper} />}
       </section>
 
@@ -79,6 +80,28 @@ export function LessonViewer(props: Props) {
         finishing={lastStep}
       />
     </article>
+  );
+}
+
+function VideoBlock({ video }: { video: StepVideo }) {
+  return (
+    <figure className="mt-7 overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+      <div className="relative aspect-video w-full">
+        <iframe
+          src={video.embedUrl}
+          title={video.title}
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          className="absolute inset-0 h-full w-full"
+        />
+      </div>
+      <figcaption className="px-5 py-4 text-sm leading-relaxed text-muted-foreground">
+        <span className="font-semibold text-foreground">{video.title}</span>
+        <span aria-hidden> · </span>
+        Video courtesy of the {video.source}
+      </figcaption>
+    </figure>
   );
 }
 

@@ -15,6 +15,13 @@ export type Interaction =
   | { kind: "changes" }
   | { kind: "review" };
 
+export type StepVideo = {
+  title: string;
+  source: string;
+  /** Privacy-enhanced YouTube embed URL. */
+  embedUrl: string;
+};
+
 export type Step = {
   id: string;
   heading: string;
@@ -22,6 +29,7 @@ export type Step = {
   /** Optional "go deeper" science, revealed on request. */
   deeper?: string;
   interaction?: Interaction;
+  video?: StepVideo;
 };
 
 export type Lesson = {
@@ -247,6 +255,18 @@ export const chapters: Chapter[] = [
               "Researchers have identified several changes that work together in Alzheimer's. Select each one to compare a healthy area with an affected one.",
             ],
             interaction: { kind: "changes" },
+          },
+          {
+            id: "watch",
+            heading: "Watch it unfold",
+            body: [
+              "This short video from the National Institute on Aging shows how these changes develop in the brain over time.",
+            ],
+            video: {
+              title: "How Alzheimer's Changes the Brain",
+              source: "National Institute on Aging (NIA), National Institutes of Health",
+              embedUrl: "https://www.youtube-nocookie.com/embed/hEw1Yq_4PaA",
+            },
           },
           {
             id: "symptoms",
