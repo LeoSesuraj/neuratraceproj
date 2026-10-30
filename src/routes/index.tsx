@@ -106,7 +106,7 @@ function HomePage() {
               </a>
             </div>
           </div>
-          <Reveal className="relative">
+          <div className="relative">
             <div className="overflow-hidden rounded-[2rem] shadow-lift">
               <img
                 src={heroBrain}
@@ -119,7 +119,7 @@ function HomePage() {
             <p className="mt-3 text-center text-xs text-muted-foreground">
               Conceptual scientific artwork
             </p>
-          </Reveal>
+          </div>
         </section>
 
         {/* 2 — Human story */}

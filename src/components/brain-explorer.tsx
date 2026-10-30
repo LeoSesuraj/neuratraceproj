@@ -54,7 +54,9 @@ export function BrainExplorer() {
   const active = regions.find((r) => r.id === activeId)!;
 
   const regionFill = (id: string) =>
-    id === activeId ? "fill-sage" : "fill-ink-soft hover:fill-sage/40";
+    id === activeId
+      ? "fill-sage stroke-sage"
+      : "fill-white/10 stroke-sage/40 hover:fill-sage/30";
 
   return (
     <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
@@ -68,14 +70,14 @@ export function BrainExplorer() {
           {/* Brain silhouette */}
           <path
             d="M96 210 C80 130 150 62 250 56 C340 51 430 84 462 150 C486 200 478 258 446 296 C420 327 380 344 330 348 L322 384 C320 396 306 400 298 392 L270 360 C190 356 110 300 96 210 Z"
-            className="fill-ink-soft/60 stroke-sage/30"
+            className="fill-white/5 stroke-sage/50"
             strokeWidth="2"
           />
           {/* Cortical fold hints */}
-          <path d="M150 140 C190 110 250 100 300 112" className="fill-none stroke-sage/20" strokeWidth="2" />
-          <path d="M130 200 C180 170 260 160 330 176" className="fill-none stroke-sage/20" strokeWidth="2" />
-          <path d="M150 260 C210 236 300 230 370 246" className="fill-none stroke-sage/20" strokeWidth="2" />
-          <path d="M330 120 C380 130 420 160 436 200" className="fill-none stroke-sage/20" strokeWidth="2" />
+          <path d="M150 140 C190 110 250 100 300 112" className="fill-none stroke-sage/30" strokeWidth="2" />
+          <path d="M130 200 C180 170 260 160 330 176" className="fill-none stroke-sage/30" strokeWidth="2" />
+          <path d="M150 260 C210 236 300 230 370 246" className="fill-none stroke-sage/30" strokeWidth="2" />
+          <path d="M330 120 C380 130 420 160 436 200" className="fill-none stroke-sage/30" strokeWidth="2" />
 
           {/* Prefrontal cortex (front, left side of image) */}
           <button
