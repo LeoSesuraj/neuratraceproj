@@ -70,17 +70,16 @@ export function PublicFooter() {
           <nav aria-label="Company">
             <h3 className="text-sm font-semibold tracking-wide text-foreground">About</h3>
             <ul className="mt-4 space-y-2.5">
+              <li>
+                <a href="/#about" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  About
+                </a>
+              </li>
               {companyLinks.map((l) => (
                 <li key={l.label}>
-                  {"to" in l ? (
-                    <Link to={l.to} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-                      {l.label}
-                    </Link>
-                  ) : (
-                    <a href={l.href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-                      {l.label}
-                    </a>
-                  )}
+                  <Link to={l.to} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                    {l.label}
+                  </Link>
                 </li>
               ))}
             </ul>
