@@ -79,54 +79,37 @@ export function BrainExplorer() {
           <path d="M150 260 C210 236 300 230 370 246" className="fill-none stroke-sage/30" strokeWidth="2" />
           <path d="M330 120 C380 130 420 160 436 200" className="fill-none stroke-sage/30" strokeWidth="2" />
 
+          {/* Clickable regions (keyboard/screen-reader control via the tab list below) */}
           {/* Prefrontal cortex (front, left side of image) */}
-          <button
-            type="button"
-            aria-label="Prefrontal cortex"
-            aria-pressed={activeId === "prefrontal"}
+          <ellipse
+            cx="150" cy="170" rx="52" ry="62"
             onClick={() => setActiveId("prefrontal")}
-          >
-            <ellipse cx="150" cy="170" rx="52" ry="62" className={`${regionFill("prefrontal")} cursor-pointer transition-colors`} opacity="0.85" />
-          </button>
+            className={`${regionFill("prefrontal")} cursor-pointer transition-colors`}
+          />
           {/* Temporal lobe (lower middle) */}
-          <button
-            type="button"
-            aria-label="Temporal lobe"
-            aria-pressed={activeId === "temporal"}
+          <ellipse
+            cx="250" cy="300" rx="70" ry="42"
             onClick={() => setActiveId("temporal")}
-          >
-            <ellipse cx="250" cy="300" rx="70" ry="42" className={`${regionFill("temporal")} cursor-pointer transition-colors`} opacity="0.85" />
-          </button>
+            className={`${regionFill("temporal")} cursor-pointer transition-colors`}
+          />
           {/* Hippocampus (deep center) */}
-          <button
-            type="button"
-            aria-label="Hippocampus"
-            aria-pressed={activeId === "hippocampus"}
+          <path
+            d="M255 235 C275 215 315 215 330 235 C340 250 330 268 308 272 C282 276 248 262 255 235 Z"
             onClick={() => setActiveId("hippocampus")}
-          >
-            <path
-              d="M255 235 C275 215 315 215 330 235 C340 250 330 268 308 272 C282 276 248 262 255 235 Z"
-              className={`${regionFill("hippocampus")} cursor-pointer transition-colors`}
-            />
-          </button>
+            className={`${regionFill("hippocampus")} cursor-pointer transition-colors`}
+          />
           {/* Amygdala (front of hippocampus) */}
-          <button
-            type="button"
-            aria-label="Amygdala"
-            aria-pressed={activeId === "amygdala"}
+          <circle
+            cx="228" cy="252" r="20"
             onClick={() => setActiveId("amygdala")}
-          >
-            <circle cx="228" cy="252" r="20" className={`${regionFill("amygdala")} cursor-pointer transition-colors`} opacity="0.9" />
-          </button>
+            className={`${regionFill("amygdala")} cursor-pointer transition-colors`}
+          />
           {/* Occipital lobe (rear) */}
-          <button
-            type="button"
-            aria-label="Occipital lobe"
-            aria-pressed={activeId === "occipital"}
+          <ellipse
+            cx="420" cy="210" rx="46" ry="66"
             onClick={() => setActiveId("occipital")}
-          >
-            <ellipse cx="420" cy="210" rx="46" ry="66" className={`${regionFill("occipital")} cursor-pointer transition-colors`} opacity="0.85" />
-          </button>
+            className={`${regionFill("occipital")} cursor-pointer transition-colors`}
+          />
         </svg>
         <p className="mt-3 text-center text-xs text-ink-muted">
           Educational illustration. Region positions are simplified.
