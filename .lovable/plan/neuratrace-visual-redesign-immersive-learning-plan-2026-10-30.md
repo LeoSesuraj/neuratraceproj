@@ -5,6 +5,7 @@ Based on the uploaded redesign brief. The brief's warm editorial palette **super
 ## Audit findings
 
 **Current state:**
+
 - `/` (index.tsx) is a login-first landing page — exactly what the brief says to eliminate.
 - Public learning lives under `/learn/*` (home, connect, understand, journey, support, coach) inside `AppShell` — functional but card-grid generic.
 - Design tokens in `src/styles.css`: cool off-white `#F7F9FA`, blue `#087DA5`. Fonts: Plus Jakarta Sans + Fraunces (already loaded in `__root.tsx`).
@@ -16,6 +17,7 @@ Based on the uploaded redesign brief. The brief's warm editorial palette **super
 ## Design system (Phase 1 foundation)
 
 New tokens in `src/styles.css` (oklch equivalents of the brief's hex values):
+
 - Background: warm ivory `#F7F5F0` · Text: midnight navy `#172438`
 - Primary: deep blue-teal `#285968` · Secondary text: muted slate `#68717B`
 - Alt section: warm stone `#ECEAE4` · Accent: soft sage `#A7B9AD`
@@ -28,15 +30,15 @@ New tokens in `src/styles.css` (oklch equivalents of the brief's hex values):
 1. **Retokenize** `src/styles.css` to the warm editorial palette; update base typography rules.
 2. **New public navigation** (`PublicNav` component): NeuraTrace | Learn | Explore | Practice | AI Coach | About | Care Portal + "Start Learning" CTA; polished mobile menu; replaces `AppShell` header on public pages.
 3. **New homepage** at `/` — login form moves to `/auth/login` (already exists; `/` redirects signed-in users to their portal):
-   - Hero: "Understand their world. Stay connected." + Begin Learning / Explore the Brain CTAs, two-column editorial composition with a brain visual
-   - Human Story: "Behind every diagnosis is a person." — editorial photo section
-   - Learning Experience preview: horizontal storytelling layout
-   - Explore the Brain: dark navy interactive section (2D SVG brain with selectable regions, hippocampus highlighted — architecture ready for 3D later)
-   - Learning Chapters: 8 large editorial tiles (Chapter 1 fully linked, others marked "coming soon")
-   - "What would you say?" — working interactive situation preview (reuses existing situations logic)
-   - AI Learning Companion section (links to existing coach, with educational-guidance disclaimer)
-   - Care Portal access section (small, near bottom)
-   - Comprehensive footer: branding, learning nav, Care Portal, About, Privacy, Terms, educational disclaimer, contact (neuratraceadmin@gmail.com)
+  - Hero: "Understand their world. Stay connected." + Begin Learning / Explore the Brain CTAs, two-column editorial composition with a brain visual
+  - Human Story: "Behind every diagnosis is a person." — editorial photo section
+  - Learning Experience preview: horizontal storytelling layout
+  - Explore the Brain: dark navy interactive section (2D SVG brain with selectable regions, hippocampus highlighted — architecture ready for 3D later)
+  - Learning Chapters: 8 large editorial tiles (Chapter 1 fully linked, others marked "coming soon")
+  - "What would you say?" — working interactive situation preview (reuses existing situations logic)
+  - AI Learning Companion section (links to existing coach, with educational-guidance disclaimer)
+  - Care Portal access section (small, near bottom)
+  - Comprehensive footer: branding, learning nav, Care Portal, About, Privacy, Terms, educational disclaimer, contact ([neuratraceadmin@gmail.com](mailto:neuratraceadmin@gmail.com))
 4. **Restyle public learn pages** (`/learn/*`) into the new system — same routes and content, new composition.
 5. Care Portal pages inherit new tokens automatically; no layout changes there.
 
@@ -53,4 +55,14 @@ New tokens in `src/styles.css` (oklch equivalents of the brief's hex values):
 
 - No changes to auth, database, RLS, server functions, or Care Portal logic.
 - No invented endorsements, certifications, or clinical claims; educational disclaimer stays visible.
-- Accessibility: WCAG 2.2 AA targets, keyboard nav, reduced-motion, 16px+ body text, safe-area insets preserved for the Capacitor app.
+- Accessibility: WCAG 2.2 AA targets, keyboard nav, reduced-motion, 16px+ body text, safe-area insets preserved for the Capacitor app.  
+  
+The plan looks good, but I want a few revisions before implementation.
+  **1. Scope the new visual design to the public website.** Do not globally retokenize the Care Portal. Its functionality and existing appearance should remain stable for now.
+  **2. Keep the public homepage accessible to everyone.** Signed-in users should not automatically be redirected away from the homepage. They should be able to explore learning modules and access their Care Portal separately.
+  **3. Implement the homepage and public navigation first.** Do not redesign all the educational pages in the same implementation. I want to review the homepage's visual quality before continuing.
+  **4. Prioritize exceptional visual design.** The attached NeuraBridge screenshot should be your primary design reference. Use its bold typography, warm ivory background, elegant layout, large visual compositions, and professional editorial aesthetic. I want the homepage to look like a premium educational product, not a healthcare dashboard or generic SaaS website.
+  Use beautiful, intentional photography, authentic human storytelling, and an engaging neuroscience visualization. All scientific visuals must be accurate or clearly marked as conceptual.
+  The homepage should immediately emphasize interactive Alzheimer's learning rather than resident management or login.
+  Keep the existing login, key-based onboarding, and resident portal fully functional. Use the existing official brand spelling consistently throughout the site.
+  Please update the implementation plan with these changes, then proceed with **the homepage and navigation redesign only**. Do not modify the remaining learning pages until I review the result.

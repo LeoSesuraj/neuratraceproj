@@ -9,48 +9,47 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as LegalRouteImport } from './routes/legal'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as LearnIndexRouteImport } from './routes/learn.index'
-import { Route as LegalTermsRouteImport } from './routes/legal.terms'
-import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
-import { Route as LearnUnderstandRouteImport } from './routes/learn.understand'
-import { Route as LearnSupportRouteImport } from './routes/learn.support'
-import { Route as LearnJourneyRouteImport } from './routes/learn.journey'
-import { Route as LearnConnectRouteImport } from './routes/learn.connect'
-import { Route as LearnCoachRouteImport } from './routes/learn.coach'
-import { Route as AuthSetPasswordRouteImport } from './routes/auth.set-password'
-import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
-import { Route as AuthLoginRouteImport } from './routes/auth.login'
-import { Route as AuthJoinRouteImport } from './routes/auth.join'
-import { Route as ApiHealthRouteImport } from './routes/api/health'
-import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated.staff'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as LegalRouteImport } from './routes/legal'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
-import { Route as LearnUnderstandIndexRouteImport } from './routes/learn.understand.index'
-import { Route as LearnSupportIndexRouteImport } from './routes/learn.support.index'
-import { Route as LearnConnectIndexRouteImport } from './routes/learn.connect.index'
-import { Route as LearnCoachIndexRouteImport } from './routes/learn.coach.index'
-import { Route as AuthenticatedResidentIndexRouteImport } from './routes/_authenticated.resident.index'
+import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated.staff'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as AuthJoinRouteImport } from './routes/auth.join'
+import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
+import { Route as AuthSetPasswordRouteImport } from './routes/auth.set-password'
+import { Route as LearnIndexRouteImport } from './routes/learn.index'
+import { Route as LearnCoachRouteImport } from './routes/learn.coach'
+import { Route as LearnConnectRouteImport } from './routes/learn.connect'
+import { Route as LearnJourneyRouteImport } from './routes/learn.journey'
+import { Route as LearnSupportRouteImport } from './routes/learn.support'
+import { Route as LearnUnderstandRouteImport } from './routes/learn.understand'
+import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
+import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
-import { Route as LearnUnderstandTopicRouteImport } from './routes/learn.understand.$topic'
-import { Route as LearnSupportResourceRouteImport } from './routes/learn.support.$resource'
-import { Route as LearnConnectSituationRouteImport } from './routes/learn.connect.$situation'
-import { Route as LearnCoachThreadIdRouteImport } from './routes/learn.coach.$threadId'
-import { Route as AuthenticatedResidentResidentIdRouteImport } from './routes/_authenticated.resident.$residentId'
 import { Route as AuthenticatedAdminSuperRouteImport } from './routes/_authenticated.admin.super'
+import { Route as AuthenticatedResidentIndexRouteImport } from './routes/_authenticated.resident.index'
+import { Route as AuthenticatedResidentResidentIdRouteImport } from './routes/_authenticated.resident.$residentId'
+import { Route as LearnCoachIndexRouteImport } from './routes/learn.coach.index'
+import { Route as LearnCoachThreadIdRouteImport } from './routes/learn.coach.$threadId'
+import { Route as LearnConnectIndexRouteImport } from './routes/learn.connect.index'
+import { Route as LearnConnectSituationRouteImport } from './routes/learn.connect.$situation'
+import { Route as LearnSupportIndexRouteImport } from './routes/learn.support.index'
+import { Route as LearnSupportResourceRouteImport } from './routes/learn.support.$resource'
+import { Route as LearnUnderstandIndexRouteImport } from './routes/learn.understand.index'
+import { Route as LearnUnderstandTopicRouteImport } from './routes/learn.understand.$topic'
 
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LegalRoute = LegalRouteImport.update({
-  id: '/legal',
-  path: '/legal',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -58,89 +57,15 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
-} as any)
-const LearnIndexRoute = LearnIndexRouteImport.update({
-  id: '/learn/',
-  path: '/learn/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LegalTermsRoute = LegalTermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => LegalRoute,
-} as any)
-const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => LegalRoute,
-} as any)
-const LearnUnderstandRoute = LearnUnderstandRouteImport.update({
-  id: '/learn/understand',
-  path: '/learn/understand',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LearnSupportRoute = LearnSupportRouteImport.update({
-  id: '/learn/support',
-  path: '/learn/support',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LearnJourneyRoute = LearnJourneyRouteImport.update({
-  id: '/learn/journey',
-  path: '/learn/journey',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LearnConnectRoute = LearnConnectRouteImport.update({
-  id: '/learn/connect',
-  path: '/learn/connect',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LearnCoachRoute = LearnCoachRouteImport.update({
-  id: '/learn/coach',
-  path: '/learn/coach',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthSetPasswordRoute = AuthSetPasswordRouteImport.update({
-  id: '/set-password',
-  path: '/set-password',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthJoinRoute = AuthJoinRouteImport.update({
-  id: '/join',
-  path: '/join',
-  getParentRoute: () => AuthRoute,
-} as any)
-const ApiHealthRoute = ApiHealthRouteImport.update({
-  id: '/api/health',
-  path: '/api/health',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiChatRoute = ApiChatRouteImport.update({
-  id: '/api/chat',
-  path: '/api/chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
-  id: '/staff',
-  path: '/staff',
-  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
@@ -148,25 +73,90 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const LearnUnderstandIndexRoute = LearnUnderstandIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LearnUnderstandRoute,
+const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
-const LearnSupportIndexRoute = LearnSupportIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LearnSupportRoute,
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LearnConnectIndexRoute = LearnConnectIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LearnConnectRoute,
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LearnCoachIndexRoute = LearnCoachIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LearnCoachRoute,
+const AuthJoinRoute = AuthJoinRouteImport.update({
+  id: '/join',
+  path: '/join',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthSetPasswordRoute = AuthSetPasswordRouteImport.update({
+  id: '/set-password',
+  path: '/set-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const LearnIndexRoute = LearnIndexRouteImport.update({
+  id: '/learn/',
+  path: '/learn/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnCoachRoute = LearnCoachRouteImport.update({
+  id: '/learn/coach',
+  path: '/learn/coach',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnConnectRoute = LearnConnectRouteImport.update({
+  id: '/learn/connect',
+  path: '/learn/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnJourneyRoute = LearnJourneyRouteImport.update({
+  id: '/learn/journey',
+  path: '/learn/journey',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnSupportRoute = LearnSupportRouteImport.update({
+  id: '/learn/support',
+  path: '/learn/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnUnderstandRoute = LearnUnderstandRouteImport.update({
+  id: '/learn/understand',
+  path: '/learn/understand',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LegalRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminSuperRoute = AuthenticatedAdminSuperRouteImport.update({
+  id: '/admin/super',
+  path: '/admin/super',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedResidentIndexRoute =
   AuthenticatedResidentIndexRouteImport.update({
@@ -174,41 +164,51 @@ const AuthenticatedResidentIndexRoute =
     path: '/resident/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const LearnUnderstandTopicRoute = LearnUnderstandTopicRouteImport.update({
-  id: '/$topic',
-  path: '/$topic',
-  getParentRoute: () => LearnUnderstandRoute,
-} as any)
-const LearnSupportResourceRoute = LearnSupportResourceRouteImport.update({
-  id: '/$resource',
-  path: '/$resource',
-  getParentRoute: () => LearnSupportRoute,
-} as any)
-const LearnConnectSituationRoute = LearnConnectSituationRouteImport.update({
-  id: '/$situation',
-  path: '/$situation',
-  getParentRoute: () => LearnConnectRoute,
-} as any)
-const LearnCoachThreadIdRoute = LearnCoachThreadIdRouteImport.update({
-  id: '/$threadId',
-  path: '/$threadId',
-  getParentRoute: () => LearnCoachRoute,
-} as any)
 const AuthenticatedResidentResidentIdRoute =
   AuthenticatedResidentResidentIdRouteImport.update({
     id: '/resident/$residentId',
     path: '/resident/$residentId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedAdminSuperRoute = AuthenticatedAdminSuperRouteImport.update({
-  id: '/admin/super',
-  path: '/admin/super',
-  getParentRoute: () => AuthenticatedRoute,
+const LearnCoachIndexRoute = LearnCoachIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LearnCoachRoute,
+} as any)
+const LearnCoachThreadIdRoute = LearnCoachThreadIdRouteImport.update({
+  id: '/$threadId',
+  path: '/$threadId',
+  getParentRoute: () => LearnCoachRoute,
+} as any)
+const LearnConnectIndexRoute = LearnConnectIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LearnConnectRoute,
+} as any)
+const LearnConnectSituationRoute = LearnConnectSituationRouteImport.update({
+  id: '/$situation',
+  path: '/$situation',
+  getParentRoute: () => LearnConnectRoute,
+} as any)
+const LearnSupportIndexRoute = LearnSupportIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LearnSupportRoute,
+} as any)
+const LearnSupportResourceRoute = LearnSupportResourceRouteImport.update({
+  id: '/$resource',
+  path: '/$resource',
+  getParentRoute: () => LearnSupportRoute,
+} as any)
+const LearnUnderstandIndexRoute = LearnUnderstandIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LearnUnderstandRoute,
+} as any)
+const LearnUnderstandTopicRoute = LearnUnderstandTopicRouteImport.update({
+  id: '/$topic',
+  path: '/$topic',
+  getParentRoute: () => LearnUnderstandRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -431,25 +431,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/legal': {
-      id: '/legal'
-      path: '/legal'
-      fullPath: '/legal'
-      preLoaderRoute: typeof LegalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -459,81 +445,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/learn/': {
-      id: '/learn/'
-      path: '/learn'
-      fullPath: '/learn/'
-      preLoaderRoute: typeof LearnIndexRouteImport
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/legal/terms': {
-      id: '/legal/terms'
-      path: '/terms'
-      fullPath: '/legal/terms'
-      preLoaderRoute: typeof LegalTermsRouteImport
-      parentRoute: typeof LegalRoute
-    }
-    '/legal/privacy': {
-      id: '/legal/privacy'
-      path: '/privacy'
-      fullPath: '/legal/privacy'
-      preLoaderRoute: typeof LegalPrivacyRouteImport
-      parentRoute: typeof LegalRoute
-    }
-    '/learn/understand': {
-      id: '/learn/understand'
-      path: '/learn/understand'
-      fullPath: '/learn/understand'
-      preLoaderRoute: typeof LearnUnderstandRouteImport
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/learn/support': {
-      id: '/learn/support'
-      path: '/learn/support'
-      fullPath: '/learn/support'
-      preLoaderRoute: typeof LearnSupportRouteImport
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/staff': {
+      id: '/_authenticated/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof AuthenticatedStaffRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/learn/journey': {
-      id: '/learn/journey'
-      path: '/learn/journey'
-      fullPath: '/learn/journey'
-      preLoaderRoute: typeof LearnJourneyRouteImport
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/learn/connect': {
-      id: '/learn/connect'
-      path: '/learn/connect'
-      fullPath: '/learn/connect'
-      preLoaderRoute: typeof LearnConnectRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/learn/coach': {
-      id: '/learn/coach'
-      path: '/learn/coach'
-      fullPath: '/learn/coach'
-      preLoaderRoute: typeof LearnCoachRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/set-password': {
-      id: '/auth/set-password'
-      path: '/set-password'
-      fullPath: '/auth/set-password'
-      preLoaderRoute: typeof AuthSetPasswordRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/auth/reset-password': {
-      id: '/auth/reset-password'
-      path: '/reset-password'
-      fullPath: '/auth/reset-password'
-      preLoaderRoute: typeof AuthResetPasswordRouteImport
+    '/auth/join': {
+      id: '/auth/join'
+      path: '/join'
+      fullPath: '/auth/join'
+      preLoaderRoute: typeof AuthJoinRouteImport
       parentRoute: typeof AuthRoute
     }
     '/auth/login': {
@@ -543,75 +508,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/auth/join': {
-      id: '/auth/join'
-      path: '/join'
-      fullPath: '/auth/join'
-      preLoaderRoute: typeof AuthJoinRouteImport
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/api/health': {
-      id: '/api/health'
-      path: '/api/health'
-      fullPath: '/api/health'
-      preLoaderRoute: typeof ApiHealthRouteImport
+    '/auth/set-password': {
+      id: '/auth/set-password'
+      path: '/set-password'
+      fullPath: '/auth/set-password'
+      preLoaderRoute: typeof AuthSetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/learn/': {
+      id: '/learn/'
+      path: '/learn'
+      fullPath: '/learn/'
+      preLoaderRoute: typeof LearnIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/chat': {
-      id: '/api/chat'
-      path: '/api/chat'
-      fullPath: '/api/chat'
-      preLoaderRoute: typeof ApiChatRouteImport
+    '/learn/coach': {
+      id: '/learn/coach'
+      path: '/learn/coach'
+      fullPath: '/learn/coach'
+      preLoaderRoute: typeof LearnCoachRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/staff': {
-      id: '/_authenticated/staff'
-      path: '/staff'
-      fullPath: '/staff'
-      preLoaderRoute: typeof AuthenticatedStaffRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/learn/connect': {
+      id: '/learn/connect'
+      path: '/learn/connect'
+      fullPath: '/learn/connect'
+      preLoaderRoute: typeof LearnConnectRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/notifications': {
-      id: '/_authenticated/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/learn/journey': {
+      id: '/learn/journey'
+      path: '/learn/journey'
+      fullPath: '/learn/journey'
+      preLoaderRoute: typeof LearnJourneyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/learn/understand/': {
-      id: '/learn/understand/'
-      path: '/'
-      fullPath: '/learn/understand/'
-      preLoaderRoute: typeof LearnUnderstandIndexRouteImport
-      parentRoute: typeof LearnUnderstandRoute
+    '/learn/support': {
+      id: '/learn/support'
+      path: '/learn/support'
+      fullPath: '/learn/support'
+      preLoaderRoute: typeof LearnSupportRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/learn/support/': {
-      id: '/learn/support/'
-      path: '/'
-      fullPath: '/learn/support/'
-      preLoaderRoute: typeof LearnSupportIndexRouteImport
-      parentRoute: typeof LearnSupportRoute
+    '/learn/understand': {
+      id: '/learn/understand'
+      path: '/learn/understand'
+      fullPath: '/learn/understand'
+      preLoaderRoute: typeof LearnUnderstandRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/learn/connect/': {
-      id: '/learn/connect/'
-      path: '/'
-      fullPath: '/learn/connect/'
-      preLoaderRoute: typeof LearnConnectIndexRouteImport
-      parentRoute: typeof LearnConnectRoute
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof LegalRoute
     }
-    '/learn/coach/': {
-      id: '/learn/coach/'
-      path: '/'
-      fullPath: '/learn/coach/'
-      preLoaderRoute: typeof LearnCoachIndexRouteImport
-      parentRoute: typeof LearnCoachRoute
-    }
-    '/_authenticated/resident/': {
-      id: '/_authenticated/resident/'
-      path: '/resident'
-      fullPath: '/resident/'
-      preLoaderRoute: typeof AuthenticatedResidentIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof LegalRoute
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
@@ -620,33 +585,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/learn/understand/$topic': {
-      id: '/learn/understand/$topic'
-      path: '/$topic'
-      fullPath: '/learn/understand/$topic'
-      preLoaderRoute: typeof LearnUnderstandTopicRouteImport
-      parentRoute: typeof LearnUnderstandRoute
+    '/_authenticated/admin/super': {
+      id: '/_authenticated/admin/super'
+      path: '/admin/super'
+      fullPath: '/admin/super'
+      preLoaderRoute: typeof AuthenticatedAdminSuperRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
-    '/learn/support/$resource': {
-      id: '/learn/support/$resource'
-      path: '/$resource'
-      fullPath: '/learn/support/$resource'
-      preLoaderRoute: typeof LearnSupportResourceRouteImport
-      parentRoute: typeof LearnSupportRoute
-    }
-    '/learn/connect/$situation': {
-      id: '/learn/connect/$situation'
-      path: '/$situation'
-      fullPath: '/learn/connect/$situation'
-      preLoaderRoute: typeof LearnConnectSituationRouteImport
-      parentRoute: typeof LearnConnectRoute
-    }
-    '/learn/coach/$threadId': {
-      id: '/learn/coach/$threadId'
-      path: '/$threadId'
-      fullPath: '/learn/coach/$threadId'
-      preLoaderRoute: typeof LearnCoachThreadIdRouteImport
-      parentRoute: typeof LearnCoachRoute
+    '/_authenticated/resident/': {
+      id: '/_authenticated/resident/'
+      path: '/resident'
+      fullPath: '/resident/'
+      preLoaderRoute: typeof AuthenticatedResidentIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/resident/$residentId': {
       id: '/_authenticated/resident/$residentId'
@@ -655,12 +606,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedResidentResidentIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/admin/super': {
-      id: '/_authenticated/admin/super'
-      path: '/admin/super'
-      fullPath: '/admin/super'
-      preLoaderRoute: typeof AuthenticatedAdminSuperRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/learn/coach/': {
+      id: '/learn/coach/'
+      path: '/'
+      fullPath: '/learn/coach/'
+      preLoaderRoute: typeof LearnCoachIndexRouteImport
+      parentRoute: typeof LearnCoachRoute
+    }
+    '/learn/coach/$threadId': {
+      id: '/learn/coach/$threadId'
+      path: '/$threadId'
+      fullPath: '/learn/coach/$threadId'
+      preLoaderRoute: typeof LearnCoachThreadIdRouteImport
+      parentRoute: typeof LearnCoachRoute
+    }
+    '/learn/connect/': {
+      id: '/learn/connect/'
+      path: '/'
+      fullPath: '/learn/connect/'
+      preLoaderRoute: typeof LearnConnectIndexRouteImport
+      parentRoute: typeof LearnConnectRoute
+    }
+    '/learn/connect/$situation': {
+      id: '/learn/connect/$situation'
+      path: '/$situation'
+      fullPath: '/learn/connect/$situation'
+      preLoaderRoute: typeof LearnConnectSituationRouteImport
+      parentRoute: typeof LearnConnectRoute
+    }
+    '/learn/support/': {
+      id: '/learn/support/'
+      path: '/'
+      fullPath: '/learn/support/'
+      preLoaderRoute: typeof LearnSupportIndexRouteImport
+      parentRoute: typeof LearnSupportRoute
+    }
+    '/learn/support/$resource': {
+      id: '/learn/support/$resource'
+      path: '/$resource'
+      fullPath: '/learn/support/$resource'
+      preLoaderRoute: typeof LearnSupportResourceRouteImport
+      parentRoute: typeof LearnSupportRoute
+    }
+    '/learn/understand/': {
+      id: '/learn/understand/'
+      path: '/'
+      fullPath: '/learn/understand/'
+      preLoaderRoute: typeof LearnUnderstandIndexRouteImport
+      parentRoute: typeof LearnUnderstandRoute
+    }
+    '/learn/understand/$topic': {
+      id: '/learn/understand/$topic'
+      path: '/$topic'
+      fullPath: '/learn/understand/$topic'
+      preLoaderRoute: typeof LearnUnderstandTopicRouteImport
+      parentRoute: typeof LearnUnderstandRoute
     }
   }
 }
