@@ -83,29 +83,21 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
     const visit = precedingParts + Math.max(0, lesson.steps.findIndex((part) => `${lesson.id}-${part.id}` === activePart));
     let stop = visit;
 
-    function move(idle = false, scrolling = false) {
+    function move(idle = false) {
       if (!article || !content) return;
-      if (scrolling && performance.now() < crossingUntil.current) return;
       const articleBox = article.getBoundingClientRect();
       const contentBox = content.getBoundingClientRect();
       const body = content.firstElementChild;
       if (!(body instanceof HTMLElement)) return;
       const size = window.matchMedia("(min-width: 640px)").matches ? 64 : 48;
       const anchors = Array.from(content.querySelectorAll<HTMLElement>("[data-nim-anchor]"));
-      const visibleAnchors = anchors.filter((anchor) => {
-        const rect = anchor.getBoundingClientRect();
-        return rect.top < window.innerHeight - 80 && rect.bottom > 100;
-      });
-      const choices = (idle || scrolling) && visibleAnchors.length ? visibleAnchors : anchors;
-      const anchor = choices[stop % Math.max(choices.length, 1)] ?? body;
+      const anchor = anchors[stop % Math.max(anchors.length, 1)] ?? body;
       const anchorBox = anchor.getBoundingClientRect();
       const sectionTop = contentBox.top - articleBox.top;
       const naturalHeight = Math.max(body.offsetHeight, size + 24);
       const next = companionPosition({
         left: contentBox.left - articleBox.left, right: contentBox.right - articleBox.left, sectionTop, height: naturalHeight,
         anchorTop: anchorBox.top - contentBox.top, anchorHeight: anchorBox.height, size, visit,
-        viewportTop: -articleBox.top, viewportHeight: window.innerHeight,
-        scroll: window.scrollY + (idle ? stop * 55 : 0),
       });
       // Hold the outgoing lane until arrival, so even a shorter next part
       // cannot put its navigation underneath the moving character.
