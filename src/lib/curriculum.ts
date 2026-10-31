@@ -30,6 +30,7 @@ export type Step = {
   deeper?: string;
   interaction?: Interaction;
   video?: StepVideo;
+  panels?: { title: string; body: string[] }[];
 };
 
 export type Lesson = {
@@ -37,6 +38,7 @@ export type Lesson = {
   title: string;
   minutes: number;
   steps: Step[];
+  sourceIds?: string[];
 };
 
 export type Chapter = {
@@ -321,7 +323,7 @@ export function findLesson(id: string | undefined) {
 }
 
 export function chapterOf(lessonId: string) {
-  return chapters.find((c) => c.lessons.some((l) => l.id === lessonId))!;
+  return chapters.find((c) => c.lessons.some((l) => l.id === lessonId)) ?? chapters[0];
 }
 
 export function nextLesson(id: string) {
