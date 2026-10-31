@@ -1,1 +1,2 @@
 - Public education lives only in `/learn` (chapter sidebar + lesson viewer driven by `src/lib/curriculum.ts`); old `/learn/*` sections redirect there. Why: one learning journey, add chapters as data, not pages.
+- Keep the lesson viewer and its companion mounted across lesson changes; position the companion in a reserved content-relative lane, and preserve outgoing content height during travel. Why: continuous movement must never cross learning content or navigation.

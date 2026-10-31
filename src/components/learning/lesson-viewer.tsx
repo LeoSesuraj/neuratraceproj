@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, ChevronDown, Clock, PartyPopper } from "lucide-react";
 import { type Lesson, type Interaction, type StepVideo, chapterOf, reviewQuiz } from "@/lib/curriculum";
 import { KnowledgeCheck } from "./knowledge-check";
 import { BrainInteraction } from "./brain-interaction";
 import { BrainChanges, ForgetfulnessSort, MemorySequence, NeuronDiagram } from "./interactive-diagram";
+import { LearnCompanion } from "./learn-companion";
 
 type Props = {
   lesson: Lesson;
@@ -18,6 +19,8 @@ type Props = {
 export function LessonViewer(props: Props) {
   const { lesson } = props;
   const [stepIdx, setStepIdx] = useState(0);
+  const articleRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLElement>(null);
   useEffect(() => setStepIdx(0), [lesson.id]);
 
   const chapter = chapterOf(lesson.id);
@@ -25,7 +28,7 @@ export function LessonViewer(props: Props) {
   const lastStep = stepIdx === lesson.steps.length - 1;
 
   return (
-    <article className="mx-auto w-full max-w-3xl px-5 pb-24 pt-6 sm:px-8 lg:pt-10">
+    <article ref={articleRef} className="relative mx-auto w-full max-w-3xl px-5 pb-24 pt-6 sm:px-8 lg:pt-10">
       <header>
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary/80">
           Chapter {String(chapter.n).padStart(2, "0")} · {chapter.title}
@@ -48,15 +51,16 @@ export function LessonViewer(props: Props) {
         </div>
       </header>
 
-      <section key={`${lesson.id}-${step.id}`} className="mt-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <section ref={contentRef} className="nim-lesson-content relative mt-8 pr-20 sm:pr-24">
+        <div key={`${lesson.id}-${step.id}`} className="animate-in fade-in duration-500">
         <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">{step.heading}</h2>
-        <div className="mt-4 space-y-4 text-lg leading-relaxed text-foreground/85">
+        <div data-nim-anchor="reading" className="mt-4 space-y-4 text-lg leading-relaxed text-foreground/85">
           {step.body.map((p) => (
             <p key={p}>{p}</p>
           ))}
         </div>
         {step.interaction && (
-          <div className="mt-7">
+          <div data-nim-anchor="exploring" className="mt-7">
             <InteractionBlock
               interaction={step.interaction}
               reflection={props.reflection}
@@ -66,7 +70,10 @@ export function LessonViewer(props: Props) {
         )}
         {step.video && <VideoBlock video={step.video} />}
         {step.deeper && <Deeper text={step.deeper} />}
+        </div>
       </section>
+
+      <LearnCompanion lesson={lesson} activePart={`${lesson.id}-${step.id}`} articleRef={articleRef} contentRef={contentRef} />
 
       <LessonNavigation
         canBack={stepIdx > 0 || props.hasPrevLesson}
@@ -85,7 +92,7 @@ export function LessonViewer(props: Props) {
 
 function VideoBlock({ video }: { video: StepVideo }) {
   return (
-    <figure className="mt-7 overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+    <figure data-nim-anchor="exploring" className="mt-7 overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
       <div className="relative aspect-video w-full">
         <iframe
           src={video.embedUrl}

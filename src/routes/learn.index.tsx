@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { BookOpen } from "lucide-react";
 import { ChapterSidebar } from "@/components/learning/chapter-sidebar";
-import { LearnCompanion } from "@/components/learning/learn-companion";
 import { ChapterCompletion, LessonViewer } from "@/components/learning/lesson-viewer";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { allLessons, chapterOf, findLesson, nextLesson, prevLesson } from "@/lib/curriculum";
@@ -82,7 +81,6 @@ function LearningLayout() {
             <ChapterCompletion chapterTitle={chapterOf(lesson.id).title} onRevisit={() => go(allLessons[0].id)} />
           ) : (
             <LessonViewer
-              key={lesson.id}
               lesson={lesson}
               isLastLesson={!next || chapterOf(next.id).n !== chapterOf(lesson.id).n}
               hasPrevLesson={!!prev}
@@ -106,7 +104,6 @@ function LearningLayout() {
         </SheetContent>
       </Sheet>
 
-      {!search.done && <LearnCompanion lesson={lesson} />}
     </div>
   );
 }
