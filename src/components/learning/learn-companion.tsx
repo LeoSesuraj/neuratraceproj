@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { EyeOff, Minus } from "lucide-react";
-import type { Lesson } from "@/lib/curriculum";
+import { allLessons, type Lesson } from "@/lib/curriculum";
 import { NimWisp, type CompanionMood } from "./nim-wisp";
 import { Button } from "@/components/ui/button";
 import { companionPosition } from "./companion-position";
@@ -43,12 +43,13 @@ type Props = {
 export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: Props) {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0, ready: false });
+  const [position, setPosition] = useState({ x: 0, y: 0, ready: false, side: "left" as "left" | "right", panelAbove: false });
   const currentPosition = useRef(position);
-  const [entered, setEntered] = useState(false);
+  const traveler = useRef<HTMLElement | null>(null);
+  const travelAnimation = useRef<Animation | null>(null);
+  const crossingUntil = useRef(0);
   const interactionState = useRef({ open, hidden });
   interactionState.current = { open, hidden };
-  const visit = useRef(0);
   const [reply, setReply] = useState<string | null>(null);
   const [mood, setMood] = useState<CompanionMood>("idle");
   const thinkTimer = useRef<number | null>(null);
@@ -78,12 +79,13 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let releaseTimer: number | undefined;
     let frame: number | undefined;
-    let entranceFrame: number | undefined;
-    visit.current += 1;
-    let stop = visit.current;
+    const precedingParts = allLessons.slice(0, allLessons.findIndex((item) => item.id === lesson.id)).reduce((sum, item) => sum + item.steps.length, 0);
+    const visit = precedingParts + Math.max(0, lesson.steps.findIndex((part) => `${lesson.id}-${part.id}` === activePart));
+    let stop = visit;
 
-    function move(idle = false) {
+    function move(idle = false, scrolling = false) {
       if (!article || !content) return;
+      if (scrolling && performance.now() < crossingUntil.current) return;
       const articleBox = article.getBoundingClientRect();
       const contentBox = content.getBoundingClientRect();
       const body = content.firstElementChild;
@@ -94,24 +96,42 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
         const rect = anchor.getBoundingClientRect();
         return rect.top < window.innerHeight - 80 && rect.bottom > 100;
       });
-      const choices = idle && visibleAnchors.length ? visibleAnchors : anchors;
+      const choices = (idle || scrolling) && visibleAnchors.length ? visibleAnchors : anchors;
       const anchor = choices[stop % Math.max(choices.length, 1)] ?? body;
       const anchorBox = anchor.getBoundingClientRect();
       const sectionTop = contentBox.top - articleBox.top;
       const naturalHeight = Math.max(body.offsetHeight, size + 24);
       const next = companionPosition({
-        right: contentBox.right - articleBox.left, sectionTop, height: naturalHeight,
-        anchorTop: anchorBox.top - contentBox.top, anchorHeight: anchorBox.height, size, visit: stop,
+        left: contentBox.left - articleBox.left, right: contentBox.right - articleBox.left, sectionTop, height: naturalHeight,
+        anchorTop: anchorBox.top - contentBox.top, anchorHeight: anchorBox.height, size, visit,
+        viewportTop: -articleBox.top, viewportHeight: window.innerHeight,
+        scroll: window.scrollY + (idle ? stop * 55 : 0),
       });
       // Hold the outgoing lane until arrival, so even a shorter next part
       // cannot put its navigation underneath the moving character.
       window.clearTimeout(releaseTimer);
       content.style.minHeight = `${Math.max(naturalHeight, currentPosition.current.y - sectionTop + size + 24)}px`;
-      currentPosition.current = next;
-      setPosition(next);
-      entranceFrame = window.requestAnimationFrame(() => {
-        entranceFrame = window.requestAnimationFrame(() => setEntered(true));
-      });
+      const element = traveler.current;
+      const previous = currentPosition.current;
+      const destination = { ...next, panelAbove: next.y + articleBox.top > window.innerHeight * 0.45 };
+      if (element && previous.ready && !reducedMotion.matches) {
+        const start = getComputedStyle(element).transform;
+        travelAnimation.current?.cancel();
+        const crossing = previous.side !== next.side;
+        const corridor = sectionTop - size - 16;
+        const finish = `translate3d(${next.x}px, ${next.y}px, 0)`;
+        const frames = crossing ? [
+          { transform: start },
+          { transform: `translate3d(${previous.x}px, ${corridor}px, 0)`, offset: 0.3 },
+          { transform: `translate3d(${next.x}px, ${corridor}px, 0)`, offset: 0.7 },
+          { transform: finish },
+        ] : [{ transform: start }, { transform: finish }];
+        crossingUntil.current = crossing ? performance.now() + 1500 : 0;
+        travelAnimation.current = element.animate(frames, { duration: crossing ? 1500 : scrolling ? 480 : 1200, easing: "ease-in-out" });
+        if (crossing) travelAnimation.current.onfinish = () => move(false, true);
+      }
+      currentPosition.current = destination;
+      setPosition(destination);
       releaseTimer = window.setTimeout(() => { content.style.minHeight = ""; }, reducedMotion.matches ? 0 : 1550);
     }
 
@@ -122,6 +142,12 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
     });
     if (content.firstElementChild) observer.observe(content.firstElementChild);
     observer.observe(article);
+    const onScroll = () => {
+      window.cancelAnimationFrame(frame ?? 0);
+      frame = window.requestAnimationFrame(() => move(false, true));
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
     const driftTimer = window.setInterval(() => {
       if (reducedMotion.matches || interactionState.current.open || interactionState.current.hidden) return;
       stop += 1;
@@ -129,12 +155,13 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
     }, 14000);
     return () => {
       observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       window.cancelAnimationFrame(frame ?? 0);
-      window.cancelAnimationFrame(entranceFrame ?? 0);
       window.clearTimeout(releaseTimer);
       window.clearInterval(driftTimer);
     };
-  }, [activePart, articleRef, contentRef]);
+  }, [activePart, lesson, articleRef, contentRef]);
 
   function closePanel() {
     setOpen(false);
@@ -162,12 +189,13 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
   if (hidden) {
     return (
       <Button
+        ref={(element) => { traveler.current = element; }}
         variant="ghost"
         type="button"
         onClick={() => setHidden(false)}
         aria-label="Bring Nim back"
         className="nim-traveler absolute left-0 top-0 z-20 h-12 w-12 rounded-full p-0 text-primary"
-        style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)`, visibility: position.ready ? "visible" : "hidden", transition: entered ? undefined : "none" }}
+        style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)`, visibility: position.ready ? "visible" : "hidden", transition: "none" }}
       >
         <span className="h-8 w-8 shrink-0">
           <NimWisp />
@@ -205,14 +233,15 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
 
   return (
     <div
+      ref={(element) => { traveler.current = element; }}
       className="nim-traveler absolute left-0 top-0 z-20"
-      style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)`, visibility: position.ready ? "visible" : "hidden", transition: entered ? undefined : "none" }}
+      style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)`, visibility: position.ready ? "visible" : "hidden", transition: "none" }}
     >
       {open && (
         <div
           role="dialog"
           aria-label="Nim, the learning companion"
-          className="absolute right-0 top-full z-40 mt-3 w-[min(20rem,calc(100vw-2.5rem))] rounded-3xl border border-border bg-card shadow-lg"
+          className={`absolute z-40 w-[min(20rem,calc(100vw-2.5rem))] rounded-3xl border border-border bg-card shadow-lg ${position.side === "left" ? "left-0" : "right-0"} ${position.panelAbove ? "bottom-full mb-3" : "top-full mt-3"}`}
         >
           <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
             <div className="flex items-center gap-2">
