@@ -1,4 +1,4 @@
-import type { Lesson, Quiz, Step } from "./curriculum";
+import type { Lesson, Step } from "./curriculum";
 
 const check = (question: string, right: string, wrong: string, explanation: string): Step => ({
   id: "check", heading: "Check your understanding", body: [],
@@ -106,7 +106,7 @@ export const chapterOneLessons: Lesson[] = [
     ],
   },
   {
-    id: "1.8", title: "How Alzheimer's is diagnosed", minutes: 9, sourceIds: ["diagnosis", "dementia", "aging"],
+    id: "1.8", title: "How Alzheimer's is diagnosed", minutes: 9, sourceIds: ["diagnosis", "dementia", "aging", "blood"],
     steps: [
       { id: "understand", heading: "The whole picture comes first", body: ["Clinicians ask about symptoms, how they have changed, and how daily independence is affected. Information from the person and someone who knows them well can both help.", "Assessment may include cognitive testing, physical and neurological examination, medication and mood review, laboratory tests, and brain imaging.", "Tests can help identify other contributors and support a diagnosis. No online exercise or one screening score can replace this evaluation." ] },
       { id: "explore", heading: "What tests can and cannot tell you", body: ["Biomarkers measure signs associated with disease. They must be interpreted with symptoms and a full clinical assessment."], panels: [{ title: "Imaging & Biomarkers", body: ["MRI can show structural changes, strokes, or other causes. Shrinkage alone does not prove Alzheimer's.", "Amyloid PET can show amyloid deposits. CSF tests measure substances in fluid around the brain and spinal cord. Certain blood tests can provide biomarker information in selected clinical settings.", "Availability, accuracy, and intended use differ by test. A positive result does not reveal every cause of symptoms or predict an exact course.", "Discuss the reason for testing, what the result would change, limitations, costs, and follow-up with the clinician."] }, { title: "Science Notes", body: ["Contemporary research and diagnostic frameworks increasingly describe Alzheimer's using biological markers, even before clear symptoms.", "Biological criteria and a clinical care recommendation are not the same thing. Do not use this course to seek routine screening of an asymptomatic person; discuss appropriate evaluation with a clinician."] }] },
@@ -115,7 +115,7 @@ export const chapterOneLessons: Lesson[] = [
     ],
   },
   {
-    id: "1.9", title: "Treatment today", minutes: 8, sourceIds: ["treatment"],
+    id: "1.9", title: "Treatment today", minutes: 8, sourceIds: ["treatment", "lecanemab", "donanemab"],
     steps: [
       { id: "understand", heading: "Different treatments have different goals", body: ["There is no cure for Alzheimer's. Treatment may support symptoms, slow decline in selected people, and address other conditions that affect daily life.", "Cholinesterase inhibitors can help some people with symptoms, often in mild-to-moderate disease. Memantine is commonly used for moderate-to-severe disease. They do not cure Alzheimer's.", "Amyloid-targeting medicines such as lecanemab and donanemab are approved for selected people with early Alzheimer's, including MCI or mild dementia due to Alzheimer's. They can slow decline, but do not restore lost cognition." ] },
       { id: "explore", heading: "Benefits need a conversation about risks", body: ["Amyloid-targeting treatments can cause amyloid-related imaging abnormalities, or ARIA: swelling or bleeding in the brain. Some events are serious or life-threatening. MRI monitoring and specialist assessment are important.", "Treatment decisions depend on diagnosis, disease stage, medical history, other medicines, risks, and the person's priorities."], panels: [{ title: "Talk with a Clinician", body: ["Ask whether Alzheimer's pathology has been confirmed and whether the treatment is appropriate for the current stage.", "Discuss the expected benefit, infusion or injection schedule, MRI monitoring, genetic risk factors, and how blood-thinning medicines affect risk.", "Ask which symptoms need urgent assessment and whom to contact. Seek emergency care for stroke-like symptoms or other emergencies.", "Do not start, stop, or change a medicine based on this lesson. Current product labeling and a treating specialist guide eligibility and monitoring."] }] },
@@ -133,7 +133,7 @@ export const chapterOneLessons: Lesson[] = [
     ],
   },
   {
-    id: "1.11", title: "Chapter review", minutes: 10, sourceIds: ["dementia", "mci", "brain", "diagnosis", "treatment", "stages"],
+    id: "1.11", title: "Chapter review", minutes: 10, sourceIds: ["dementia", "mci", "brain", "diagnosis", "treatment", "stages", "blood", "lecanemab", "donanemab"],
     steps: [{ id: "review", heading: "Bring the ideas into everyday care", body: ["Nine questions connect the science with real-life decisions. Take your time and try again whenever you need to."], interaction: { kind: "review" } }],
   },
 ];
