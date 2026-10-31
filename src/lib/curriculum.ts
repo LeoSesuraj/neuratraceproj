@@ -1,3 +1,5 @@
+import { chapterOneLessons } from "./chapter-one";
+
 /**
  * Learning curriculum. Add a chapter by giving it `lessons`; chapters without
  * lessons render as "Coming soon" in the sidebar.
@@ -88,226 +90,39 @@ export const reviewQuiz: Quiz[] = [
       { label: "Their eyesight has gotten worse", correct: false, feedback: "Eyesight does not explain this pattern. It comes from how memory forms in the brain." },
     ],
   },
+  {
+    question: "Your father becomes much more confused over a few hours. What should you do?",
+    options: [
+      { label: "Assume this is the next stage of Alzheimer's", correct: false, feedback: "A sudden change is not typical gradual progression. Delirium or another illness may be involved." },
+      { label: "Seek prompt medical assessment", correct: true, feedback: "Yes. A sudden change needs assessment; new weakness or difficulty speaking requires emergency help." },
+      { label: "Wait a few weeks to see if it passes", correct: false, feedback: "Waiting could delay treatment of an urgent or treatable problem." },
+    ],
+  },
+  {
+    question: "A relative has MCI. Does this mean they will definitely develop Alzheimer's?",
+    options: [
+      { label: "Yes, MCI always becomes Alzheimer's", correct: false, feedback: "MCI has different causes and outcomes. Some people remain stable or improve." },
+      { label: "No. Follow-up is needed, but progression is not certain", correct: true, feedback: "Right. MCI raises concern, but it is not a guaranteed path to dementia." },
+    ],
+  },
+  {
+    question: "A positive Alzheimer's biomarker result arrives. What is the next step?",
+    options: [
+      { label: "Interpret it together with symptoms and a full clinical evaluation", correct: true, feedback: "Yes. Biomarkers add information; they do not replace medical history, examination, and assessment of daily function." },
+      { label: "Use it to predict the exact date independence will be lost", correct: false, feedback: "A biomarker cannot give a reliable personal countdown." },
+    ],
+  },
+  {
+    question: "A friend says amyloid-targeting medicines restore lost memories. How would you respond?",
+    options: [
+      { label: "They can slow decline in selected early-stage patients, but do not restore lost cognition", correct: true, feedback: "Correct. Eligibility and risks, including brain swelling or bleeding, require specialist discussion and monitoring." },
+      { label: "They cure Alzheimer's for everyone", correct: false, feedback: "There is no cure. These medicines are not appropriate for every patient or disease stage." },
+    ],
+  },
 ];
 
 export const chapters: Chapter[] = [
-  {
-    n: 1,
-    title: "Understanding Alzheimer's",
-    lessons: [
-      {
-        id: "1.1",
-        title: "What is Alzheimer's?",
-        minutes: 4,
-        steps: [
-          {
-            id: "intro",
-            heading: "A disease of the brain, not a personal failing",
-            body: [
-              "Alzheimer's disease is a condition that slowly damages brain cells and the connections between them.",
-              "Over time, this makes it harder to remember, think, find words, and manage everyday tasks. The changes are gradual and usually unfold over many years.",
-              "When your loved one forgets or struggles, it is the disease at work. It is not stubbornness, and it is not something they can try harder to fix.",
-            ],
-          },
-          {
-            id: "dementia",
-            heading: "Alzheimer's and dementia",
-            body: [
-              "Dementia is a general word for a group of symptoms: memory loss and changes in thinking that are serious enough to affect daily life.",
-              "Alzheimer's is one disease that causes dementia. It is the most common cause, responsible for about 60 to 80 percent of cases. Other causes include vascular dementia and Lewy body dementia.",
-            ],
-            interaction: {
-              kind: "quiz",
-              quiz: {
-                question: "Which sentence is accurate?",
-                options: [
-                  { label: "Everyone with dementia has Alzheimer's", correct: false, feedback: "Not quite. Dementia has several possible causes. Alzheimer's is the most common, but not the only one." },
-                  { label: "Alzheimer's is one of several causes of dementia", correct: true, feedback: "That's it. Dementia is the umbrella; Alzheimer's sits under it alongside other conditions." },
-                  { label: "Dementia is just normal aging", correct: false, feedback: "Dementia is not a normal part of aging, even though it becomes more common in older age." },
-                ],
-              },
-            },
-          },
-          {
-            id: "aging",
-            heading: "Everyday forgetfulness, or something more?",
-            body: [
-              "Everyone forgets things now and then, and some slowing down is common with age. The difference is whether the changes disrupt daily life.",
-              "Sort each example below. There is no grade here, just a chance to notice the difference.",
-            ],
-            interaction: { kind: "forgetfulness" },
-          },
-          {
-            id: "wrap",
-            heading: "What to remember",
-            body: [
-              "Alzheimer's is a brain disease that gradually affects memory and thinking. It is the most common cause of dementia, and it is not a normal part of aging.",
-              "Next, we'll look at how memories are made, which helps explain why recent memories are often the first to fade.",
-            ],
-          },
-        ],
-      },
-      {
-        id: "1.2",
-        title: "How memory works",
-        minutes: 5,
-        steps: [
-          {
-            id: "neurons",
-            heading: "Billions of cells, talking all the time",
-            body: [
-              "Your brain contains roughly 86 billion nerve cells called neurons. Each one can connect with thousands of others.",
-              "Neurons that work together form networks. Every thought, feeling, and memory is a pattern of activity running through these networks.",
-            ],
-          },
-          {
-            id: "sequence",
-            heading: "From a moment to a memory",
-            body: ["Step through how an everyday moment, like a grandchild's visit, can become a memory."],
-            interaction: { kind: "memory" },
-            deeper:
-              "Scientists call the strengthening of memories over time consolidation. The hippocampus, in the inner part of the temporal lobe, helps bind together details stored across the cortex (sights, sounds, emotions). With repetition and sleep, memories become less dependent on the hippocampus and more spread across cortical networks.",
-          },
-          {
-            id: "hippocampus",
-            heading: "Why recent memories fade first",
-            body: [
-              "The hippocampus is one of the first areas affected by Alzheimer's. When it struggles, new experiences have trouble being saved.",
-              "Older memories that were formed long ago and revisited many times are stored more widely across the brain, so they often last longer. This is why someone may vividly describe their childhood home but not remember lunch.",
-            ],
-            interaction: {
-              kind: "quiz",
-              quiz: {
-                question: "Your mother asks the same question several times in an hour. What's the most likely reason?",
-                options: [
-                  { label: "She isn't listening to the answer", correct: false, feedback: "She is likely listening. The answer just isn't being stored as a new memory." },
-                  { label: "New information isn't being saved the way it used to be", correct: true, feedback: "Yes. Answering gently each time, as if it were the first, can help her feel safe." },
-                  { label: "She is testing your patience", correct: false, feedback: "Repeated questions are a symptom, not a test. They often come from uncertainty or worry." },
-                ],
-              },
-            },
-          },
-        ],
-      },
-      {
-        id: "1.3",
-        title: "Explore the brain",
-        minutes: 5,
-        steps: [
-          {
-            id: "explore",
-            heading: "A map of the brain",
-            body: [
-              "Select a region to see what it does and how Alzheimer's may affect it. The view below shows the left side of the brain, with the front on the left.",
-            ],
-            interaction: { kind: "brain" },
-            deeper:
-              "Alzheimer's changes usually begin in the medial temporal lobe, including the entorhinal cortex and hippocampus. They tend to spread next to other parts of the temporal and parietal lobes, and later to the frontal lobes. Areas for basic vision, movement, and the cerebellum are often affected later. Every person's pattern is a little different.",
-          },
-          {
-            id: "pattern",
-            heading: "Changes follow a pattern, loosely",
-            body: [
-              "Because Alzheimer's often starts in memory areas and spreads outward, memory changes usually come first. Later, language, planning, judgment, and recognizing places or faces may become harder.",
-              "Even late in the disease, many people still respond to music, touch, a warm tone of voice, and familiar routines.",
-            ],
-          },
-        ],
-      },
-      {
-        id: "1.4",
-        title: "What happens to neurons?",
-        minutes: 4,
-        steps: [
-          {
-            id: "anatomy",
-            heading: "Meet the neuron",
-            body: ["Select each part of the neuron to see its job."],
-            interaction: { kind: "neuron" },
-          },
-          {
-            id: "synapse",
-            heading: "Connections are everything",
-            body: [
-              "A single neuron can't hold a memory. Memories and skills live in the connections between many neurons.",
-              "At each synapse, one neuron releases chemical messengers that the next neuron picks up. The more a connection is used, the stronger it tends to become.",
-            ],
-            deeper:
-              "Chemical messengers are called neurotransmitters. Acetylcholine, one neurotransmitter important for memory and attention, is reduced in Alzheimer's. Some approved medicines (cholinesterase inhibitors) work by helping preserve acetylcholine levels; they can ease symptoms for some people but do not stop the disease.",
-          },
-          {
-            id: "disrupt",
-            heading: "When the network is disrupted",
-            body: [
-              "In Alzheimer's, synapses stop working properly and are lost, and over time neurons themselves are damaged and die.",
-              "Think of it like a city's roads closing one by one. Messages still try to get through, but they take longer, get lost, or don't arrive at all.",
-            ],
-          },
-        ],
-      },
-      {
-        id: "1.5",
-        title: "How Alzheimer's changes the brain",
-        minutes: 6,
-        steps: [
-          {
-            id: "changes",
-            heading: "Four connected changes",
-            body: [
-              "Researchers have identified several changes that work together in Alzheimer's. Select each one to compare a healthy area with an affected one.",
-            ],
-            interaction: { kind: "changes" },
-          },
-          {
-            id: "watch",
-            heading: "Watch it unfold",
-            body: [
-              "This short video from the National Institute on Aging shows how these changes develop in the brain over time.",
-            ],
-            video: {
-              title: "How Alzheimer's Changes the Brain",
-              source: "National Institute on Aging (NIA), National Institutes of Health",
-              embedUrl: "https://www.youtube-nocookie.com/embed/hEw1Yq_4PaA",
-            },
-          },
-          {
-            id: "symptoms",
-            heading: "From brain changes to everyday symptoms",
-            body: [
-              "No single change explains every symptom. Plaques, tangles, inflammation, lost connections, and lost neurons build on one another over many years, often starting a decade or more before symptoms appear.",
-              "Which symptoms show up depends partly on which areas are most affected. That's why two people with Alzheimer's can look quite different.",
-            ],
-            deeper:
-              "Tau tangles tend to track more closely with symptoms and with where neurons are lost than amyloid plaques do. Some people have significant amyloid without obvious symptoms. Research on how these changes interact, and why they happen, is ongoing.",
-            interaction: {
-              kind: "quiz",
-              quiz: {
-                question: "Which statement best describes how Alzheimer's causes symptoms?",
-                options: [
-                  { label: "A single plaque causes all the symptoms", correct: false, feedback: "Plaques are only one part of the picture." },
-                  { label: "Several changes build together over years and affect different brain areas", correct: true, feedback: "Yes. It's a gradual combination of changes, which is why each person's experience differs." },
-                  { label: "Symptoms appear the moment the disease starts", correct: false, feedback: "Brain changes often begin many years before symptoms are noticed." },
-                ],
-              },
-            },
-          },
-        ],
-      },
-      {
-        id: "1.6",
-        title: "Chapter review",
-        minutes: 5,
-        steps: [
-          {
-            id: "review",
-            heading: "Let's bring it together",
-            body: ["Five gentle questions to help it stick. You can try again as many times as you like."],
-            interaction: { kind: "review" },
-          },
-        ],
-      },
-    ],
-  },
+  { n: 1, title: "Understanding Alzheimer's", lessons: chapterOneLessons },
   { n: 2, title: "Experiencing Their World", lessons: [] },
   { n: 3, title: "Communication and Connection", lessons: [] },
   { n: 4, title: "Understanding Behaviors", lessons: [] },
