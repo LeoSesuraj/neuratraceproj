@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { EyeOff, Minus } from "lucide-react";
 import type { Lesson } from "@/lib/curriculum";
 import { NimWisp, type CompanionMood } from "./nim-wisp";
+import { Button } from "@/components/ui/button";
+import { companionPosition } from "./companion-position";
 
 /**
  * Nim the Wisp floats over the lesson area and offers gentle, pre-written
@@ -31,12 +33,22 @@ const encouragements = [
   "It's okay if some of this feels heavy. Pausing is part of learning, too.",
 ];
 
-type Props = { lesson: Lesson };
+type Props = {
+  lesson: Lesson;
+  activePart: string;
+  articleRef: RefObject<HTMLElement | null>;
+  contentRef: RefObject<HTMLElement | null>;
+};
 
-export function LearnCompanion({ lesson }: Props) {
+export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: Props) {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const [side, setSide] = useState<"right" | "left">("right");
+  const [position, setPosition] = useState({ x: 0, y: 0, ready: false });
+  const currentPosition = useRef(position);
+  const [entered, setEntered] = useState(false);
+  const interactionState = useRef({ open, hidden });
+  interactionState.current = { open, hidden };
+  const visit = useRef(0);
   const [reply, setReply] = useState<string | null>(null);
   const [mood, setMood] = useState<CompanionMood>("idle");
   const thinkTimer = useRef<number | null>(null);
@@ -45,7 +57,9 @@ export function LearnCompanion({ lesson }: Props) {
   useEffect(() => {
     setReply(null);
     setMood("idle");
-  }, [lesson.id]);
+    setOpen(false);
+    if (thinkTimer.current) window.clearTimeout(thinkTimer.current);
+  }, [activePart]);
 
   // Clear any pending "thinking" pause when Nim goes away.
   useEffect(
@@ -55,14 +69,72 @@ export function LearnCompanion({ lesson }: Props) {
     [],
   );
 
-  // On wide screens, occasionally drift to the other corner so she never
-  // sits on the same content for too long. Skipped for reduced motion.
+  // The reserved lane belongs to the lesson, not the viewport. Keep one
+  // mounted traveler and interpolate its coordinates between content anchors.
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (!window.matchMedia("(min-width: 1024px)").matches) return;
-    const t = window.setInterval(() => setSide((s) => (s === "right" ? "left" : "right")), 60000);
-    return () => window.clearInterval(t);
-  }, []);
+    const article = articleRef.current;
+    const content = contentRef.current;
+    if (!article || !content) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let releaseTimer: number | undefined;
+    let frame: number | undefined;
+    let entranceFrame: number | undefined;
+    visit.current += 1;
+    let stop = visit.current;
+
+    function move(idle = false) {
+      if (!article || !content) return;
+      const articleBox = article.getBoundingClientRect();
+      const contentBox = content.getBoundingClientRect();
+      const body = content.firstElementChild;
+      if (!(body instanceof HTMLElement)) return;
+      const size = window.matchMedia("(min-width: 640px)").matches ? 64 : 48;
+      const anchors = Array.from(content.querySelectorAll<HTMLElement>("[data-nim-anchor]"));
+      const visibleAnchors = anchors.filter((anchor) => {
+        const rect = anchor.getBoundingClientRect();
+        return rect.top < window.innerHeight - 80 && rect.bottom > 100;
+      });
+      const choices = idle && visibleAnchors.length ? visibleAnchors : anchors;
+      const anchor = choices[stop % Math.max(choices.length, 1)] ?? body;
+      const anchorBox = anchor.getBoundingClientRect();
+      const sectionTop = contentBox.top - articleBox.top;
+      const naturalHeight = Math.max(body.offsetHeight, size + 24);
+      const next = companionPosition({
+        right: contentBox.right - articleBox.left, sectionTop, height: naturalHeight,
+        anchorTop: anchorBox.top - contentBox.top, anchorHeight: anchorBox.height, size, visit: stop,
+      });
+      // Hold the outgoing lane until arrival, so even a shorter next part
+      // cannot put its navigation underneath the moving character.
+      window.clearTimeout(releaseTimer);
+      content.style.minHeight = `${Math.max(naturalHeight, currentPosition.current.y - sectionTop + size + 24)}px`;
+      currentPosition.current = next;
+      setPosition(next);
+      entranceFrame = window.requestAnimationFrame(() => {
+        entranceFrame = window.requestAnimationFrame(() => setEntered(true));
+      });
+      releaseTimer = window.setTimeout(() => { content.style.minHeight = ""; }, reducedMotion.matches ? 0 : 1550);
+    }
+
+    frame = window.requestAnimationFrame(() => move());
+    const observer = new ResizeObserver(() => {
+      window.cancelAnimationFrame(frame ?? 0);
+      frame = window.requestAnimationFrame(() => move());
+    });
+    if (content.firstElementChild) observer.observe(content.firstElementChild);
+    observer.observe(article);
+    const driftTimer = window.setInterval(() => {
+      if (reducedMotion.matches || interactionState.current.open || interactionState.current.hidden) return;
+      stop += 1;
+      move(true);
+    }, 14000);
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(frame ?? 0);
+      window.cancelAnimationFrame(entranceFrame ?? 0);
+      window.clearTimeout(releaseTimer);
+      window.clearInterval(driftTimer);
+    };
+  }, [activePart, articleRef, contentRef]);
 
   function closePanel() {
     setOpen(false);
@@ -89,17 +161,18 @@ export function LearnCompanion({ lesson }: Props) {
 
   if (hidden) {
     return (
-      <button
+      <Button
+        variant="ghost"
         type="button"
         onClick={() => setHidden(false)}
         aria-label="Bring Nim back"
-        className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card py-1.5 pr-4 pl-1.5 text-sm font-semibold text-primary shadow-sm lg:bottom-4"
+        className="nim-traveler absolute left-0 top-0 z-20 h-12 w-12 rounded-full p-0 text-primary"
+        style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)`, visibility: position.ready ? "visible" : "hidden", transition: entered ? undefined : "none" }}
       >
         <span className="h-8 w-8 shrink-0">
           <NimWisp />
         </span>
-        Nim
-      </button>
+      </Button>
     );
   }
 
@@ -132,15 +205,14 @@ export function LearnCompanion({ lesson }: Props) {
 
   return (
     <div
-      className={`fixed bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 flex flex-col items-end gap-3 transition-[left,right] duration-1000 ease-in-out lg:bottom-4 ${
-        side === "right" ? "right-4 left-auto" : "left-4 right-auto"
-      }`}
+      className="nim-traveler absolute left-0 top-0 z-20"
+      style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)`, visibility: position.ready ? "visible" : "hidden", transition: entered ? undefined : "none" }}
     >
       {open && (
         <div
           role="dialog"
           aria-label="Nim, the learning companion"
-          className="w-[min(20rem,calc(100vw-2rem))] rounded-3xl border border-border bg-card shadow-lg"
+          className="absolute right-0 top-full z-40 mt-3 w-[min(20rem,calc(100vw-2.5rem))] rounded-3xl border border-border bg-card shadow-lg"
         >
           <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
             <div className="flex items-center gap-2">
@@ -150,15 +222,17 @@ export function LearnCompanion({ lesson }: Props) {
               <p className="text-sm font-semibold text-foreground">Nim is here to help</p>
             </div>
             <div className="flex items-center gap-1">
-              <button
+              <Button
+                variant="ghost"
                 type="button"
                 onClick={closePanel}
                 aria-label="Minimize companion"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent"
               >
                 <Minus className="h-4 w-4" aria-hidden />
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 type="button"
                 onClick={() => {
                   setOpen(false);
@@ -168,19 +242,20 @@ export function LearnCompanion({ lesson }: Props) {
                 className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent"
               >
                 <EyeOff className="h-4 w-4" aria-hidden />
-              </button>
+              </Button>
             </div>
           </div>
           <div className="space-y-2 px-4 py-3">
             {actions.map((a) => (
-              <button
+              <Button
+                variant="secondary"
                 key={a.label}
                 type="button"
                 onClick={() => ask(a.respond)}
-                className="block w-full rounded-2xl bg-secondary px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                className="block h-auto w-full whitespace-normal rounded-2xl bg-secondary px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent"
               >
                 {a.label}
-              </button>
+              </Button>
             ))}
             {reply && (
               <p className="rounded-2xl bg-gradient-to-br from-lavender to-blush px-4 py-3 text-sm leading-relaxed text-foreground">
@@ -191,15 +266,16 @@ export function LearnCompanion({ lesson }: Props) {
         </div>
       )}
 
-      <button
+      <Button
+        variant="ghost"
         type="button"
         onClick={togglePanel}
         aria-expanded={open}
         aria-label={open ? "Close Nim, the learning companion" : "Open Nim, the learning companion"}
-        className="h-12 w-12 shrink-0 drop-shadow-[0_8px_16px_rgba(75,47,143,0.22)] transition-transform duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:h-[4.5rem] sm:w-[4.5rem]"
+        className="nim-trigger h-12 w-12 shrink-0 bg-transparent p-0 transition-transform duration-300 hover:scale-105 hover:bg-transparent focus-visible:ring-2 focus-visible:ring-ring sm:h-16 sm:w-16"
       >
         <NimWisp mood={mood} />
-      </button>
+      </Button>
     </div>
   );
 }
