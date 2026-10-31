@@ -51,7 +51,7 @@ export function LessonViewer(props: Props) {
         </div>
       </header>
 
-      <section ref={contentRef} className="nim-lesson-content relative mt-24 px-16 sm:px-[88px]">
+      <section ref={contentRef} className="nim-lesson-content relative mt-24 px-20 sm:px-[112px]">
         <div key={`${lesson.id}-${step.id}`} className="animate-in fade-in duration-500">
         <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">{step.heading}</h2>
         <div data-nim-anchor="reading" className="mt-4 space-y-4 text-lg leading-relaxed text-foreground/85">

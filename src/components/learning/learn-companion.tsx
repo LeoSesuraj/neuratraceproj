@@ -47,7 +47,6 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
   const currentPosition = useRef(position);
   const traveler = useRef<HTMLElement | null>(null);
   const travelAnimation = useRef<Animation | null>(null);
-  const crossingUntil = useRef(0);
   const interactionState = useRef({ open, hidden });
   interactionState.current = { open, hidden };
   const [reply, setReply] = useState<string | null>(null);
@@ -83,29 +82,21 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
     const visit = precedingParts + Math.max(0, lesson.steps.findIndex((part) => `${lesson.id}-${part.id}` === activePart));
     let stop = visit;
 
-    function move(idle = false, scrolling = false) {
+    function move(idle = false) {
       if (!article || !content) return;
-      if (scrolling && performance.now() < crossingUntil.current) return;
       const articleBox = article.getBoundingClientRect();
       const contentBox = content.getBoundingClientRect();
       const body = content.firstElementChild;
       if (!(body instanceof HTMLElement)) return;
       const size = window.matchMedia("(min-width: 640px)").matches ? 64 : 48;
       const anchors = Array.from(content.querySelectorAll<HTMLElement>("[data-nim-anchor]"));
-      const visibleAnchors = anchors.filter((anchor) => {
-        const rect = anchor.getBoundingClientRect();
-        return rect.top < window.innerHeight - 80 && rect.bottom > 100;
-      });
-      const choices = (idle || scrolling) && visibleAnchors.length ? visibleAnchors : anchors;
-      const anchor = choices[stop % Math.max(choices.length, 1)] ?? body;
+      const anchor = anchors[stop % Math.max(anchors.length, 1)] ?? body;
       const anchorBox = anchor.getBoundingClientRect();
       const sectionTop = contentBox.top - articleBox.top;
       const naturalHeight = Math.max(body.offsetHeight, size + 24);
       const next = companionPosition({
         left: contentBox.left - articleBox.left, right: contentBox.right - articleBox.left, sectionTop, height: naturalHeight,
         anchorTop: anchorBox.top - contentBox.top, anchorHeight: anchorBox.height, size, visit,
-        viewportTop: -articleBox.top, viewportHeight: window.innerHeight,
-        scroll: window.scrollY + (idle ? stop * 55 : 0),
       });
       // Hold the outgoing lane until arrival, so even a shorter next part
       // cannot put its navigation underneath the moving character.
@@ -126,9 +117,7 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
           { transform: `translate3d(${next.x}px, ${corridor}px, 0)`, offset: 0.7 },
           { transform: finish },
         ] : [{ transform: start }, { transform: finish }];
-        crossingUntil.current = crossing ? performance.now() + 1500 : 0;
-        travelAnimation.current = element.animate(frames, { duration: crossing ? 1500 : scrolling ? 480 : 1200, easing: "ease-in-out" });
-        if (crossing) travelAnimation.current.onfinish = () => move(false, true);
+        travelAnimation.current = element.animate(frames, { duration: crossing ? 1500 : 1200, easing: "ease-in-out" });
       }
       currentPosition.current = destination;
       setPosition(destination);
@@ -142,12 +131,11 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
     });
     if (content.firstElementChild) observer.observe(content.firstElementChild);
     observer.observe(article);
-    const onScroll = () => {
+    const onResize = () => {
       window.cancelAnimationFrame(frame ?? 0);
-      frame = window.requestAnimationFrame(() => move(false, true));
+      frame = window.requestAnimationFrame(() => move());
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", onResize);
     const driftTimer = window.setInterval(() => {
       if (reducedMotion.matches || interactionState.current.open || interactionState.current.hidden) return;
       stop += 1;
@@ -155,8 +143,7 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
     }, 14000);
     return () => {
       observer.disconnect();
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
       window.cancelAnimationFrame(frame ?? 0);
       window.clearTimeout(releaseTimer);
       window.clearInterval(driftTimer);
