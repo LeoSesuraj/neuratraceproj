@@ -47,7 +47,6 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
   const currentPosition = useRef(position);
   const traveler = useRef<HTMLElement | null>(null);
   const travelAnimation = useRef<Animation | null>(null);
-  const crossingUntil = useRef(0);
   const interactionState = useRef({ open, hidden });
   interactionState.current = { open, hidden };
   const [reply, setReply] = useState<string | null>(null);
