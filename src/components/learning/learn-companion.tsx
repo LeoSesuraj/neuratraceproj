@@ -3,6 +3,7 @@ import { EyeOff, Minus } from "lucide-react";
 import type { Lesson } from "@/lib/curriculum";
 import { NimWisp, type CompanionMood } from "./nim-wisp";
 import { Button } from "@/components/ui/button";
+import { companionPosition } from "./companion-position";
 
 /**
  * Nim the Wisp floats over the lesson area and offers gentle, pre-written
@@ -44,6 +45,9 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
   const [hidden, setHidden] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0, ready: false });
   const currentPosition = useRef(position);
+  const [entered, setEntered] = useState(false);
+  const interactionState = useRef({ open, hidden });
+  interactionState.current = { open, hidden };
   const visit = useRef(0);
   const [reply, setReply] = useState<string | null>(null);
   const [mood, setMood] = useState<CompanionMood>("idle");
@@ -74,6 +78,7 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let releaseTimer: number | undefined;
     let frame: number | undefined;
+    let entranceFrame: number | undefined;
     visit.current += 1;
     let stop = visit.current;
 
@@ -94,19 +99,19 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
       const anchorBox = anchor.getBoundingClientRect();
       const sectionTop = contentBox.top - articleBox.top;
       const naturalHeight = Math.max(body.offsetHeight, size + 24);
-      const localY = Math.max(12, Math.min(naturalHeight - size - 12,
-        anchorBox.top - contentBox.top + Math.min(anchorBox.height * (stop % 2 ? 0.2 : 0.55), 150)));
-      const next = {
-        x: contentBox.right - articleBox.left - size - (stop % 2 ? 8 : 16),
-        y: sectionTop + localY,
-        ready: true,
-      };
+      const next = companionPosition({
+        right: contentBox.right - articleBox.left, sectionTop, height: naturalHeight,
+        anchorTop: anchorBox.top - contentBox.top, anchorHeight: anchorBox.height, size, visit: stop,
+      });
       // Hold the outgoing lane until arrival, so even a shorter next part
       // cannot put its navigation underneath the moving character.
       window.clearTimeout(releaseTimer);
       content.style.minHeight = `${Math.max(naturalHeight, currentPosition.current.y - sectionTop + size + 24)}px`;
       currentPosition.current = next;
       setPosition(next);
+      entranceFrame = window.requestAnimationFrame(() => {
+        entranceFrame = window.requestAnimationFrame(() => setEntered(true));
+      });
       releaseTimer = window.setTimeout(() => { content.style.minHeight = ""; }, reducedMotion.matches ? 0 : 1550);
     }
 
@@ -118,17 +123,18 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
     if (content.firstElementChild) observer.observe(content.firstElementChild);
     observer.observe(article);
     const driftTimer = window.setInterval(() => {
-      if (reducedMotion.matches || open || hidden) return;
+      if (reducedMotion.matches || interactionState.current.open || interactionState.current.hidden) return;
       stop += 1;
       move(true);
     }, 14000);
     return () => {
       observer.disconnect();
       window.cancelAnimationFrame(frame ?? 0);
+      window.cancelAnimationFrame(entranceFrame ?? 0);
       window.clearTimeout(releaseTimer);
       window.clearInterval(driftTimer);
     };
-  }, [activePart, articleRef, contentRef, open, hidden]);
+  }, [activePart, articleRef, contentRef]);
 
   function closePanel() {
     setOpen(false);
@@ -161,7 +167,7 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
         onClick={() => setHidden(false)}
         aria-label="Bring Nim back"
         className="nim-traveler absolute left-0 top-0 z-20 h-12 w-12 rounded-full p-0 text-primary"
-        style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)`, visibility: position.ready ? "visible" : "hidden" }}
+        style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)`, visibility: position.ready ? "visible" : "hidden", transition: entered ? undefined : "none" }}
       >
         <span className="h-8 w-8 shrink-0">
           <NimWisp />
@@ -200,7 +206,7 @@ export function LearnCompanion({ lesson, activePart, articleRef, contentRef }: P
   return (
     <div
       className="nim-traveler absolute left-0 top-0 z-20"
-      style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)`, visibility: position.ready ? "visible" : "hidden" }}
+      style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)`, visibility: position.ready ? "visible" : "hidden", transition: entered ? undefined : "none" }}
     >
       {open && (
         <div
