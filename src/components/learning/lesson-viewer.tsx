@@ -5,6 +5,7 @@ import { KnowledgeCheck } from "./knowledge-check";
 import { BrainInteraction } from "./brain-interaction";
 import { BrainChanges, ForgetfulnessSort, MemorySequence, NeuronDiagram } from "./interactive-diagram";
 import { LearnCompanion } from "./learn-companion";
+import { LessonEvidence } from "./lesson-evidence";
 
 type Props = {
   lesson: Lesson;
@@ -70,6 +71,7 @@ export function LessonViewer(props: Props) {
         )}
         {step.video && <VideoBlock video={step.video} />}
         {step.deeper && <Deeper text={step.deeper} />}
+        <LessonEvidence lesson={lesson} step={step} />
         </div>
       </section>
 
@@ -163,6 +165,10 @@ const takeaways = [
   "Memories live in connections between neurons, and those connections are disrupted in Alzheimer's.",
   "Amyloid plaques, tau tangles, lost synapses, and neuron loss build up together over many years.",
   "Behind every symptom is a changing brain, not a choice. Feelings and connection often remain.",
+  "MCI does not always progress to dementia. Assessment and follow-up matter.",
+  "Biomarkers support a full clinical evaluation, not a personal countdown.",
+  "Treatment can help symptoms or slow decline in selected people, but does not cure Alzheimer's.",
+  "A sudden change in confusion or function needs prompt medical assessment.",
 ];
 
 function ChapterReview({ reflection, onReflection }: { reflection?: string; onReflection: (t: string) => void }) {

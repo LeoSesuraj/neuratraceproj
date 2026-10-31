@@ -15,14 +15,24 @@ const simpleExplanations: Record<string, string> = {
   "1.1":
     "Alzheimer's is a disease that slowly hurts brain cells. It is the most common reason people develop dementia, and it is nobody's fault.",
   "1.2":
-    "Your brain saves new moments using a part called the hippocampus. Alzheimer's often affects it first, so new memories fade while old ones stay.",
+    "Mild cognitive impairment means changes beyond typical aging, while independence is largely preserved. It does not always become dementia. A clinician can help understand what is changing.",
   "1.3":
-    "Different parts of the brain do different jobs. Alzheimer's usually starts in the memory areas and slowly spreads, which is why memory changes come first.",
+    "Your brain forms memories through networks. The hippocampus helps link new experiences. Alzheimer's often affects these networks early, so older memories may last longer than recent ones.",
   "1.4":
-    "Brain cells talk to each other through tiny connection points. In Alzheimer's, those connections stop working well, so messages get lost.",
+    "Brain regions work together. Memory, language, planning, and perception use connected networks. No one region explains a person's whole behavior.",
   "1.5":
-    "Several changes happen together in Alzheimer's: protein clumps, tangles, lost connections, and lost brain cells. They build up slowly over many years.",
+    "Neurons send signals across synapses. Alzheimer's disrupts communication, energy, and repair, and connections and cells can be lost.",
   "1.6":
+    "Amyloid plaques, tau tangles, inflammation, and lost connections interact over time. Alzheimer's is not a single simple chain of changes.",
+  "1.7":
+    "People with the same diagnosis can have different difficulties. Other health conditions and the environment matter too. Adapt support to the individual.",
+  "1.8":
+    "Diagnosis brings together symptoms, everyday abilities, examination, and tests. Biomarkers add information but cannot replace that whole picture.",
+  "1.9":
+    "There is no cure. Some medicines help symptoms; others can slow decline in selected early-stage patients. Benefits and risks need a specialist conversation.",
+  "1.10":
+    "Stages describe broad support needs, not a timetable. A sudden change needs medical assessment rather than an assumption that Alzheimer's has progressed.",
+  "1.11":
     "This chapter's big idea: Alzheimer's is a brain disease, not a choice. Behind every symptom is a changing brain, and feelings and connection often remain.",
 };
 

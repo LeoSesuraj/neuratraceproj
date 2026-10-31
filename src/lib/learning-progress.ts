@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { allLessons } from "./curriculum";
+import { migrateOriginalProgress } from "./learning-progress-migration";
 
 /** Anonymous, device-local learning progress. Never mixed with resident records. */
-const KEY = "neuratrace.learning.v1";
+const KEY = "neuratrace.learning.v2";
 
 export type Progress = {
   completed: string[];
@@ -15,7 +16,13 @@ const initial: Progress = { completed: [], current: allLessons[0]?.id ?? "1.1" }
 function read(): Progress {
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return initial;
+    if (!raw) {
+      const legacy = window.localStorage.getItem("neuratrace.learning.v1");
+      if (!legacy) return initial;
+      const migrated = migrateOriginalProgress(JSON.parse(legacy));
+      window.localStorage.setItem(KEY, JSON.stringify(migrated));
+      return migrated;
+    }
     const p = JSON.parse(raw) as Partial<Progress>;
     return {
       completed: Array.isArray(p.completed) ? p.completed.filter((id) => allLessons.some((l) => l.id === id)) : [],

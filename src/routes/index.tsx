@@ -61,7 +61,7 @@ function HomePage() {
           <div className="absolute -bottom-5 left-5 right-5 rounded-3xl bg-card/95 p-4 shadow-lg backdrop-blur sm:left-auto sm:right-6 sm:w-72">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">Chapter 01</p>
             <p className="mt-1 text-base font-semibold text-foreground">Understanding Alzheimer's</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">6 short, interactive lessons</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">11 interactive lessons</p>
           </div>
         </div>
       </main>
